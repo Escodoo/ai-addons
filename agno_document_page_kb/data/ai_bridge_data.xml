@@ -6,7 +6,7 @@
         BRIDGE_AUTH_TOKEN on each bridge after install.
 
         domain and field_ids are stored computed fields on ai.bridge; the
-        post_init_hook rewrites them so create/write filters stay correct.
+        post_init_hook rewrites them and upserts matching content pages.
     -->
 
     <!-- Support KB (customer helpdesk content) -->

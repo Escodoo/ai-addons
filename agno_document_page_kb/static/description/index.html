@@ -379,11 +379,10 @@ content pages that carry the matching tag are synced.</p>
 <p>Tags map to <strong>knowledge bases</strong> (content), not to Discuss bots. Agno
 agents (<tt class="docutils literal">ops</tt>, <tt class="docutils literal">support</tt>, <tt class="docutils literal">sales</tt>, <tt class="docutils literal">web</tt>) choose which bases to
 search.</p>
-<p>A post-install hook rewrites each bridge domain and field list so the
-filters stay correct after <tt class="docutils literal">ai.bridge</tt> recomputes stored fields on
-install. It also copies system parameter
-<tt class="docutils literal">agno_document_page_kb.bridge_auth_token</tt> onto bridges whose
-<tt class="docutils literal">auth_token</tt> is still empty.</p>
+<p>A post-install hook applies the bridge auth token (ICP override or
+odoo.conf <tt class="docutils literal">agno_bridge_auth_token</tt> from <tt class="docutils literal">conf.d</tt>) to bridges with an
+empty token, rewrites each bridge domain / field list, then upserts all
+matching content pages (demo and pre-existing) into Agno.</p>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
@@ -400,16 +399,25 @@ install. It also copies system parameter
 </div>
 <div class="section" id="configuration">
 <h1><a class="toc-backref" href="#toc-entry-1">Configuration</a></h1>
-<p>After install, set the bearer token expected by Agno
-<tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> on each document.page knowledge-base bridge.</p>
-<p><strong>Preferred (Doodba):</strong> set system parameter
-<tt class="docutils literal">agno_document_page_kb.bridge_auth_token</tt> to the same value as
-<tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> <em>before</em> installing (or clearing bridge tokens and
-upgrading). The post-init hook copies it onto bridges whose
-<tt class="docutils literal">auth_token</tt> is still empty.</p>
+<p>Set the bearer token expected by Agno <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> on each
+document.page knowledge-base bridge.</p>
+<p><strong>Preferred:</strong> set <tt class="docutils literal">agno_bridge_auth_token</tt> in <tt class="docutils literal">odoo.conf</tt> (same
+value as Agno <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt>). On Doodba use
+<tt class="docutils literal"><span class="pre">conf.d/03-agno.conf</span></tt> + <tt class="docutils literal">.docker/odoo.env</tt>; without Doodba, set the
+literal under <tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">agno_connector</tt> CONFIGURE). The
+post-init hook copies it onto bridges whose <tt class="docutils literal">auth_token</tt> is still
+empty, rewrites each bridge domain / field list, then upserts every
+matching content page (<tt class="docutils literal">type=content</tt> + tag) into Agno — including
+demo pages and pages that already existed before install.</p>
+<p><strong>Optional override:</strong> system parameter
+<tt class="docutils literal">agno_document_page_kb.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).</p>
+<p>Demo page creates may return HTTP 401 while bridges still have an empty
+token; the post-init sync reindexes them afterwards. Without conf/ICP
+token, post-init skips the sync.</p>
 <p><strong>Manual:</strong> open <em>Settings → Technical → AI Bridges</em>, set Authentication
 Type to token, and paste <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> on each Document Page →
-Agno KB bridge.</p>
+Agno KB bridge. Then edit/save pages (or upgrade with the token
+configured) to index them.</p>
 <p>Default bridge URLs (reachable from the Odoo container in a Doodba
 stack):</p>
 <table border="1" class="docutils">
@@ -504,7 +512,10 @@ according to the audience of the content:</p>
 <p>Editorial rule: never put internal SOPs on <tt class="docutils literal">public</tt> or <tt class="docutils literal">support</tt>.</p>
 <p>When the database is created with demo data, this module loads sample
 Knowledge categories and content pages (three per tag) so each Agno
-knowledge base can be exercised without creating pages by hand.</p>
+knowledge base can be exercised without creating pages by hand. Demo
+creates may briefly fail auth before post-init; the post-install hook
+then upserts demo pages and any pre-existing content pages that already
+use the module tags.</p>
 </div>
 <div class="section" id="bug-tracker">
 <h1><a class="toc-backref" href="#toc-entry-3">Bug Tracker</a></h1>

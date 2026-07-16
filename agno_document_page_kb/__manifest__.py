@@ -4,7 +4,7 @@
 {
     "name": "Agno Document Page Knowledge Base",
     "summary": """Sync document.page records to Agno knowledge bases via AI bridges""",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.6.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",

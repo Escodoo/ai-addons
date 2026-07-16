@@ -34,11 +34,10 @@ Tags map to **knowledge bases** (content), not to Discuss bots. Agno
 agents (``ops``, ``support``, ``sales``, ``web``) choose which bases to
 search.
 
-A post-install hook rewrites each bridge domain and field list so the
-filters stay correct after ``ai.bridge`` recomputes stored fields on
-install. It also copies system parameter
-``agno_document_page_kb.bridge_auth_token`` onto bridges whose
-``auth_token`` is still empty.
+A post-install hook applies the bridge auth token (ICP override or
+odoo.conf ``agno_bridge_auth_token`` from ``conf.d``) to bridges with an
+empty token, rewrites each bridge domain / field list, then upserts all
+matching content pages (demo and pre-existing) into Agno.
 
 **Table of contents**
 
@@ -48,18 +47,29 @@ install. It also copies system parameter
 Configuration
 =============
 
-After install, set the bearer token expected by Agno
-``BRIDGE_AUTH_TOKEN`` on each document.page knowledge-base bridge.
+Set the bearer token expected by Agno ``BRIDGE_AUTH_TOKEN`` on each
+document.page knowledge-base bridge.
 
-**Preferred (Doodba):** set system parameter
-``agno_document_page_kb.bridge_auth_token`` to the same value as
-``BRIDGE_AUTH_TOKEN`` *before* installing (or clearing bridge tokens and
-upgrading). The post-init hook copies it onto bridges whose
-``auth_token`` is still empty.
+**Preferred:** set ``agno_bridge_auth_token`` in ``odoo.conf`` (same
+value as Agno ``BRIDGE_AUTH_TOKEN``). On Doodba use
+``conf.d/03-agno.conf`` + ``.docker/odoo.env``; without Doodba, set the
+literal under ``[options]`` (see ``agno_connector`` CONFIGURE). The
+post-init hook copies it onto bridges whose ``auth_token`` is still
+empty, rewrites each bridge domain / field list, then upserts every
+matching content page (``type=content`` + tag) into Agno — including
+demo pages and pages that already existed before install.
+
+**Optional override:** system parameter
+``agno_document_page_kb.bridge_auth_token`` (wins over ``odoo.conf``).
+
+Demo page creates may return HTTP 401 while bridges still have an empty
+token; the post-init sync reindexes them afterwards. Without conf/ICP
+token, post-init skips the sync.
 
 **Manual:** open *Settings → Technical → AI Bridges*, set Authentication
 Type to token, and paste ``BRIDGE_AUTH_TOKEN`` on each Document Page →
-Agno KB bridge.
+Agno KB bridge. Then edit/save pages (or upgrade with the token
+configured) to index them.
 
 Default bridge URLs (reachable from the Odoo container in a Doodba
 stack):
@@ -119,7 +129,10 @@ Editorial rule: never put internal SOPs on ``public`` or ``support``.
 
 When the database is created with demo data, this module loads sample
 Knowledge categories and content pages (three per tag) so each Agno
-knowledge base can be exercised without creating pages by hand.
+knowledge base can be exercised without creating pages by hand. Demo
+creates may briefly fail auth before post-init; the post-install hook
+then upserts demo pages and any pre-existing content pages that already
+use the module tags.
 
 Bug Tracker
 ===========

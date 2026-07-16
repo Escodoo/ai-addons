@@ -22,4 +22,6 @@ Editorial rule: never put internal SOPs on `public` or `support`.
 
 When the database is created with demo data, this module loads sample
 Knowledge categories and content pages (three per tag) so each Agno knowledge
-base can be exercised without creating pages by hand.
+base can be exercised without creating pages by hand. Demo creates may briefly
+fail auth before post-init; the post-install hook then upserts demo pages and
+any pre-existing content pages that already use the module tags.
