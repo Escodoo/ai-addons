@@ -83,9 +83,15 @@ class TestAgnoRpcCoverage(HttpCase):
         return payload
 
     def test_not_configured_without_service_token(self):
+        from unittest.mock import patch
+
         self._set_icp({"agno_connector.service_token": ""})
         try:
-            resp = self._rpc(self._signed_payload(self.rpc_user))
+            with patch(
+                "odoo.addons.agno_connector.token_utils.odoo_config.get",
+                return_value="",
+            ):
+                resp = self._rpc(self._signed_payload(self.rpc_user))
             self.assertEqual(resp.status_code, 503)
             self.assertEqual(resp.json().get("error"), "not_configured")
         finally:

@@ -113,16 +113,21 @@ class AgnoRpcController(http.Controller):
         return request.make_json_response({"result": result})
 
     def _check_service_token(self):
-        expected = (
-            request.env["ir.config_parameter"]
-            .sudo()
-            .get_param("agno_connector.service_token")
+        from ..token_utils import (
+            CONFIG_SERVICE_TOKEN,
+            ICP_SERVICE_TOKEN,
+            ensure_token,
         )
+
+        expected = ensure_token(request.env, ICP_SERVICE_TOKEN, CONFIG_SERVICE_TOKEN)
         if not expected:
             return request.make_json_response(
                 {
                     "error": "not_configured",
-                    "detail": "agno_connector.service_token is not set.",
+                    "detail": (
+                        "agno_connector.service_token is not set "
+                        "(ICP or odoo.conf agno_service_token)."
+                    ),
                 },
                 status=503,
             )
