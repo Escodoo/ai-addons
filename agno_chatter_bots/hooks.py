@@ -1,7 +1,12 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-"""Post-install hook to apply the bridge auth token from system parameters."""
+"""Post-install hook to apply the bridge auth token from ICP or odoo.conf."""
+
+from odoo.addons.agno_connector.token_utils import (
+    CONFIG_BRIDGE_AUTH_TOKEN,
+    ensure_token,
+)
 
 _BRIDGE_XMLIDS = (
     "agno_chatter_bots.ai_bridge_chatter_erp",
@@ -15,8 +20,8 @@ _ICP_KEY = "agno_chatter_bots.bridge_auth_token"
 
 
 def post_init_hook(env):
-    """Copy ICP token onto chatter bridges that still have an empty auth_token."""
-    token = env["ir.config_parameter"].sudo().get_param(_ICP_KEY)
+    """Copy token onto chatter bridges that still have an empty auth_token."""
+    token = ensure_token(env, _ICP_KEY, CONFIG_BRIDGE_AUTH_TOKEN)
     if not token:
         return
     for xmlid in _BRIDGE_XMLIDS:
