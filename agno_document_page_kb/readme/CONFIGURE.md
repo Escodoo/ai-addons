@@ -1,7 +1,13 @@
-After install, open each bridge under *Settings → Technical → AI Bridges* and
-set **Authentication Type** to token with the same secret as the Agno service
-`BRIDGE_AUTH_TOKEN`. The field is left empty on purpose so secrets are not
-committed in XML.
+After install, set the bearer token expected by Agno `BRIDGE_AUTH_TOKEN` on
+each document.page knowledge-base bridge.
+
+**Preferred (Doodba):** set system parameter
+`agno_document_page_kb.bridge_auth_token` to the same value as `BRIDGE_AUTH_TOKEN`
+*before* installing (or clearing bridge tokens and upgrading). The post-init
+hook copies it onto bridges whose `auth_token` is still empty.
+
+**Manual:** open *Settings → Technical → AI Bridges*, set Authentication Type
+to token, and paste `BRIDGE_AUTH_TOKEN` on each Document Page → Agno KB bridge.
 
 Default bridge URLs (reachable from the Odoo container in a Doodba stack):
 

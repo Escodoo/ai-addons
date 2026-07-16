@@ -4,7 +4,7 @@
 {
     "name": "Agno Document Page Knowledge Base",
     "summary": """Sync document.page records to Agno knowledge bases via AI bridges""",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.3.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",
@@ -19,6 +19,9 @@
     "data": [
         "data/document_page_tag_data.xml",
         "data/ai_bridge_data.xml",
+    ],
+    "demo": [
+        "demo/document_page_demo.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

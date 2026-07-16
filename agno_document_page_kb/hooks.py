@@ -1,12 +1,17 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-"""Post-install hook to force bridge filters and field lists.
+"""Post-install hook for document.page → Agno KB bridges.
 
 ai.bridge.domain and field_ids are stored computed fields whose compute
 resets them when model_id is set. Writing them again after install keeps
 the document.page → Agno sync filters intact.
+
+The hook also copies ICP agno_document_page_kb.bridge_auth_token onto
+bridges that still have an empty auth_token.
 """
+
+_ICP_KEY = "agno_document_page_kb.bridge_auth_token"
 
 # Tag xmlid → create/write/unlink bridge xmlids (one KB per tag).
 _TAG_BRIDGE_PAIRS = (
@@ -52,8 +57,25 @@ _TAG_BRIDGE_PAIRS = (
     ),
 )
 
+_BRIDGE_XMLIDS = tuple(
+    xmlid for _tag, bridge_xmlids in _TAG_BRIDGE_PAIRS for xmlid in bridge_xmlids
+)
+
+
+def _apply_auth_token(env):
+    """Copy ICP token onto KB bridges that still have an empty auth_token."""
+    token = env["ir.config_parameter"].sudo().get_param(_ICP_KEY)
+    if not token:
+        return
+    for xmlid in _BRIDGE_XMLIDS:
+        bridge = env.ref(xmlid, raise_if_not_found=False)
+        if bridge and not bridge.auth_token:
+            bridge.auth_token = token
+
 
 def post_init_hook(env):
+    _apply_auth_token(env)
+
     field_refs = [
         "document_page.field_document_page__content",
         "document_page.field_document_page__display_name",

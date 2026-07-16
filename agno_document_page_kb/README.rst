@@ -36,7 +36,9 @@ search.
 
 A post-install hook rewrites each bridge domain and field list so the
 filters stay correct after ``ai.bridge`` recomputes stored fields on
-install.
+install. It also copies system parameter
+``agno_document_page_kb.bridge_auth_token`` onto bridges whose
+``auth_token`` is still empty.
 
 **Table of contents**
 
@@ -46,10 +48,18 @@ install.
 Configuration
 =============
 
-After install, open each bridge under *Settings → Technical → AI
-Bridges* and set **Authentication Type** to token with the same secret
-as the Agno service ``BRIDGE_AUTH_TOKEN``. The field is left empty on
-purpose so secrets are not committed in XML.
+After install, set the bearer token expected by Agno
+``BRIDGE_AUTH_TOKEN`` on each document.page knowledge-base bridge.
+
+**Preferred (Doodba):** set system parameter
+``agno_document_page_kb.bridge_auth_token`` to the same value as
+``BRIDGE_AUTH_TOKEN`` *before* installing (or clearing bridge tokens and
+upgrading). The post-init hook copies it onto bridges whose
+``auth_token`` is still empty.
+
+**Manual:** open *Settings → Technical → AI Bridges*, set Authentication
+Type to token, and paste ``BRIDGE_AUTH_TOKEN`` on each Document Page →
+Agno KB bridge.
 
 Default bridge URLs (reachable from the Odoo container in a Doodba
 stack):
@@ -106,6 +116,10 @@ Synced content is indexed in Agno under the stable name
 (``type=content`` + tag) are ignored.
 
 Editorial rule: never put internal SOPs on ``public`` or ``support``.
+
+When the database is created with demo data, this module loads sample
+Knowledge categories and content pages (three per tag) so each Agno
+knowledge base can be exercised without creating pages by hand.
 
 Bug Tracker
 ===========

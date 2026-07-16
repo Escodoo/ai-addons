@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
     <!--
-        auth_token is intentionally left empty: set it to BRIDGE_AUTH_TOKEN
-        after install (Settings > Technical > AI Bridges).
+        auth_token is intentionally left empty. Set ICP
+        agno_document_page_kb.bridge_auth_token before install, or paste
+        BRIDGE_AUTH_TOKEN on each bridge after install.
 
         domain and field_ids are stored computed fields on ai.bridge; the
         post_init_hook rewrites them so create/write filters stay correct.

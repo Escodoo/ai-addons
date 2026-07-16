@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!-- Support KB: customer helpdesk FAQs and manuals -->
+    <record id="demo_category_support" model="document.page">
+        <field name="name">Support Knowledge (Demo)</field>
+        <field name="type">category</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_support')])]" />
+    </record>
+
+    <record id="demo_page_support_password_reset" model="document.page">
+        <field name="name">Password reset and login troubleshooting</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_support" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_support')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Password reset and login troubleshooting</h2>
+<p>
+    Use this guide when a customer cannot sign in to the portal or reports a
+    forgotten password.
+</p>
+<h3>Self-service reset</h3>
+<ol>
+    <li>Open the portal login page and choose <strong>Reset Password</strong>.</li>
+    <li>Enter the email address linked to the account.</li>
+    <li>Ask the customer to check inbox and spam for the reset link (valid 24 hours).</li>
+    <li>After setting a new password, sign in again with the same email.</li>
+</ol>
+<h3>Common issues</h3>
+<ul>
+    <li><strong>No email received:</strong> confirm the address, wait a few minutes, then resend once.</li>
+    <li><strong>Link expired:</strong> request a new reset email; do not reuse old links.</li>
+    <li><strong>Account locked:</strong> after five failed attempts the account locks for 30 minutes. Escalate if the customer still cannot access after that window.</li>
+</ul>
+<p>
+    Do not ask the customer for their current password. Escalate to a human agent
+    when the account must be unlocked manually or the email on file is wrong.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_support_sla" model="document.page">
+        <field name="name">Ticket priorities and response SLA</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_support" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_support')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Ticket priorities and response SLA</h2>
+<p>
+    Demo SLA targets for customer support. Use these values when explaining
+    expected response times; they are not contractual commitments.
+</p>
+<table>
+    <thead>
+        <tr>
+            <th>Priority</th>
+            <th>When to use</th>
+            <th>First response</th>
+            <th>Target resolution</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Critical</td>
+            <td>Production down or data loss risk</td>
+            <td>1 business hour</td>
+            <td>4 business hours</td>
+        </tr>
+        <tr>
+            <td>High</td>
+            <td>Major feature blocked for many users</td>
+            <td>4 business hours</td>
+            <td>1 business day</td>
+        </tr>
+        <tr>
+            <td>Normal</td>
+            <td>Standard how-to or single-user issue</td>
+            <td>1 business day</td>
+            <td>3 business days</td>
+        </tr>
+        <tr>
+            <td>Low</td>
+            <td>Enhancement ideas or cosmetic issues</td>
+            <td>2 business days</td>
+            <td>Best effort</td>
+        </tr>
+    </tbody>
+</table>
+<p>
+    Business hours for the demo helpdesk are Monday–Friday, 09:00–18:00
+    (America/Sao_Paulo), excluding public holidays.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_support_refund_escalate" model="document.page">
+        <field name="name">How to request a refund or escalate to a human</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_support" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_support')])]" />
+        <field name="content">
+<![CDATA[
+<h2>How to request a refund or escalate to a human</h2>
+<p>
+    Refunds and account changes always require a human agent. The support bot
+    must not approve refunds or change billing data.
+</p>
+<h3>Refund request checklist</h3>
+<ol>
+    <li>Collect invoice or order number, amount, and reason.</li>
+    <li>Confirm the purchase date (demo policy: refunds within 14 days for unused seats).</li>
+    <li>Open a ticket with priority High and tag it <em>billing</em>.</li>
+    <li>Tell the customer that a specialist will reply within one business day.</li>
+</ol>
+<h3>When to escalate</h3>
+<ul>
+    <li>Customer asks for a refund, credit note, or contract change.</li>
+    <li>Security concern or suspected unauthorized access.</li>
+    <li>Issue remains unresolved after two documented troubleshooting attempts.</li>
+</ul>
+<p>
+    Escalate politely: acknowledge the request, state that a human will follow up,
+    and avoid promising a specific refund amount or timeline beyond the SLA.
+</p>
+]]>
+        </field>
+    </record>
+
+    <!-- Legal KB: contracts / compliance for ops and sales -->
+    <record id="demo_category_legal" model="document.page">
+        <field name="name">Legal Knowledge (Demo)</field>
+        <field name="type">category</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_legal')])]" />
+    </record>
+
+    <record id="demo_page_legal_nda_msa" model="document.page">
+        <field name="name">Standard NDA and MSA review checklist</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_legal" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_legal')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Standard NDA and MSA review checklist</h2>
+<p>
+    Informative checklist for ops and sales. This is not formal legal advice;
+    final contracts must be reviewed by counsel when terms are non-standard.
+</p>
+<h3>NDA — points to verify</h3>
+<ul>
+    <li>Mutual vs one-way confidentiality and definition of confidential information.</li>
+    <li>Allowed disclosures (legal compulsion, advisors under confidentiality).</li>
+    <li>Term of confidentiality (demo default: 3 years after disclosure).</li>
+    <li>Return or destruction of materials on request.</li>
+</ul>
+<h3>MSA — points to verify</h3>
+<ul>
+    <li>Scope of services and order-form precedence over the MSA.</li>
+    <li>Limitation of liability and exclusion of consequential damages.</li>
+    <li>Governing law and dispute venue (demo template: Brazil / São Paulo).</li>
+    <li>Termination for convenience and for cause notice periods.</li>
+</ul>
+<p>
+    Escalate to legal counsel when the customer redlines liability caps, IP
+    ownership, or data-processing clauses beyond the approved templates.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_legal_privacy" model="document.page">
+        <field name="name">Data processing and privacy handling notes for quotes</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_legal" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_legal')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Data processing and privacy handling notes for quotes</h2>
+<p>
+    Guidance for sales and ops when a prospect asks how personal data is handled
+    in a quote or pilot. Answers are informative only.
+</p>
+<h3>Demo processing principles</h3>
+<ul>
+    <li>Process only data needed to deliver the quoted service.</li>
+    <li>Do not move customer personal data to personal devices or unmanaged tools.</li>
+    <li>Subprocessors used for hosting/email must appear on the approved list.</li>
+    <li>Retention for demo pilots: delete or anonymize pilot data within 30 days after end, unless a signed order says otherwise.</li>
+</ul>
+<h3>What sales may say</h3>
+<ul>
+    <li>We can share a standard DPA / privacy addendum with the order form.</li>
+    <li>Security questionnaires go to the ops security contact.</li>
+</ul>
+<h3>What sales must not invent</h3>
+<ul>
+    <li>Certifications that are not listed in the approved security one-pager.</li>
+    <li>Custom retention or residency commitments without legal review.</li>
+</ul>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_legal_proposal_disclaimer" model="document.page">
+        <field name="name">Non-binding proposal and disclaimer guidelines</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_legal" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_legal')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Non-binding proposal and disclaimer guidelines</h2>
+<p>
+    Proposals and estimates are commercial invitations to negotiate until an
+    order form or signed contract is executed.
+</p>
+<h3>Required disclaimer (demo wording)</h3>
+<p>
+    <em>
+        This proposal is for discussion purposes only and does not create a
+        binding obligation. Prices, timelines and scope are estimates and remain
+        subject to a signed order form and applicable terms.
+    </em>
+</p>
+<h3>Rules for sales</h3>
+<ul>
+    <li>Always include the disclaimer on PDF proposals and email summaries.</li>
+    <li>Do not state that a proposal “is already approved” or “guarantees” SLAs.</li>
+    <li>Custom legal terms require counsel before the customer signs.</li>
+</ul>
+<p>
+    If a prospect treats a proposal as a signed contract, clarify politely and
+    route the signature package through the standard order-form process.
+</p>
+]]>
+        </field>
+    </record>
+
+    <!-- Processes KB: internal SOPs for ops agent only -->
+    <record id="demo_category_processes" model="document.page">
+        <field name="name">Processes Knowledge (Demo)</field>
+        <field name="type">category</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_processes')])]" />
+    </record>
+
+    <record id="demo_page_processes_onboarding" model="document.page">
+        <field name="name">New customer onboarding SOP</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_processes" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_processes')])]" />
+        <field name="content">
+<![CDATA[
+<h2>New customer onboarding SOP (internal)</h2>
+<p>
+    Internal procedure for ops after a signed order. Do not share this SOP with
+    customers or publish it on the website.
+</p>
+<ol>
+    <li><strong>Kick-off:</strong> create the project, assign CSM and technical lead within 1 business day of signature.</li>
+    <li><strong>Environment:</strong> provision staging, then production; store credentials in the approved vault only.</li>
+    <li><strong>Data:</strong> import agreed master data; validate with the customer on a shared checklist.</li>
+    <li><strong>Training:</strong> schedule admin training before go-live; record attendance.</li>
+    <li><strong>Go-live:</strong> require written customer confirmation and a completed rollback note.</li>
+    <li><strong>Handover:</strong> move the account to support with open risks documented in the ticket.</li>
+</ol>
+<p>
+    Escalate to the delivery manager if kick-off slips more than 3 business days
+    or if production access is requested before the security checklist is done.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_processes_incident" model="document.page">
+        <field name="name">Incident triage and internal escalation</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_processes" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_processes')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Incident triage and internal escalation (internal)</h2>
+<p>
+    Ops-only runbook for classifying and escalating production incidents.
+</p>
+<h3>Triage steps</h3>
+<ol>
+    <li>Confirm impact: number of users, environment (prod/staging), start time.</li>
+    <li>Assign severity (SEV1–SEV4) using the internal severity matrix.</li>
+    <li>Open an incident channel and nominate an incident commander.</li>
+    <li>Capture timeline notes every 15 minutes for SEV1/SEV2.</li>
+</ol>
+<h3>Escalation path (demo)</h3>
+<ul>
+    <li>SEV1: page on-call + notify delivery manager immediately.</li>
+    <li>SEV2: on-call within 15 minutes; manager if unresolved after 1 hour.</li>
+    <li>SEV3/SEV4: standard queue during business hours.</li>
+</ul>
+<p>
+    Customer-facing updates go through support using approved status wording.
+    Do not post root-cause speculation in public channels.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_processes_change" model="document.page">
+        <field name="name">Change request approval workflow</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_processes" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_processes')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Change request approval workflow (internal)</h2>
+<p>
+    Internal process before applying production changes that affect customer
+    environments or shared infrastructure.
+</p>
+<ol>
+    <li>Open a change request with summary, risk, rollback plan, and maintenance window.</li>
+    <li>Peer review by another engineer (mandatory for production).</li>
+    <li>Approval: team lead for low risk; delivery manager for high risk or customer-visible downtime.</li>
+    <li>Execute in the approved window; verify health checks after deploy.</li>
+    <li>Close the change with outcome and links to commits/tickets.</li>
+</ol>
+<p>
+    Emergency changes (SEV1) may proceed with verbal lead approval, followed by
+    a retroactive change record within 24 hours.
+</p>
+]]>
+        </field>
+    </record>
+
+    <!-- Commercial KB: sales playbooks and policies -->
+    <record id="demo_category_commercial" model="document.page">
+        <field name="name">Commercial Knowledge (Demo)</field>
+        <field name="type">category</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_commercial')])]" />
+    </record>
+
+    <record id="demo_page_commercial_qualification" model="document.page">
+        <field name="name">Qualification checklist for discovery calls</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_commercial" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_commercial')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Qualification checklist for discovery calls</h2>
+<p>
+    Use this playbook before writing a proposal. Prefer documented answers over
+    assumptions.
+</p>
+<ul>
+    <li><strong>Problem:</strong> what process or tool is failing today?</li>
+    <li><strong>Impact:</strong> users affected, cost of delay, compliance risk.</li>
+    <li><strong>Decision makers:</strong> economic buyer, technical evaluator, champion.</li>
+    <li><strong>Timeline:</strong> target go-live and hard deadlines.</li>
+    <li><strong>Budget:</strong> range confirmed or next step to confirm it.</li>
+    <li><strong>Success metrics:</strong> how the customer will measure value after 90 days.</li>
+</ul>
+<p>
+    Do not send a priced proposal until problem, decision makers, and timeline
+    are clear. Escalate to a human sales manager for strategic or multi-year deals.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_commercial_discount" model="document.page">
+        <field name="name">Discount and commercial policy</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_commercial" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_commercial')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Discount and commercial policy (demo)</h2>
+<p>
+    Fictional discount bands for demos. Do not invent prices outside this table;
+    custom terms need manager approval.
+</p>
+<table>
+    <thead>
+        <tr>
+            <th>Tier</th>
+            <th>Annual seats (demo)</th>
+            <th>Max discount without approval</th>
+            <th>Requires manager</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Starter</td>
+            <td>1–10</td>
+            <td>5%</td>
+            <td>Any discount above 5%</td>
+        </tr>
+        <tr>
+            <td>Growth</td>
+            <td>11–50</td>
+            <td>10%</td>
+            <td>Discount above 10% or free months</td>
+        </tr>
+        <tr>
+            <td>Enterprise</td>
+            <td>51+</td>
+            <td>15%</td>
+            <td>Any non-standard payment or SLA</td>
+        </tr>
+    </tbody>
+</table>
+<ul>
+    <li>Never commit multi-year price locks without a signed order form.</li>
+    <li>Payment terms default to net 30; net 60+ needs finance approval.</li>
+    <li>Partner / reseller pricing uses a separate rate card (ask channel manager).</li>
+</ul>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_commercial_proposal_faq" model="document.page">
+        <field name="name">Proposal FAQ — what sales may commit</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_commercial" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_commercial')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Proposal FAQ — what sales may / may not commit</h2>
+<h3>Sales may</h3>
+<ul>
+    <li>Share list pricing and approved discount bands from the commercial policy.</li>
+    <li>Offer a time-boxed pilot with a written pilot scope.</li>
+    <li>Promise standard onboarding steps listed in the delivery package.</li>
+</ul>
+<h3>Sales may not</h3>
+<ul>
+    <li>Guarantee features that are not on the public roadmap or signed SOW.</li>
+    <li>Promise legal language changes without counsel.</li>
+    <li>Commit unlimited support or custom SLAs without ops approval.</li>
+</ul>
+<p>
+    When unsure, say you will confirm with the deal desk and avoid binding language
+    in chat or email until the order form is ready.
+</p>
+]]>
+        </field>
+    </record>
+
+    <!-- Public KB: safe for anonymous website / livechat visitors -->
+    <record id="demo_category_public" model="document.page">
+        <field name="name">Public Knowledge (Demo)</field>
+        <field name="type">category</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_public')])]" />
+    </record>
+
+    <record id="demo_page_public_overview" model="document.page">
+        <field name="name">Company overview and product summary</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_public" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_public')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Company overview and product summary</h2>
+<p>
+    Welcome. This demo company helps mid-size teams run operations, customer
+    support and sales processes on a modern business platform.
+</p>
+<h3>What we offer</h3>
+<ul>
+    <li>Implementation and configuration of core business apps.</li>
+    <li>Integrations with common accounting, e-commerce and messaging tools.</li>
+    <li>Ongoing support packages after go-live.</li>
+</ul>
+<p>
+    For a tailored quote, contact the sales team. For help with an existing
+    account, use customer support after signing in to the portal.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_public_faq_contact" model="document.page">
+        <field name="name">Public FAQ — contact channels and business hours</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_public" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_public')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Public FAQ — contact channels and business hours</h2>
+<h3>How can I reach you?</h3>
+<ul>
+    <li><strong>Website livechat:</strong> available on this site during business hours.</li>
+    <li><strong>Sales email:</strong> sales@example.com (demo address).</li>
+    <li><strong>Support portal:</strong> for existing customers after login.</li>
+</ul>
+<h3>Business hours</h3>
+<p>
+    Monday–Friday, 09:00–18:00 (America/Sao_Paulo). Messages outside these hours
+    are answered on the next business day.
+</p>
+<h3>Do you offer demos?</h3>
+<p>
+    Yes. Ask for a product demo and a specialist will schedule a call. We do not
+    share internal procedures or customer-only manuals in public chat.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_public_getting_started" model="document.page">
+        <field name="name">Getting started without an account</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_public" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_public')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Getting started without an account</h2>
+<p>
+    Visitors can explore public product information without signing in.
+</p>
+<ol>
+    <li>Browse the website FAQ and product overview pages.</li>
+    <li>Request a demo or pricing conversation via sales.</li>
+    <li>After purchasing, you receive portal credentials by email.</li>
+    <li>Use the support portal for account-specific help (password reset, tickets).</li>
+</ol>
+<p>
+    If you already have an account but cannot sign in, use the portal password
+    reset or contact support. Livechat for anonymous visitors cannot change
+    account data or process refunds.
+</p>
+]]>
+        </field>
+    </record>
+</odoo>
