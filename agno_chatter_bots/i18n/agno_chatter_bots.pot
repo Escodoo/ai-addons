@@ -1,0 +1,98 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* agno_chatter_bots
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: agno_chatter_bots
+#: model:ai.bridge,name:agno_chatter_bots.ai_bridge_chatter_erp
+msgid "Agno Chatter ERP"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model:ai.bridge,name:agno_chatter_bots.ai_bridge_chatter_ops
+msgid "Agno Chatter Ops"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model:ai.bridge,name:agno_chatter_bots.ai_bridge_chatter_sales
+msgid "Agno Chatter Sales"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model:ai.bridge,name:agno_chatter_bots.ai_bridge_chatter_support
+msgid "Agno Chatter Support"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model:ai.bridge,name:agno_chatter_bots.ai_bridge_chatter_web
+msgid "Agno Chatter Web"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_web
+msgid "Discuss / future livechat bot for public website (Agno"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_erp
+msgid "Discuss bot for ERP data questions (Agno"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_support
+msgid "Discuss bot for customer support / helpdesk (Agno"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_ops
+msgid "Discuss bot for internal operations (Agno"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_sales
+msgid "Discuss bot for the sales team (Agno"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_erp
+msgid "erp"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_ops
+msgid "ops"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_erp
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_ops
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_sales
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_support
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_web
+msgid "persona)."
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_sales
+msgid "sales"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_support
+msgid "support"
+msgstr ""
+
+#. module: agno_chatter_bots
+#: model_terms:ai.bridge,description:agno_chatter_bots.ai_bridge_chatter_web
+msgid "web"
+msgstr ""
