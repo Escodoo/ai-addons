@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        auth_token is intentionally left empty. Set ICP
+        agno_chatter_bots.bridge_auth_token before install, or paste
+        BRIDGE_AUTH_TOKEN on each bridge after install.
+    -->
+
+    <record id="ai_bridge_chatter_erp" model="ai.bridge">
+        <field name="name">Agno Chatter ERP</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for ERP data questions (Agno <tt>erp</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/chatter/erp</field>
+    </record>
+
+    <record id="ai_bridge_chatter_ops" model="ai.bridge">
+        <field name="name">Agno Chatter Ops</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for internal operations (Agno <tt>ops</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/chatter/ops</field>
+    </record>
+
+    <record id="ai_bridge_chatter_support" model="ai.bridge">
+        <field name="name">Agno Chatter Support</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for customer support / helpdesk (Agno <tt>support</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/chatter/support</field>
+    </record>
+
+    <record id="ai_bridge_chatter_sales" model="ai.bridge">
+        <field name="name">Agno Chatter Sales</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for the sales team (Agno <tt>sales</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/chatter/sales</field>
+    </record>
+
+    <record id="ai_bridge_chatter_web" model="ai.bridge">
+        <field name="name">Agno Chatter Web</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss / future livechat bot for public website (Agno <tt>web</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/chatter/web</field>
+    </record>
+</odoo>
