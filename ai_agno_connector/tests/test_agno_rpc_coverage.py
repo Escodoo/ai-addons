@@ -9,13 +9,13 @@ from odoo.tests import HttpCase, tagged
 from odoo.tools import hmac as odoo_hmac
 from odoo.tools import mute_logger
 
-from odoo.addons.agno_connector.controllers.main import (
+from odoo.addons.ai_agno_connector.controllers.main import (
     TEXT_TRUNCATE_LIMIT,
     X2MANY_NAMES_LIMIT,
     AgnoRpcController,
     _truncate,
 )
-from odoo.addons.agno_connector.models.ai_bridge_execution import HMAC_SCOPE
+from odoo.addons.ai_agno_connector.models.ai_bridge_execution import HMAC_SCOPE
 
 
 @tagged("post_install", "-at_install")
@@ -30,9 +30,9 @@ class TestAgnoRpcCoverage(HttpCase):
         cls.rpc_user = cls.env.ref("base.user_admin")
         cls._set_icp(
             {
-                "agno_connector.service_token": cls.service_token,
-                "agno_connector.allow_unsigned_rpc": "",
-                "agno_connector.unsigned_user_id": "",
+                "ai_agno_connector.service_token": cls.service_token,
+                "ai_agno_connector.allow_unsigned_rpc": "",
+                "ai_agno_connector.unsigned_user_id": "",
             }
         )
         cls.category = cls.env["res.partner.category"].create({"name": "Agno Cat"})
@@ -85,17 +85,17 @@ class TestAgnoRpcCoverage(HttpCase):
     def test_not_configured_without_service_token(self):
         from unittest.mock import patch
 
-        self._set_icp({"agno_connector.service_token": ""})
+        self._set_icp({"ai_agno_connector.service_token": ""})
         try:
             with patch(
-                "odoo.addons.agno_connector.token_utils.odoo_config.get",
+                "odoo.addons.ai_agno_connector.token_utils.odoo_config.get",
                 return_value="",
             ):
                 resp = self._rpc(self._signed_payload(self.rpc_user))
             self.assertEqual(resp.status_code, 503)
             self.assertEqual(resp.json().get("error"), "not_configured")
         finally:
-            self._set_icp({"agno_connector.service_token": self.service_token})
+            self._set_icp({"ai_agno_connector.service_token": self.service_token})
 
     def test_non_integer_user_id_rejected(self):
         payload = self._signed_payload(self.rpc_user)
@@ -159,7 +159,7 @@ class TestAgnoRpcCoverage(HttpCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json().get("error"), "access_denied")
 
-    @mute_logger("odoo.addons.agno_connector.controllers.main")
+    @mute_logger("odoo.addons.ai_agno_connector.controllers.main")
     def test_server_error(self):
         # Intentionally raises to cover the server_error branch; mute the
         # WARNING so oca_checklog_odoo does not treat it as a CI failure.
@@ -189,7 +189,7 @@ class TestAgnoRpcCoverage(HttpCase):
             )
 
     def test_max_records_config_param(self):
-        self._set_icp({"agno_connector.max_records": "2"})
+        self._set_icp({"ai_agno_connector.max_records": "2"})
         try:
             payload = self._signed_payload(
                 self.rpc_user,
@@ -202,7 +202,7 @@ class TestAgnoRpcCoverage(HttpCase):
             self.assertEqual(resp.status_code, 200)
             self.assertLessEqual(len(resp.json()["result"]), 2)
         finally:
-            self._set_icp({"agno_connector.max_records": ""})
+            self._set_icp({"ai_agno_connector.max_records": ""})
 
     def test_search_read_formats_special_fields(self):
         payload = self._signed_payload(
@@ -261,7 +261,7 @@ class TestAgnoRpcFormatters(HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._set_icp({"agno_connector.service_token": cls.service_token})
+        cls._set_icp({"ai_agno_connector.service_token": cls.service_token})
 
     @classmethod
     def _set_icp(cls, params):

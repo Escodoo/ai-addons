@@ -401,7 +401,7 @@ AgentOS only). Knowledge-base sync for <tt class="docutils literal">document.pag
 value as Agno <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt>). On Doodba this is usually
 <tt class="docutils literal"><span class="pre">conf.d/03-agno.conf</span></tt> with <tt class="docutils literal">$BRIDGE_AUTH_TOKEN</tt> from
 <tt class="docutils literal">.docker/odoo.env</tt>; without Doodba, put the literal key under
-<tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">agno_connector</tt> CONFIGURE). The post-init hook
+<tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">ai_agno_connector</tt> CONFIGURE). The post-init hook
 copies it onto bridges whose <tt class="docutils literal">auth_token</tt> is still empty.</p>
 <p><strong>Optional override:</strong> system parameter
 <tt class="docutils literal">agno_chatter_bots.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).</p>
@@ -449,7 +449,7 @@ bridge.</p>
 </table>
 <p>There is <strong>no</strong> Architect bot in this module. Create it manually only if
 needed for Discuss; the AgentOS UI already exposes an architect agent.</p>
-<p>Also ensure <tt class="docutils literal">agno_service_token</tt> / <tt class="docutils literal">agno_connector.service_token</tt>
+<p>Also ensure <tt class="docutils literal">agno_service_token</tt> / <tt class="docutils literal">ai_agno_connector.service_token</tt>
 matches Agno <tt class="docutils literal">AGNO_SERVICE_TOKEN</tt> so personas with Odoo tools can call
 <tt class="docutils literal">/agno/rpc</tt>.</p>
 </div>
@@ -460,7 +460,7 @@ bot to a Discuss channel. In channels with more than two members the bot
 only replies when mentioned.</p>
 <p>Replies are posted by the bot partner via the linked <tt class="docutils literal">ai.bridge</tt>
 (usage chatter). ERP data queries run as the <strong>requesting</strong> user through
-<tt class="docutils literal">agno_connector</tt> (<tt class="docutils literal">/agno/rpc</tt>), not as the bot account.</p>
+<tt class="docutils literal">ai_agno_connector</tt> (<tt class="docutils literal">/agno/rpc</tt>), not as the bot account.</p>
 </div>
 <div class="section" id="bug-tracker">
 <h1><a class="toc-backref" href="#toc-entry-3">Bug Tracker</a></h1>

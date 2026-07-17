@@ -49,7 +49,7 @@ After install, set the bearer token expected by Agno
 value as Agno ``BRIDGE_AUTH_TOKEN``). On Doodba this is usually
 ``conf.d/03-agno.conf`` with ``$BRIDGE_AUTH_TOKEN`` from
 ``.docker/odoo.env``; without Doodba, put the literal key under
-``[options]`` (see ``agno_connector`` CONFIGURE). The post-init hook
+``[options]`` (see ``ai_agno_connector`` CONFIGURE). The post-init hook
 copies it onto bridges whose ``auth_token`` is still empty.
 
 **Optional override:** system parameter
@@ -81,7 +81,7 @@ Default URLs (reachable from the Odoo container):
 There is **no** Architect bot in this module. Create it manually only if
 needed for Discuss; the AgentOS UI already exposes an architect agent.
 
-Also ensure ``agno_service_token`` / ``agno_connector.service_token``
+Also ensure ``agno_service_token`` / ``ai_agno_connector.service_token``
 matches Agno ``AGNO_SERVICE_TOKEN`` so personas with Odoo tools can call
 ``/agno/rpc``.
 
@@ -94,7 +94,7 @@ only replies when mentioned.
 
 Replies are posted by the bot partner via the linked ``ai.bridge``
 (usage chatter). ERP data queries run as the **requesting** user through
-``agno_connector`` (``/agno/rpc``), not as the bot account.
+``ai_agno_connector`` (``/agno/rpc``), not as the bot account.
 
 Bug Tracker
 ===========

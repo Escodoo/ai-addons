@@ -3,7 +3,7 @@ document.page knowledge-base bridge.
 
 **Preferred:** set `agno_bridge_auth_token` in `odoo.conf` (same value as Agno
 `BRIDGE_AUTH_TOKEN`). On Doodba use `conf.d/03-agno.conf` + `.docker/odoo.env`;
-without Doodba, set the literal under `[options]` (see `agno_connector`
+without Doodba, set the literal under `[options]` (see `ai_agno_connector`
 CONFIGURE). The post-init hook copies it onto bridges whose `auth_token` is
 still empty, rewrites each bridge domain / field list, then upserts every
 matching content page (`type=content` + tag) into Agno — including demo pages

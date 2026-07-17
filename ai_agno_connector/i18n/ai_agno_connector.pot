@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* agno_connector
+# 	* ai_agno_connector
 #
 msgid ""
 msgstr ""
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. module: agno_connector
-#: model:ir.model,name:agno_connector.model_ai_bridge_execution
+#. module: ai_agno_connector
+#: model:ir.model,name:ai_agno_connector.model_ai_bridge_execution
 msgid "Ai Execution"
 msgstr ""

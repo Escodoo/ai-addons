@@ -3,7 +3,7 @@
 
 """Post-install hook to apply the bridge auth token from ICP or odoo.conf."""
 
-from odoo.addons.agno_connector.token_utils import (
+from odoo.addons.ai_agno_connector.token_utils import (
     CONFIG_BRIDGE_AUTH_TOKEN,
     ensure_token,
 )

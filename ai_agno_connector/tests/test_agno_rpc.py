@@ -6,8 +6,8 @@ import time
 from odoo.tests import HttpCase, tagged
 from odoo.tools import hmac as odoo_hmac
 
-from odoo.addons.agno_connector.controllers.main import HMAC_MAX_AGE
-from odoo.addons.agno_connector.models.ai_bridge_execution import HMAC_SCOPE
+from odoo.addons.ai_agno_connector.controllers.main import HMAC_MAX_AGE
+from odoo.addons.ai_agno_connector.models.ai_bridge_execution import HMAC_SCOPE
 
 
 @tagged("post_install", "-at_install")
@@ -22,10 +22,10 @@ class TestAgnoRpc(HttpCase):
         cls.rpc_user = cls.env.ref("base.user_admin")
         cls._set_icp(
             {
-                "agno_connector.service_token": cls.service_token,
+                "ai_agno_connector.service_token": cls.service_token,
                 # Double gate off by default (production posture).
-                "agno_connector.allow_unsigned_rpc": "",
-                "agno_connector.unsigned_user_id": "",
+                "ai_agno_connector.allow_unsigned_rpc": "",
+                "ai_agno_connector.unsigned_user_id": "",
             }
         )
 
@@ -95,8 +95,8 @@ class TestAgnoRpc(HttpCase):
     def test_unsigned_without_allow_flag_rejected(self):
         self._set_icp(
             {
-                "agno_connector.unsigned_user_id": str(self.rpc_user.id),
-                "agno_connector.allow_unsigned_rpc": "",
+                "ai_agno_connector.unsigned_user_id": str(self.rpc_user.id),
+                "ai_agno_connector.allow_unsigned_rpc": "",
             }
         )
         resp = self._rpc(
@@ -112,8 +112,8 @@ class TestAgnoRpc(HttpCase):
     def test_unsigned_double_gate_accepted(self):
         self._set_icp(
             {
-                "agno_connector.allow_unsigned_rpc": "True",
-                "agno_connector.unsigned_user_id": str(self.rpc_user.id),
+                "ai_agno_connector.allow_unsigned_rpc": "True",
+                "ai_agno_connector.unsigned_user_id": str(self.rpc_user.id),
             }
         )
         try:
@@ -131,8 +131,8 @@ class TestAgnoRpc(HttpCase):
             # Restore production posture for later tests / residual DB state.
             self._set_icp(
                 {
-                    "agno_connector.allow_unsigned_rpc": "",
-                    "agno_connector.unsigned_user_id": "",
+                    "ai_agno_connector.allow_unsigned_rpc": "",
+                    "ai_agno_connector.unsigned_user_id": "",
                 }
             )
 

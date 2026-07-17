@@ -400,7 +400,7 @@ thread-analysis bridges.</p>
 <p><strong>Preferred:</strong> set <tt class="docutils literal">agno_bridge_auth_token</tt> in <tt class="docutils literal">odoo.conf</tt> (same
 value as Agno <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt>). On Doodba use
 <tt class="docutils literal"><span class="pre">conf.d/03-agno.conf</span></tt> + <tt class="docutils literal">.docker/odoo.env</tt>; without Doodba, set the
-literal under <tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">agno_connector</tt> CONFIGURE). The
+literal under <tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">ai_agno_connector</tt> CONFIGURE). The
 post-init hook copies it onto bridges whose <tt class="docutils literal">auth_token</tt> is still
 empty.</p>
 <p><strong>Optional override:</strong> system parameter
@@ -410,7 +410,7 @@ Shared by child modules (<tt class="docutils literal">agno_thread_bridge_crm</tt
 <p><strong>Manual:</strong> open <em>Settings → Technical → AI Bridges</em> and paste the token
 on <strong>Agno Partner Analysis</strong> (and other thread bridges).</p>
 <p>Default URL (from the Odoo container): <tt class="docutils literal"><span class="pre">http://agno:8000/bridge/odoo</span></tt>.</p>
-<p>Also keep <tt class="docutils literal">agno_service_token</tt> / <tt class="docutils literal">agno_connector.service_token</tt>
+<p>Also keep <tt class="docutils literal">agno_service_token</tt> / <tt class="docutils literal">ai_agno_connector.service_token</tt>
 aligned with <tt class="docutils literal">AGNO_SERVICE_TOKEN</tt> so the analysis agent can query Odoo
 through <tt class="docutils literal">/agno/rpc</tt>.</p>
 </div>

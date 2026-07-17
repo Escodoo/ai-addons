@@ -39,7 +39,7 @@ BLOCKED_MODELS = {
 BLOCKED_FIELD_PATTERNS = ("password", "token", "secret", "api_key")
 
 # Default cap on records per search_read, overridable with the
-# ``agno_connector.max_records`` config parameter.
+# ``ai_agno_connector.max_records`` config parameter.
 DEFAULT_MAX_RECORDS = 80
 
 # Caps applied when formatting values for the LLM context.
@@ -125,7 +125,7 @@ class AgnoRpcController(http.Controller):
                 {
                     "error": "not_configured",
                     "detail": (
-                        "agno_connector.service_token is not set "
+                        "ai_agno_connector.service_token is not set "
                         "(ICP or odoo.conf agno_service_token)."
                     ),
                 },
@@ -158,8 +158,8 @@ class AgnoRpcController(http.Controller):
         The signature is produced by ai.bridge.execution when building
         the bridge payload, so agents can only act for users that Odoo
         vouched for. Unsigned requests require a double gate (dev only):
-        ``agno_connector.allow_unsigned_rpc`` must be ``True`` and
-        ``agno_connector.unsigned_user_id`` must match ``user_id``.
+        ``ai_agno_connector.allow_unsigned_rpc`` must be ``True`` and
+        ``ai_agno_connector.unsigned_user_id`` must match ``user_id``.
         Leave both empty in production.
         """
         signature = params.get("user_hmac")
@@ -176,9 +176,9 @@ class AgnoRpcController(http.Controller):
     def _allow_unsigned_user(self, user_id):
         """Accept unsigned RPC only when both dev params are set."""
         icp = request.env["ir.config_parameter"].sudo()
-        if icp.get_param("agno_connector.allow_unsigned_rpc") != "True":
+        if icp.get_param("ai_agno_connector.allow_unsigned_rpc") != "True":
             return False
-        unsigned_user_id = icp.get_param("agno_connector.unsigned_user_id", "")
+        unsigned_user_id = icp.get_param("ai_agno_connector.unsigned_user_id", "")
         return unsigned_user_id.isdigit() and int(unsigned_user_id) == user_id
 
     def _dispatch(self, records, method, params):
@@ -209,7 +209,7 @@ class AgnoRpcController(http.Controller):
         param = (
             request.env["ir.config_parameter"]
             .sudo()
-            .get_param("agno_connector.max_records", "")
+            .get_param("ai_agno_connector.max_records", "")
         )
         if param.isdigit() and int(param) > 0:
             return int(param)

@@ -404,7 +404,7 @@ document.page knowledge-base bridge.</p>
 <p><strong>Preferred:</strong> set <tt class="docutils literal">agno_bridge_auth_token</tt> in <tt class="docutils literal">odoo.conf</tt> (same
 value as Agno <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt>). On Doodba use
 <tt class="docutils literal"><span class="pre">conf.d/03-agno.conf</span></tt> + <tt class="docutils literal">.docker/odoo.env</tt>; without Doodba, set the
-literal under <tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">agno_connector</tt> CONFIGURE). The
+literal under <tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">ai_agno_connector</tt> CONFIGURE). The
 post-init hook copies it onto bridges whose <tt class="docutils literal">auth_token</tt> is still
 empty, rewrites each bridge domain / field list, then upserts every
 matching content page (<tt class="docutils literal">type=content</tt> + tag) into Agno — including
@@ -467,7 +467,7 @@ chatter URL per agent: <tt class="docutils literal">/bridge/chatter/ops</tt>, <t
 <ol class="arabic">
 <li><p class="first">Install this module (and its dependencies:
 <tt class="docutils literal">ai_oca_bridge_document_page</tt>, <tt class="docutils literal">document_page_tag</tt>,
-<tt class="docutils literal">agno_connector</tt>).</p>
+<tt class="docutils literal">ai_agno_connector</tt>).</p>
 </li>
 <li><p class="first">Configure each bridge auth token (see CONFIGURE).</p>
 </li>

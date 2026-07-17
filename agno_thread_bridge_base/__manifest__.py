@@ -13,7 +13,7 @@
     "license": "AGPL-3",
     "depends": [
         "ai_oca_bridge",
-        "agno_connector",
+        "ai_agno_connector",
     ],
     "data": [
         "data/ai_bridge_data.xml",

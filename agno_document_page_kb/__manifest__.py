@@ -14,7 +14,7 @@
     "depends": [
         "ai_oca_bridge_document_page",
         "document_page_tag",
-        "agno_connector",
+        "ai_agno_connector",
     ],
     "data": [
         "data/document_page_tag_data.xml",

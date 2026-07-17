@@ -1,5 +1,5 @@
 1. Install this module (and its dependencies: `ai_oca_bridge_document_page`,
-   `document_page_tag`, `agno_connector`).
+   `document_page_tag`, `ai_agno_connector`).
 2. Configure each bridge auth token (see CONFIGURE).
 3. Create or edit a Knowledge page with `type=content` and tag it according to
    the audience of the content:

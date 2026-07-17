@@ -17,7 +17,7 @@ hook runs; the post-init sync reindexes them once bridges are configured.
 
 import logging
 
-from odoo.addons.agno_connector.token_utils import (
+from odoo.addons.ai_agno_connector.token_utils import (
     CONFIG_BRIDGE_AUTH_TOKEN,
     ensure_token,
 )

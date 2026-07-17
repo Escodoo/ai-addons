@@ -1,4 +1,4 @@
-1. Install this module and configure `agno_connector.service_token`.
+1. Install this module and configure `ai_agno_connector.service_token`.
 2. Point an `ai.bridge` URL at your external AI service. When Odoo executes
    the bridge, the payload includes a signed user identity under `_odoo`.
 3. The agent calls `POST /agno/rpc?db=<dbname>` with:

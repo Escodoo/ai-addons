@@ -44,10 +44,10 @@ System parameters win over `odoo.conf` when set:
 
 | Key                                 | Purpose                                                           |
 | ----------------------------------- | ----------------------------------------------------------------- |
-| `agno_connector.service_token`      | Bearer token expected on `/agno/rpc` (`Authorization: Bearer …`). |
-| `agno_connector.max_records`        | Cap on records returned by `search_read` (default `80`).          |
-| `agno_connector.allow_unsigned_rpc` | Dev only. Set to `True` to allow unsigned requests (see next).    |
-| `agno_connector.unsigned_user_id`   | Dev only. User id accepted when unsigned RPC is enabled.          |
+| `ai_agno_connector.service_token`      | Bearer token expected on `/agno/rpc` (`Authorization: Bearer …`). |
+| `ai_agno_connector.max_records`        | Cap on records returned by `search_read` (default `80`).          |
+| `ai_agno_connector.allow_unsigned_rpc` | Dev only. Set to `True` to allow unsigned requests (see next).    |
+| `ai_agno_connector.unsigned_user_id`   | Dev only. User id accepted when unsigned RPC is enabled.          |
 
 Secrets are **not** written into ICP from `odoo.conf`. In production leave
 unsigned RPC keys empty.

@@ -4,4 +4,4 @@ when mentioned.
 
 Replies are posted by the bot partner via the linked `ai.bridge` (usage
 chatter). ERP data queries run as the **requesting** user through
-`agno_connector` (`/agno/rpc`), not as the bot account.
+`ai_agno_connector` (`/agno/rpc`), not as the bot account.

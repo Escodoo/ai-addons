@@ -2,7 +2,7 @@
 <odoo noupdate="1">
     <!--
         Bots are Discuss endpoints only; they do not need rich ACLs.
-        ERP queries run as the requesting user via agno_connector.
+        ERP queries run as the requesting user via ai_agno_connector.
         Password is a placeholder so the record can be created; bots are
         not meant for interactive UI login.
     -->

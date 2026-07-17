@@ -8,7 +8,7 @@ from odoo.tools import config as odoo_config
 CONFIG_BRIDGE_AUTH_TOKEN = "agno_bridge_auth_token"
 CONFIG_SERVICE_TOKEN = "agno_service_token"
 
-ICP_SERVICE_TOKEN = "agno_connector.service_token"
+ICP_SERVICE_TOKEN = "ai_agno_connector.service_token"
 
 
 def ensure_token(env, icp_key, config_key):

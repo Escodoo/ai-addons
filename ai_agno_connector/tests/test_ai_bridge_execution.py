@@ -7,7 +7,7 @@ from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools import hmac as odoo_hmac
 
-from odoo.addons.agno_connector.models.ai_bridge_execution import (
+from odoo.addons.ai_agno_connector.models.ai_bridge_execution import (
     BRIDGE_REQUEST_TIMEOUT,
     HMAC_SCOPE,
 )
