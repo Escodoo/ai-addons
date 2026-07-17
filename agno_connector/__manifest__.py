@@ -5,7 +5,7 @@
     "name": "Agno Connector",
     "summary": """RPC gateway that runs AI agent queries with the
     identity of the requesting user, enforcing ACLs and record rules""",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",

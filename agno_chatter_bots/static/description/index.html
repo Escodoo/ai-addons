@@ -397,11 +397,14 @@ AgentOS only). Knowledge-base sync for <tt class="docutils literal">document.pag
 <h1><a class="toc-backref" href="#toc-entry-1">Configuration</a></h1>
 <p>After install, set the bearer token expected by Agno
 <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> on each chatter bridge.</p>
-<p><strong>Preferred (Doodba):</strong> set system parameter
-<tt class="docutils literal">agno_chatter_bots.bridge_auth_token</tt> to the same value as
-<tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> <em>before</em> installing (or clearing bridge tokens and
-upgrading). The post-init hook copies it onto bridges whose
-<tt class="docutils literal">auth_token</tt> is still empty.</p>
+<p><strong>Preferred:</strong> set <tt class="docutils literal">agno_bridge_auth_token</tt> in <tt class="docutils literal">odoo.conf</tt> (same
+value as Agno <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt>). On Doodba this is usually
+<tt class="docutils literal"><span class="pre">conf.d/03-agno.conf</span></tt> with <tt class="docutils literal">$BRIDGE_AUTH_TOKEN</tt> from
+<tt class="docutils literal">.docker/odoo.env</tt>; without Doodba, put the literal key under
+<tt class="docutils literal">[options]</tt> (see <tt class="docutils literal">agno_connector</tt> CONFIGURE). The post-init hook
+copies it onto bridges whose <tt class="docutils literal">auth_token</tt> is still empty.</p>
+<p><strong>Optional override:</strong> system parameter
+<tt class="docutils literal">agno_chatter_bots.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).</p>
 <p><strong>Manual:</strong> open <em>Settings → Technical → AI Bridges</em>, set Authentication
 Type to token, and paste <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> on each Agno Chatter
 bridge.</p>
@@ -446,8 +449,8 @@ bridge.</p>
 </table>
 <p>There is <strong>no</strong> Architect bot in this module. Create it manually only if
 needed for Discuss; the AgentOS UI already exposes an architect agent.</p>
-<p>Also ensure <tt class="docutils literal">agno_connector.service_token</tt> matches Agno
-<tt class="docutils literal">AGNO_SERVICE_TOKEN</tt> so personas with Odoo tools can call
+<p>Also ensure <tt class="docutils literal">agno_service_token</tt> / <tt class="docutils literal">agno_connector.service_token</tt>
+matches Agno <tt class="docutils literal">AGNO_SERVICE_TOKEN</tt> so personas with Odoo tools can call
 <tt class="docutils literal">/agno/rpc</tt>.</p>
 </div>
 <div class="section" id="usage">
