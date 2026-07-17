@@ -53,8 +53,8 @@ post-init hook copies it onto bridges whose ``auth_token`` is still
 empty.
 
 **Optional override:** system parameter
-``ai_agno_thread_bridge_base.bridge_auth_token`` (wins over ``odoo.conf``).
-Shared by child modules (``ai_agno_thread_bridge_crm``,
+``ai_agno_thread_bridge_base.bridge_auth_token`` (wins over
+``odoo.conf``). Shared by child modules (``ai_agno_thread_bridge_crm``,
 ``ai_agno_thread_bridge_helpdesk_mgmt``).
 
 **Manual:** open *Settings → Technical → AI Bridges* and paste the token

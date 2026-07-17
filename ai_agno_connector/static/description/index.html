@@ -439,8 +439,9 @@ not commit secrets), or ICP override below</td>
 <p><tt class="docutils literal">agno_service_token</tt> is checked on every <tt class="docutils literal">/agno/rpc</tt> call.</p>
 <p><tt class="docutils literal">agno_bridge_auth_token</tt> is the shared <tt class="docutils literal">odoo.conf</tt> key consumed by
 the Agno bridge modules (<tt class="docutils literal">ai_agno_chatter_bots</tt>,
-<tt class="docutils literal">ai_agno_thread_bridge_*</tt>, <tt class="docutils literal">ai_agno_document_page_kb</tt>). See each module’s
-CONFIGURE for how they apply it and for their optional ICP overrides.</p>
+<tt class="docutils literal">ai_agno_thread_bridge_*</tt>, <tt class="docutils literal">ai_agno_document_page_kb</tt>). See each
+module’s CONFIGURE for how they apply it and for their optional ICP
+overrides.</p>
 </div>
 <div class="section" id="without-doodba-plain-odoo-conf">
 <h2><a class="toc-backref" href="#toc-entry-3">Without Doodba (plain <tt class="docutils literal">odoo.conf</tt>)</a></h2>
@@ -460,8 +461,8 @@ commit real secrets into git.</p>
 <p>System parameters win over <tt class="docutils literal">odoo.conf</tt> when set:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="53%" />
-<col width="47%" />
+<col width="55%" />
+<col width="45%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head">Key</th>
@@ -497,7 +498,8 @@ leave unsigned RPC keys empty.</p>
 <div class="section" id="usage">
 <h1><a class="toc-backref" href="#toc-entry-5">Usage</a></h1>
 <ol class="arabic simple">
-<li>Install this module and configure <tt class="docutils literal">ai_agno_connector.service_token</tt>.</li>
+<li>Install this module and configure
+<tt class="docutils literal">ai_agno_connector.service_token</tt>.</li>
 <li>Point an <tt class="docutils literal">ai.bridge</tt> URL at your external AI service. When Odoo
 executes the bridge, the payload includes a signed user identity
 under <tt class="docutils literal">_odoo</tt>.</li>

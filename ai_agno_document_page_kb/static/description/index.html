@@ -410,7 +410,8 @@ empty, rewrites each bridge domain / field list, then upserts every
 matching content page (<tt class="docutils literal">type=content</tt> + tag) into Agno — including
 demo pages and pages that already existed before install.</p>
 <p><strong>Optional override:</strong> system parameter
-<tt class="docutils literal">ai_agno_document_page_kb.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).</p>
+<tt class="docutils literal">ai_agno_document_page_kb.bridge_auth_token</tt> (wins over
+<tt class="docutils literal">odoo.conf</tt>).</p>
 <p>Demo page creates may return HTTP 401 while bridges still have an empty
 token; the post-init sync reindexes them afterwards. Without conf/ICP
 token, post-init skips the sync.</p>

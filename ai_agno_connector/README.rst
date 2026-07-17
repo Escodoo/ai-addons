@@ -76,8 +76,9 @@ start.
 
 ``agno_bridge_auth_token`` is the shared ``odoo.conf`` key consumed by
 the Agno bridge modules (``ai_agno_chatter_bots``,
-``ai_agno_thread_bridge_*``, ``ai_agno_document_page_kb``). See each module's
-CONFIGURE for how they apply it and for their optional ICP overrides.
+``ai_agno_thread_bridge_*``, ``ai_agno_document_page_kb``). See each
+module's CONFIGURE for how they apply it and for their optional ICP
+overrides.
 
 Without Doodba (plain ``odoo.conf``)
 ------------------------------------
@@ -100,24 +101,24 @@ Optional ICP override
 
 System parameters win over ``odoo.conf`` when set:
 
-+---------------------------------------+----------------------------------+
-| Key                                   | Purpose                          |
-+=======================================+==================================+
++------------------------------------------+----------------------------------+
+| Key                                      | Purpose                          |
++==========================================+==================================+
 | ``ai_agno_connector.service_token``      | Bearer token expected on         |
-|                                       | ``/agno/rpc``                    |
-|                                       | (``Authorization: Bearer …``).   |
-+---------------------------------------+----------------------------------+
+|                                          | ``/agno/rpc``                    |
+|                                          | (``Authorization: Bearer …``).   |
++------------------------------------------+----------------------------------+
 | ``ai_agno_connector.max_records``        | Cap on records returned by       |
-|                                       | ``search_read`` (default         |
-|                                       | ``80``).                         |
-+---------------------------------------+----------------------------------+
+|                                          | ``search_read`` (default         |
+|                                          | ``80``).                         |
++------------------------------------------+----------------------------------+
 | ``ai_agno_connector.allow_unsigned_rpc`` | Dev only. Set to ``True`` to     |
-|                                       | allow unsigned requests (see     |
-|                                       | next).                           |
-+---------------------------------------+----------------------------------+
+|                                          | allow unsigned requests (see     |
+|                                          | next).                           |
++------------------------------------------+----------------------------------+
 | ``ai_agno_connector.unsigned_user_id``   | Dev only. User id accepted when  |
-|                                       | unsigned RPC is enabled.         |
-+---------------------------------------+----------------------------------+
+|                                          | unsigned RPC is enabled.         |
++------------------------------------------+----------------------------------+
 
 Secrets are **not** written into ICP from ``odoo.conf``. In production
 leave unsigned RPC keys empty.
@@ -125,7 +126,8 @@ leave unsigned RPC keys empty.
 Usage
 =====
 
-1. Install this module and configure ``ai_agno_connector.service_token``.
+1. Install this module and configure
+   ``ai_agno_connector.service_token``.
 
 2. Point an ``ai.bridge`` URL at your external AI service. When Odoo
    executes the bridge, the payload includes a signed user identity

@@ -60,7 +60,8 @@ matching content page (``type=content`` + tag) into Agno — including
 demo pages and pages that already existed before install.
 
 **Optional override:** system parameter
-``ai_agno_document_page_kb.bridge_auth_token`` (wins over ``odoo.conf``).
+``ai_agno_document_page_kb.bridge_auth_token`` (wins over
+``odoo.conf``).
 
 Demo page creates may return HTTP 401 while bridges still have an empty
 token; the post-init sync reindexes them afterwards. Without conf/ICP
