@@ -8,7 +8,7 @@ from odoo.addons.ai_agno_thread_bridge_base.hooks import (
     set_bridge_fields,
 )
 
-_BRIDGE_XMLID = "agno_thread_bridge_helpdesk_mgmt.ai_bridge_helpdesk_ticket_analysis"
+_BRIDGE_XMLID = "ai_agno_thread_bridge_helpdesk_mgmt.ai_bridge_helpdesk_ticket_analysis"
 
 _TICKET_FIELD_NAMES = (
     "number",

@@ -27,7 +27,7 @@ Foundation module for Agno **thread** bridges (``usage=thread`` →
 
 It provisions Partner Analysis on ``res.partner`` and exposes
 post-install helpers (``apply_auth_token``, ``set_bridge_fields``) so
-domain-specific modules (``agno_thread_bridge_helpdesk_mgmt``, sale,
+domain-specific modules (``ai_agno_thread_bridge_helpdesk_mgmt``, sale,
 account, …) can share the same auth token ICP and field-list rewrite
 pattern.
 
@@ -55,7 +55,7 @@ empty.
 **Optional override:** system parameter
 ``ai_agno_thread_bridge_base.bridge_auth_token`` (wins over ``odoo.conf``).
 Shared by child modules (``ai_agno_thread_bridge_crm``,
-``agno_thread_bridge_helpdesk_mgmt``).
+``ai_agno_thread_bridge_helpdesk_mgmt``).
 
 **Manual:** open *Settings → Technical → AI Bridges* and paste the token
 on **Agno Partner Analysis** (and other thread bridges).

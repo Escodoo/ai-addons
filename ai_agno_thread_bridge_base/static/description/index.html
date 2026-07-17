@@ -374,7 +374,7 @@ ul.auto-toc {
 <tt class="docutils literal">POST /bridge/odoo</tt>).</p>
 <p>It provisions Partner Analysis on <tt class="docutils literal">res.partner</tt> and exposes
 post-install helpers (<tt class="docutils literal">apply_auth_token</tt>, <tt class="docutils literal">set_bridge_fields</tt>) so
-domain-specific modules (<tt class="docutils literal">agno_thread_bridge_helpdesk_mgmt</tt>, sale,
+domain-specific modules (<tt class="docutils literal">ai_agno_thread_bridge_helpdesk_mgmt</tt>, sale,
 account, …) can share the same auth token ICP and field-list rewrite
 pattern.</p>
 <p>Discuss bots live in <tt class="docutils literal">ai_agno_chatter_bots</tt>; Knowledge sync lives in
@@ -406,7 +406,7 @@ empty.</p>
 <p><strong>Optional override:</strong> system parameter
 <tt class="docutils literal">ai_agno_thread_bridge_base.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).
 Shared by child modules (<tt class="docutils literal">ai_agno_thread_bridge_crm</tt>,
-<tt class="docutils literal">agno_thread_bridge_helpdesk_mgmt</tt>).</p>
+<tt class="docutils literal">ai_agno_thread_bridge_helpdesk_mgmt</tt>).</p>
 <p><strong>Manual:</strong> open <em>Settings → Technical → AI Bridges</em> and paste the token
 on <strong>Agno Partner Analysis</strong> (and other thread bridges).</p>
 <p>Default URL (from the Odoo container): <tt class="docutils literal"><span class="pre">http://agno:8000/bridge/odoo</span></tt>.</p>

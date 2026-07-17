@@ -9,7 +9,7 @@ from odoo.tests.common import TransactionCase
 class TestAgnoThreadBridgeHelpdesk(TransactionCase):
     def test_helpdesk_ticket_bridge(self):
         bridge = self.env.ref(
-            "agno_thread_bridge_helpdesk_mgmt.ai_bridge_helpdesk_ticket_analysis"
+            "ai_agno_thread_bridge_helpdesk_mgmt.ai_bridge_helpdesk_ticket_analysis"
         )
         self.assertEqual(bridge.usage, "thread")
         self.assertEqual(bridge.payload_type, "record")
