@@ -54,7 +54,7 @@ empty.
 
 **Optional override:** system parameter
 ``ai_agno_thread_bridge_base.bridge_auth_token`` (wins over ``odoo.conf``).
-Shared by child modules (``agno_thread_bridge_crm``,
+Shared by child modules (``ai_agno_thread_bridge_crm``,
 ``agno_thread_bridge_helpdesk_mgmt``).
 
 **Manual:** open *Settings → Technical → AI Bridges* and paste the token

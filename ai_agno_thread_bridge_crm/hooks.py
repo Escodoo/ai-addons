@@ -8,7 +8,7 @@ from odoo.addons.ai_agno_thread_bridge_base.hooks import (
     set_bridge_fields,
 )
 
-_BRIDGE_XMLID = "agno_thread_bridge_crm.ai_bridge_crm_lead_analysis"
+_BRIDGE_XMLID = "ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis"
 
 _LEAD_FIELD_NAMES = (
     "name",

@@ -8,7 +8,7 @@ from odoo.tests.common import TransactionCase
 @tagged("post_install", "-at_install")
 class TestAgnoThreadBridgeCrm(TransactionCase):
     def test_crm_lead_bridge(self):
-        bridge = self.env.ref("agno_thread_bridge_crm.ai_bridge_crm_lead_analysis")
+        bridge = self.env.ref("ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis")
         self.assertEqual(bridge.usage, "thread")
         self.assertEqual(bridge.payload_type, "record")
         self.assertEqual(bridge.result_type, "message")
