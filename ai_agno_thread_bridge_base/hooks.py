@@ -13,9 +13,9 @@ from odoo.addons.ai_agno_connector.token_utils import (
     ensure_token,
 )
 
-ICP_KEY = "agno_thread_bridge_base.bridge_auth_token"
+ICP_KEY = "ai_agno_thread_bridge_base.bridge_auth_token"
 
-_PARTNER_BRIDGE_XMLID = "agno_thread_bridge_base.ai_bridge_partner_analysis"
+_PARTNER_BRIDGE_XMLID = "ai_agno_thread_bridge_base.ai_bridge_partner_analysis"
 
 # Names only: ranks come from account when installed; missing fields are skipped.
 _PARTNER_FIELD_NAMES = (

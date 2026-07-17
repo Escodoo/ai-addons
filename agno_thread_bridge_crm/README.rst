@@ -25,7 +25,7 @@ Agno Thread Bridge CRM
 Provisions an Agno **thread** bridge for CRM leads and opportunities
 (``crm.lead`` → ``POST /bridge/odoo``).
 
-Depends on ``agno_thread_bridge_base`` for the shared auth-token ICP and
+Depends on ``ai_agno_thread_bridge_base`` for the shared auth-token ICP and
 field rewrite helpers.
 
 **Table of contents**
@@ -38,7 +38,7 @@ Configuration
 
 Uses the same token source as the base module: ``odoo.conf``
 ``agno_bridge_auth_token`` (from ``conf.d/03-agno.conf``) or ICP
-``agno_thread_bridge_base.bridge_auth_token``.
+``ai_agno_thread_bridge_base.bridge_auth_token``.
 
 Configure before install, or paste the token on **Agno CRM Lead
 Analysis** under *Settings → Technical → AI Bridges*.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
     <!--
-        auth_token left empty: set ICP agno_thread_bridge_base.bridge_auth_token
+        auth_token left empty: set ICP ai_agno_thread_bridge_base.bridge_auth_token
         before install, or paste BRIDGE_AUTH_TOKEN on the bridge after install.
         field_ids / domain are rewritten in post_init_hook.
     -->

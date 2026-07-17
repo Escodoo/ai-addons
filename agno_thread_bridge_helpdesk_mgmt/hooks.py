@@ -3,7 +3,7 @@
 
 """Post-install hook for the helpdesk ticket thread bridge."""
 
-from odoo.addons.agno_thread_bridge_base.hooks import (
+from odoo.addons.ai_agno_thread_bridge_base.hooks import (
     apply_auth_token,
     set_bridge_fields,
 )

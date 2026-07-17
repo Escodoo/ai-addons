@@ -12,7 +12,7 @@
     "website": "https://github.com/Escodoo/ai-addons",
     "license": "AGPL-3",
     "depends": [
-        "agno_thread_bridge_base",
+        "ai_agno_thread_bridge_base",
         "helpdesk_mgmt",
     ],
     "data": [

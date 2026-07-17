@@ -25,7 +25,7 @@ Agno Thread Bridge Helpdesk Mgmt
 Provisions an Agno **thread** bridge for OCA ``helpdesk_mgmt`` tickets
 (``helpdesk.ticket`` → ``POST /bridge/odoo``).
 
-Depends on ``agno_thread_bridge_base`` for the shared auth-token ICP and
+Depends on ``ai_agno_thread_bridge_base`` for the shared auth-token ICP and
 field rewrite helpers. Install only when ``helpdesk_mgmt`` is part of
 the stack.
 
@@ -39,7 +39,7 @@ Configuration
 
 Uses the same token source as the base module: ``odoo.conf``
 ``agno_bridge_auth_token`` (from ``conf.d/03-agno.conf``) or ICP
-``agno_thread_bridge_base.bridge_auth_token``.
+``ai_agno_thread_bridge_base.bridge_auth_token``.
 
 Configure before install, or paste the token on **Agno Helpdesk Ticket
 Analysis** under *Settings → Technical → AI Bridges*.

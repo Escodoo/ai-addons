@@ -2,7 +2,7 @@
 <odoo noupdate="1">
     <!--
         auth_token / field_ids rewritten in post_init_hook (shared ICP from
-        agno_thread_bridge_base.bridge_auth_token).
+        ai_agno_thread_bridge_base.bridge_auth_token).
     -->
     <record id="ai_bridge_helpdesk_ticket_analysis" model="ai.bridge">
         <field name="name">Agno Helpdesk Ticket Analysis</field>

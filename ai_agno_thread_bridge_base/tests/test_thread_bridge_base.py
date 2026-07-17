@@ -10,7 +10,7 @@ from ..hooks import ICP_KEY, apply_auth_token, post_init_hook, set_bridge_fields
 @tagged("post_install", "-at_install")
 class TestAgnoThreadBridgeBase(TransactionCase):
     def test_partner_bridge(self):
-        bridge = self.env.ref("agno_thread_bridge_base.ai_bridge_partner_analysis")
+        bridge = self.env.ref("ai_agno_thread_bridge_base.ai_bridge_partner_analysis")
         self.assertEqual(bridge.usage, "thread")
         self.assertEqual(bridge.payload_type, "record")
         self.assertEqual(bridge.result_type, "message")
@@ -22,24 +22,24 @@ class TestAgnoThreadBridgeBase(TransactionCase):
         self.assertIn("name", bridge.field_ids.mapped("name"))
 
     def test_helpers_apply_token_and_fields(self):
-        bridge = self.env.ref("agno_thread_bridge_base.ai_bridge_partner_analysis")
+        bridge = self.env.ref("ai_agno_thread_bridge_base.ai_bridge_partner_analysis")
         bridge.auth_token = False
         self.env["ir.config_parameter"].sudo().set_param(ICP_KEY, "test-token")
         apply_auth_token(
-            self.env, ["agno_thread_bridge_base.ai_bridge_partner_analysis"]
+            self.env, ["ai_agno_thread_bridge_base.ai_bridge_partner_analysis"]
         )
         self.assertEqual(bridge.auth_token, "test-token")
 
         bridge.auth_token = "keep-me"
         self.env["ir.config_parameter"].sudo().set_param(ICP_KEY, "other")
         apply_auth_token(
-            self.env, ["agno_thread_bridge_base.ai_bridge_partner_analysis"]
+            self.env, ["ai_agno_thread_bridge_base.ai_bridge_partner_analysis"]
         )
         self.assertEqual(bridge.auth_token, "keep-me")
 
         set_bridge_fields(
             self.env,
-            "agno_thread_bridge_base.ai_bridge_partner_analysis",
+            "ai_agno_thread_bridge_base.ai_bridge_partner_analysis",
             "res.partner",
             ("name", "email"),
         )
