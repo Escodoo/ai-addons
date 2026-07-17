@@ -21,8 +21,8 @@ class TestAgnoChatterBotsData(TransactionCase):
             ("ai_bridge_chatter_web", "user_bot_web", "bot.website", "web"),
         )
         for bridge_xmlid, user_xmlid, login, agent_key in expected:
-            bridge = self.env.ref(f"agno_chatter_bots.{bridge_xmlid}")
-            user = self.env.ref(f"agno_chatter_bots.{user_xmlid}")
+            bridge = self.env.ref(f"ai_agno_chatter_bots.{bridge_xmlid}")
+            user = self.env.ref(f"ai_agno_chatter_bots.{user_xmlid}")
             self.assertEqual(bridge.usage, "chatter")
             self.assertEqual(bridge.payload_type, "chatter")
             self.assertEqual(bridge.result_type, "message")
@@ -35,13 +35,13 @@ class TestAgnoChatterBotsData(TransactionCase):
 
         self.assertFalse(
             self.env.ref(
-                "agno_chatter_bots.ai_bridge_chatter_architect",
+                "ai_agno_chatter_bots.ai_bridge_chatter_architect",
                 raise_if_not_found=False,
             )
         )
         self.assertFalse(
             self.env.ref(
-                "agno_chatter_bots.user_bot_architect",
+                "ai_agno_chatter_bots.user_bot_architect",
                 raise_if_not_found=False,
             )
         )
@@ -49,17 +49,17 @@ class TestAgnoChatterBotsData(TransactionCase):
     def test_post_init_applies_token_when_empty(self):
         from ..hooks import post_init_hook
 
-        bridge = self.env.ref("agno_chatter_bots.ai_bridge_chatter_erp")
+        bridge = self.env.ref("ai_agno_chatter_bots.ai_bridge_chatter_erp")
         bridge.auth_token = False
         self.env["ir.config_parameter"].sudo().set_param(
-            "agno_chatter_bots.bridge_auth_token", "test-bridge-token"
+            "ai_agno_chatter_bots.bridge_auth_token", "test-bridge-token"
         )
         post_init_hook(self.env)
         self.assertEqual(bridge.auth_token, "test-bridge-token")
 
         bridge.auth_token = "keep-me"
         self.env["ir.config_parameter"].sudo().set_param(
-            "agno_chatter_bots.bridge_auth_token", "other-token"
+            "ai_agno_chatter_bots.bridge_auth_token", "other-token"
         )
         post_init_hook(self.env)
         self.assertEqual(bridge.auth_token, "keep-me")

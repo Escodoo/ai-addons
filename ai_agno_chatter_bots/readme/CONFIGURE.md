@@ -7,7 +7,7 @@ each chatter bridge.
 key under `[options]` (see `ai_agno_connector` CONFIGURE). The post-init hook
 copies it onto bridges whose `auth_token` is still empty.
 
-**Optional override:** system parameter `agno_chatter_bots.bridge_auth_token`
+**Optional override:** system parameter `ai_agno_chatter_bots.bridge_auth_token`
 (wins over `odoo.conf`).
 
 **Manual:** open *Settings → Technical → AI Bridges*, set Authentication Type

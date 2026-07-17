@@ -6,5 +6,5 @@ It provisions Partner Analysis on `res.partner` and exposes post-install helpers
 (`agno_thread_bridge_helpdesk_mgmt`, sale, account, …) can share the same
 auth token ICP and field-list rewrite pattern.
 
-Discuss bots live in `agno_chatter_bots`; Knowledge sync lives in
+Discuss bots live in `ai_agno_chatter_bots`; Knowledge sync lives in
 `agno_document_page_kb`.

@@ -2,7 +2,7 @@
 <odoo noupdate="1">
     <!--
         auth_token is intentionally left empty. Set ICP
-        agno_chatter_bots.bridge_auth_token before install, or paste
+        ai_agno_chatter_bots.bridge_auth_token before install, or paste
         BRIDGE_AUTH_TOKEN on each bridge after install.
     -->
 

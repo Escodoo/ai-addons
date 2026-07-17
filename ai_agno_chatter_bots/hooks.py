@@ -9,14 +9,14 @@ from odoo.addons.ai_agno_connector.token_utils import (
 )
 
 _BRIDGE_XMLIDS = (
-    "agno_chatter_bots.ai_bridge_chatter_erp",
-    "agno_chatter_bots.ai_bridge_chatter_ops",
-    "agno_chatter_bots.ai_bridge_chatter_support",
-    "agno_chatter_bots.ai_bridge_chatter_sales",
-    "agno_chatter_bots.ai_bridge_chatter_web",
+    "ai_agno_chatter_bots.ai_bridge_chatter_erp",
+    "ai_agno_chatter_bots.ai_bridge_chatter_ops",
+    "ai_agno_chatter_bots.ai_bridge_chatter_support",
+    "ai_agno_chatter_bots.ai_bridge_chatter_sales",
+    "ai_agno_chatter_bots.ai_bridge_chatter_web",
 )
 
-_ICP_KEY = "agno_chatter_bots.bridge_auth_token"
+_ICP_KEY = "ai_agno_chatter_bots.bridge_auth_token"
 
 
 def post_init_hook(env):
