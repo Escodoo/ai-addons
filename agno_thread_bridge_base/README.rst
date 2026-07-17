@@ -32,7 +32,7 @@ account, …) can share the same auth token ICP and field-list rewrite
 pattern.
 
 Discuss bots live in ``ai_agno_chatter_bots``; Knowledge sync lives in
-``agno_document_page_kb``.
+``ai_agno_document_page_kb``.
 
 **Table of contents**
 

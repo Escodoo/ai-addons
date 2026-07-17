@@ -17,7 +17,7 @@ Agno Document Page Knowledge Base
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-Escodoo%2Fai--addons-lightgray.png?logo=github
-    :target: https://github.com/Escodoo/ai-addons/tree/18.0/agno_document_page_kb
+    :target: https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_document_page_kb
     :alt: Escodoo/ai-addons
 
 |badge1| |badge2| |badge3|
@@ -60,7 +60,7 @@ matching content page (``type=content`` + tag) into Agno — including
 demo pages and pages that already existed before install.
 
 **Optional override:** system parameter
-``agno_document_page_kb.bridge_auth_token`` (wins over ``odoo.conf``).
+``ai_agno_document_page_kb.bridge_auth_token`` (wins over ``odoo.conf``).
 
 Demo page creates may return HTTP 401 while bridges still have an empty
 token; the post-init sync reindexes them afterwards. Without conf/ICP
@@ -140,7 +140,7 @@ Bug Tracker
 Bugs are tracked on `GitHub Issues <https://github.com/Escodoo/ai-addons/issues>`_.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
-`feedback <https://github.com/Escodoo/ai-addons/issues/new?body=module:%20agno_document_page_kb%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
+`feedback <https://github.com/Escodoo/ai-addons/issues/new?body=module:%20ai_agno_document_page_kb%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
 
 Do not contact contributors directly about support or help with technical issues.
 
@@ -170,6 +170,6 @@ Current maintainer:
 
 |maintainer-marcelsavegnago| 
 
-This module is part of the `Escodoo/ai-addons <https://github.com/Escodoo/ai-addons/tree/18.0/agno_document_page_kb>`_ project on GitHub.
+This module is part of the `Escodoo/ai-addons <https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_document_page_kb>`_ project on GitHub.
 
 You are welcome to contribute.

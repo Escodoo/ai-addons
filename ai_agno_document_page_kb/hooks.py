@@ -24,48 +24,48 @@ from odoo.addons.ai_agno_connector.token_utils import (
 
 _logger = logging.getLogger(__name__)
 
-_ICP_KEY = "agno_document_page_kb.bridge_auth_token"
+_ICP_KEY = "ai_agno_document_page_kb.bridge_auth_token"
 
 # Tag xmlid → create/write/unlink bridge xmlids (one KB per tag).
 _TAG_BRIDGE_PAIRS = (
     (
-        "agno_document_page_kb.tag_support",
+        "ai_agno_document_page_kb.tag_support",
         (
-            "agno_document_page_kb.ai_bridge_support_create",
-            "agno_document_page_kb.ai_bridge_support_write",
-            "agno_document_page_kb.ai_bridge_support_unlink",
+            "ai_agno_document_page_kb.ai_bridge_support_create",
+            "ai_agno_document_page_kb.ai_bridge_support_write",
+            "ai_agno_document_page_kb.ai_bridge_support_unlink",
         ),
     ),
     (
-        "agno_document_page_kb.tag_legal",
+        "ai_agno_document_page_kb.tag_legal",
         (
-            "agno_document_page_kb.ai_bridge_legal_create",
-            "agno_document_page_kb.ai_bridge_legal_write",
-            "agno_document_page_kb.ai_bridge_legal_unlink",
+            "ai_agno_document_page_kb.ai_bridge_legal_create",
+            "ai_agno_document_page_kb.ai_bridge_legal_write",
+            "ai_agno_document_page_kb.ai_bridge_legal_unlink",
         ),
     ),
     (
-        "agno_document_page_kb.tag_processes",
+        "ai_agno_document_page_kb.tag_processes",
         (
-            "agno_document_page_kb.ai_bridge_processes_create",
-            "agno_document_page_kb.ai_bridge_processes_write",
-            "agno_document_page_kb.ai_bridge_processes_unlink",
+            "ai_agno_document_page_kb.ai_bridge_processes_create",
+            "ai_agno_document_page_kb.ai_bridge_processes_write",
+            "ai_agno_document_page_kb.ai_bridge_processes_unlink",
         ),
     ),
     (
-        "agno_document_page_kb.tag_commercial",
+        "ai_agno_document_page_kb.tag_commercial",
         (
-            "agno_document_page_kb.ai_bridge_commercial_create",
-            "agno_document_page_kb.ai_bridge_commercial_write",
-            "agno_document_page_kb.ai_bridge_commercial_unlink",
+            "ai_agno_document_page_kb.ai_bridge_commercial_create",
+            "ai_agno_document_page_kb.ai_bridge_commercial_write",
+            "ai_agno_document_page_kb.ai_bridge_commercial_unlink",
         ),
     ),
     (
-        "agno_document_page_kb.tag_public",
+        "ai_agno_document_page_kb.tag_public",
         (
-            "agno_document_page_kb.ai_bridge_public_create",
-            "agno_document_page_kb.ai_bridge_public_write",
-            "agno_document_page_kb.ai_bridge_public_unlink",
+            "ai_agno_document_page_kb.ai_bridge_public_create",
+            "ai_agno_document_page_kb.ai_bridge_public_write",
+            "ai_agno_document_page_kb.ai_bridge_public_unlink",
         ),
     ),
 )

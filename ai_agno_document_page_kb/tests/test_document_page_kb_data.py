@@ -12,13 +12,13 @@ class TestAgnoDocumentPageKbData(TransactionCase):
     def test_configure_applies_token_when_empty(self):
         from ..hooks import configure_kb_bridges, post_init_hook
 
-        bridge = self.env.ref("agno_document_page_kb.ai_bridge_support_create")
+        bridge = self.env.ref("ai_agno_document_page_kb.ai_bridge_support_create")
         bridge.auth_token = False
         self.env["ir.config_parameter"].sudo().set_param(
-            "agno_document_page_kb.bridge_auth_token", "test-bridge-token"
+            "ai_agno_document_page_kb.bridge_auth_token", "test-bridge-token"
         )
         with patch(
-            "odoo.addons.agno_document_page_kb.hooks.sync_kb_pages"
+            "odoo.addons.ai_agno_document_page_kb.hooks.sync_kb_pages"
         ) as mock_sync:
             configure_kb_bridges(self.env)
             self.assertEqual(bridge.auth_token, "test-bridge-token")
@@ -26,7 +26,7 @@ class TestAgnoDocumentPageKbData(TransactionCase):
 
             bridge.auth_token = "keep-me"
             self.env["ir.config_parameter"].sudo().set_param(
-                "agno_document_page_kb.bridge_auth_token", "other-token"
+                "ai_agno_document_page_kb.bridge_auth_token", "other-token"
             )
             post_init_hook(self.env)
             self.assertEqual(bridge.auth_token, "keep-me")
@@ -35,9 +35,9 @@ class TestAgnoDocumentPageKbData(TransactionCase):
     def test_sync_kb_pages_calls_write_bridges(self):
         from ..hooks import sync_kb_pages
 
-        write_bridge = self.env.ref("agno_document_page_kb.ai_bridge_support_write")
+        write_bridge = self.env.ref("ai_agno_document_page_kb.ai_bridge_support_write")
         write_bridge.auth_token = "sync-token"
-        tag = self.env.ref("agno_document_page_kb.tag_support")
+        tag = self.env.ref("ai_agno_document_page_kb.tag_support")
         page = self.env["document.page"].create(
             {
                 "name": "Support page for sync test",
@@ -55,9 +55,9 @@ class TestAgnoDocumentPageKbData(TransactionCase):
     def test_sync_kb_pages_logs_and_continues_on_execute_error(self):
         from ..hooks import sync_kb_pages
 
-        write_bridge = self.env.ref("agno_document_page_kb.ai_bridge_support_write")
+        write_bridge = self.env.ref("ai_agno_document_page_kb.ai_bridge_support_write")
         write_bridge.auth_token = "sync-token"
-        tag = self.env.ref("agno_document_page_kb.tag_support")
+        tag = self.env.ref("ai_agno_document_page_kb.tag_support")
         self.env["document.page"].create(
             {
                 "name": "Support page for sync failure test",
@@ -72,7 +72,7 @@ class TestAgnoDocumentPageKbData(TransactionCase):
                 "execute_ai_bridge",
                 side_effect=RuntimeError("bridge down"),
             ),
-            patch("odoo.addons.agno_document_page_kb.hooks._logger") as mock_logger,
+            patch("odoo.addons.ai_agno_document_page_kb.hooks._logger") as mock_logger,
         ):
             sync_kb_pages(self.env)
             mock_logger.exception.assert_called()

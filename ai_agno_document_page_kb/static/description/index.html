@@ -369,7 +369,7 @@ ul.auto-toc {
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! source digest: sha256:a6d4c43c7c9c0915b27d1a15aadc7be531324c6014b134ebf9fd819c6e8cee52
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
-<p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/Escodoo/ai-addons/tree/18.0/agno_document_page_kb"><img alt="Escodoo/ai-addons" src="https://img.shields.io/badge/github-Escodoo%2Fai--addons-lightgray.png?logo=github" /></a></p>
+<p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_document_page_kb"><img alt="Escodoo/ai-addons" src="https://img.shields.io/badge/github-Escodoo%2Fai--addons-lightgray.png?logo=github" /></a></p>
 <p>This module wires Odoo Knowledge (<tt class="docutils literal">document.page</tt>) into Agno knowledge
 bases through <tt class="docutils literal">ai.bridge</tt> records.</p>
 <p>It creates content tags (<tt class="docutils literal">support</tt>, <tt class="docutils literal">legal</tt>, <tt class="docutils literal">processes</tt>,
@@ -410,7 +410,7 @@ empty, rewrites each bridge domain / field list, then upserts every
 matching content page (<tt class="docutils literal">type=content</tt> + tag) into Agno — including
 demo pages and pages that already existed before install.</p>
 <p><strong>Optional override:</strong> system parameter
-<tt class="docutils literal">agno_document_page_kb.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).</p>
+<tt class="docutils literal">ai_agno_document_page_kb.bridge_auth_token</tt> (wins over <tt class="docutils literal">odoo.conf</tt>).</p>
 <p>Demo page creates may return HTTP 401 while bridges still have an empty
 token; the post-init sync reindexes them afterwards. Without conf/ICP
 token, post-init skips the sync.</p>
@@ -522,7 +522,7 @@ use the module tags.</p>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/Escodoo/ai-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
-<a class="reference external" href="https://github.com/Escodoo/ai-addons/issues/new?body=module:%20agno_document_page_kb%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**">feedback</a>.</p>
+<a class="reference external" href="https://github.com/Escodoo/ai-addons/issues/new?body=module:%20ai_agno_document_page_kb%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**">feedback</a>.</p>
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
@@ -546,7 +546,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <h2><a class="toc-backref" href="#toc-entry-7">Maintainers</a></h2>
 <p>Current maintainer:</p>
 <p><a class="reference external image-reference" href="https://github.com/marcelsavegnago"><img alt="marcelsavegnago" src="https://github.com/marcelsavegnago.png?size=40px" /></a></p>
-<p>This module is part of the <a class="reference external" href="https://github.com/Escodoo/ai-addons/tree/18.0/agno_document_page_kb">Escodoo/ai-addons</a> project on GitHub.</p>
+<p>This module is part of the <a class="reference external" href="https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_document_page_kb">Escodoo/ai-addons</a> project on GitHub.</p>
 <p>You are welcome to contribute.</p>
 </div>
 </div>

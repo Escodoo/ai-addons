@@ -32,7 +32,7 @@ messages to ``/bridge/chatter/<agent_key>`` on the Agno service.
 
 The Architect persona is intentionally **not** created here (dev /
 AgentOS only). Knowledge-base sync for ``document.page`` lives in
-``agno_document_page_kb``.
+``ai_agno_document_page_kb``.
 
 **Table of contents**
 
