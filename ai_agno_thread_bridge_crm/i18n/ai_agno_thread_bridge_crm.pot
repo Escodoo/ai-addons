@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_agno_thread_bridge_crm
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_agno_thread_bridge_crm
+#: model_terms:ai.bridge,description:ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis
+msgid ""
+") via\n"
+"            Agno"
+msgstr ""
+
+#. module: ai_agno_thread_bridge_crm
+#: model_terms:ai.bridge,description:ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis
+msgid "/bridge/odoo"
+msgstr ""
+
+#. module: ai_agno_thread_bridge_crm
+#: model:ai.bridge,name:ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis
+msgid "Agno CRM Lead Analysis"
+msgstr ""
+
+#. module: ai_agno_thread_bridge_crm
+#: model_terms:ai.bridge,description:ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis
+msgid "Analyzes a CRM lead or opportunity ("
+msgstr ""
+
+#. module: ai_agno_thread_bridge_crm
+#: model_terms:ai.bridge,description:ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis
+msgid "and posts the result on the record chatter."
+msgstr ""
+
+#. module: ai_agno_thread_bridge_crm
+#: model_terms:ai.bridge,description:ai_agno_thread_bridge_crm.ai_bridge_crm_lead_analysis
+msgid "crm.lead"
+msgstr ""

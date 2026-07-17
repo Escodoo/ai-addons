@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        auth_token left empty: set ICP ai_agno_thread_bridge_base.bridge_auth_token
+        before install, or paste BRIDGE_AUTH_TOKEN on the bridge after install.
+        field_ids / domain are rewritten in post_init_hook.
+    -->
+    <record id="ai_bridge_partner_analysis" model="ai.bridge">
+        <field name="name">Agno Partner Analysis</field>
+        <field name="description">
+            <![CDATA[
+            <p>Analyzes a contact (<tt>res.partner</tt>) via Agno
+            <tt>/bridge/odoo</tt> and posts the result on the record chatter.</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="base.model_res_partner" />
+        <field name="usage">thread</field>
+        <field name="payload_type">record</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/odoo</field>
+    </record>
+</odoo>

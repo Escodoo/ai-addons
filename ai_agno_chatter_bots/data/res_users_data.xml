@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        Bots are Discuss endpoints only; they do not need rich ACLs.
+        ERP queries run as the requesting user via ai_agno_connector.
+        Password is a placeholder so the record can be created; bots are
+        not meant for interactive UI login.
+    -->
+
+    <record id="user_bot_erp" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Bot ERP</field>
+        <field name="login">bot.erp</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_erp" />
+    </record>
+
+    <record id="user_bot_ops" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Bot Ops</field>
+        <field name="login">bot.ops</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_ops" />
+    </record>
+
+    <record
+        id="user_bot_support"
+        model="res.users"
+        context="{'no_reset_password': True}"
+    >
+        <field name="name">Bot Suporte</field>
+        <field name="login">bot.suporte</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_support" />
+    </record>
+
+    <record id="user_bot_sales" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Bot Comercial</field>
+        <field name="login">bot.comercial</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_sales" />
+    </record>
+
+    <record id="user_bot_web" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Bot Website</field>
+        <field name="login">bot.website</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_web" />
+    </record>
+</odoo>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        auth_token / field_ids rewritten in post_init_hook (shared ICP from
+        ai_agno_thread_bridge_base.bridge_auth_token).
+    -->
+    <record id="ai_bridge_helpdesk_ticket_analysis" model="ai.bridge">
+        <field name="name">Agno Helpdesk Ticket Analysis</field>
+        <field name="description">
+            <![CDATA[
+            <p>Analyzes an OCA helpdesk ticket (<tt>helpdesk.ticket</tt>) via
+            Agno <tt>/bridge/odoo</tt> and posts the result on the ticket chatter.</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="helpdesk_mgmt.model_helpdesk_ticket" />
+        <field name="usage">thread</field>
+        <field name="payload_type">record</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/odoo</field>
+    </record>
+</odoo>
