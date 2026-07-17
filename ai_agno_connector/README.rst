@@ -76,7 +76,7 @@ start.
 
 ``agno_bridge_auth_token`` is the shared ``odoo.conf`` key consumed by
 the Agno bridge modules (``ai_agno_chatter_bots``,
-``agno_thread_bridge_*``, ``ai_agno_document_page_kb``). See each module's
+``ai_agno_thread_bridge_*``, ``ai_agno_document_page_kb``). See each module's
 CONFIGURE for how they apply it and for their optional ICP overrides.
 
 Without Doodba (plain ``odoo.conf``)
