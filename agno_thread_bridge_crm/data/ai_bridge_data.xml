@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        auth_token / field_ids rewritten in post_init_hook (shared ICP from
+        agno_thread_bridge_base.bridge_auth_token).
+    -->
+    <record id="ai_bridge_crm_lead_analysis" model="ai.bridge">
+        <field name="name">Agno CRM Lead Analysis</field>
+        <field name="description">
+            <![CDATA[
+            <p>Analyzes a CRM lead or opportunity (<tt>crm.lead</tt>) via
+            Agno <tt>/bridge/odoo</tt> and posts the result on the record chatter.</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="crm.model_crm_lead" />
+        <field name="usage">thread</field>
+        <field name="payload_type">record</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="url">http://agno:8000/bridge/odoo</field>
+    </record>
+</odoo>
