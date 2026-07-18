@@ -416,6 +416,9 @@ are unchanged and remain separate.</p>
 <p>Go to <strong>Settings → Agno AI</strong> (system administrators only).</p>
 <p>By default <strong>all fields are empty</strong>. Leave a provider empty to let Agno
 use its service environment.</p>
+<p>BYOK values are injected into <tt class="docutils literal">_odoo.llm</tt> / <tt class="docutils literal">_odoo.embedder</tt> only
+for bridges with <strong>Agno Bridge</strong> (<tt class="docutils literal">is_agno_bridge</tt>) enabled.
+Third-party bridges never receive the customer API keys.</p>
 <div class="section" id="chat-llm-byok">
 <h3><a class="toc-backref" href="#toc-entry-3">Chat LLM (BYOK)</a></h3>
 <table border="1" class="docutils">

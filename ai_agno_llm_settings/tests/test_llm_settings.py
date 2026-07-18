@@ -37,6 +37,7 @@ class TestAgnoLlmSettings(TransactionCase):
                 "usage": "thread",
                 "result_kind": "immediate",
                 "result_type": "none",
+                "is_agno_bridge": True,
             }
         )
         cls.partner = cls.env["res.partner"].create({"name": "LLM Settings Partner"})
@@ -52,10 +53,11 @@ class TestAgnoLlmSettings(TransactionCase):
         cls.icp.set_param(ICP_EMBEDDER_API_KEY, "")
         cls.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "")
 
-    def _create_execution(self):
+    def _create_execution(self, bridge=None):
+        bridge = bridge or self.bridge
         return self.env["ai.bridge.execution"].create(
             {
-                "ai_bridge_id": self.bridge.id,
+                "ai_bridge_id": bridge.id,
                 "model_id": self.env["ir.model"]._get_id("res.partner"),
                 "res_id": self.partner.id,
             }
@@ -124,6 +126,22 @@ class TestAgnoLlmSettings(TransactionCase):
 
     def test_payload_omits_llm_and_embedder_when_providers_empty(self):
         execution = self._create_execution()
+        payload = execution._add_extra_payload_fields({})
+        self.assertNotIn("llm", payload["_odoo"])
+        self.assertNotIn("embedder", payload["_odoo"])
+
+    def test_payload_skips_llm_for_non_agno_bridge(self):
+        self.icp.set_param(ICP_PROVIDER, "openai")
+        self.icp.set_param(ICP_HOST, "https://api.openai.com/v1")
+        self.icp.set_param(ICP_MODEL, "gpt-4o")
+        self.icp.set_param(ICP_API_KEY, "sk-should-not-leak")
+        self.icp.set_param(ICP_EMBEDDER_PROVIDER, "openai")
+        self.icp.set_param(ICP_EMBEDDER_HOST, "https://api.openai.com/v1")
+        self.icp.set_param(ICP_EMBEDDER_MODEL, "text-embedding-3-small")
+        self.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "1536")
+        self.icp.set_param(ICP_EMBEDDER_API_KEY, "embed-should-not-leak")
+        other = self.bridge.copy({"name": "Third Party", "is_agno_bridge": False})
+        execution = self._create_execution(bridge=other)
         payload = execution._add_extra_payload_fields({})
         self.assertNotIn("llm", payload["_odoo"])
         self.assertNotIn("embedder", payload["_odoo"])
