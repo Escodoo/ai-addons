@@ -90,7 +90,8 @@ class TestChatterErrorNotify(TransactionCase):
                 side_effect=RuntimeError("notify boom"),
             ),
             self.assertLogs(
-                "odoo.addons.ai_agno_chatter_bots.models.ai_bridge_execution",
+                "odoo.addons.ai_oca_bridge_chatter_error_notify"
+                ".models.ai_bridge_execution",
                 level="ERROR",
             ) as logs,
         ):
