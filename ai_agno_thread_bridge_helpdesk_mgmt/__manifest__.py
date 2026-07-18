@@ -4,7 +4,7 @@
 {
     "name": "Agno Thread Bridge Helpdesk Mgmt",
     "summary": """Agno thread bridge for OCA helpdesk_mgmt tickets""",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",

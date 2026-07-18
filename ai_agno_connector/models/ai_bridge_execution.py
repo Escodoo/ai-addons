@@ -23,12 +23,14 @@ class AiBridgeExecution(models.Model):
     def _add_extra_payload_fields(self, payload):
         """Sign the requesting user id with the database secret.
 
-        The agent forwards the signature untouched and the /agno/rpc
-        gateway verifies it before impersonating the user, so a
-        compromised agent (or any bridge-token holder) cannot forge an
-        arbitrary user_id.
+        Only for bridges marked ``is_agno_bridge``. The agent forwards the
+        signature untouched and the /agno/rpc gateway verifies it before
+        impersonating the user, so a compromised agent (or any bridge-token
+        holder) cannot forge an arbitrary user_id.
         """
         payload = super()._add_extra_payload_fields(payload)
+        if not self.ai_bridge_id.is_agno_bridge:
+            return payload
         odoo_meta = payload.get("_odoo")
         if odoo_meta and odoo_meta.get("user_id"):
             timestamp = int(time.time())
@@ -41,14 +43,18 @@ class AiBridgeExecution(models.Model):
     def _execute(self, **kwargs):
         """Replicate upstream _execute with a longer request timeout.
 
-        Upstream hardcodes ``timeout=30`` in the ``requests.post`` call,
-        which LLM-backed agent replies routinely exceed on cold sessions,
-        and passing ``timeout`` through ``_execute_kwargs`` would raise
-        ``TypeError`` there (duplicate keyword). The method body is
-        replicated so the timeout can default to ``BRIDGE_REQUEST_TIMEOUT``
-        while still honoring an explicit ``timeout`` kwarg.
+        Only for bridges marked ``is_agno_bridge``; other bridges keep the
+        upstream 30s timeout. Upstream hardcodes ``timeout=30`` in the
+        ``requests.post`` call, which LLM-backed agent replies routinely
+        exceed on cold sessions, and passing ``timeout`` through
+        ``_execute_kwargs`` would raise ``TypeError`` there (duplicate
+        keyword). The method body is replicated so the timeout can default
+        to ``BRIDGE_REQUEST_TIMEOUT`` while still honoring an explicit
+        ``timeout`` kwarg.
         """
         self.ensure_one()
+        if not self.ai_bridge_id.is_agno_bridge:
+            return super()._execute(**kwargs)
         record = None
         if self.res_id and self.model_id:
             record = self.env[self.sudo().model_id.model].browse(self.res_id)

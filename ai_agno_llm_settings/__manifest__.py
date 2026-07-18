@@ -2,20 +2,24 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Agno Connector",
-    "summary": """RPC gateway that runs AI agent queries with the
-    identity of the requesting user, enforcing ACLs and record rules""",
-    "version": "18.0.1.2.0",
+    "name": "Agno LLM Settings",
+    "summary": (
+        "Bring-your-own-key LLM and embedder settings for Agno "
+        "(Ollama / OpenAI / Gemini)"
+    ),
+    "version": "18.0.1.6.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",
     "maintainers": ["marcelsavegnago"],
     "website": "https://github.com/Escodoo/ai-addons",
     "license": "AGPL-3",
-    "depends": ["ai_oca_bridge"],
-    "data": [
-        "views/ai_bridge_views.xml",
+    "depends": [
+        "ai_agno_connector",
+        "base",
     ],
-    "post_load": "post_load",
+    "data": [
+        "views/res_config_settings_views.xml",
+    ],
     "installable": True,
 }

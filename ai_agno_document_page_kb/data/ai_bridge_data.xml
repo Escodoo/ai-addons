@@ -19,6 +19,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_create</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/support/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -35,6 +36,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_write</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/support/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -51,6 +53,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_unlink</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/support/delete</field>
         <field name="auth_type">token</field>
         <field name="payload_type">none</field>
@@ -68,6 +71,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_create</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/legal/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -84,6 +88,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_write</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/legal/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -100,6 +105,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_unlink</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/legal/delete</field>
         <field name="auth_type">token</field>
         <field name="payload_type">none</field>
@@ -117,6 +123,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_create</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/processes/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -133,6 +140,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_write</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/processes/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -149,6 +157,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_unlink</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/processes/delete</field>
         <field name="auth_type">token</field>
         <field name="payload_type">none</field>
@@ -166,6 +175,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_create</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/commercial/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -182,6 +192,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_write</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/commercial/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -198,6 +209,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_unlink</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/commercial/delete</field>
         <field name="auth_type">token</field>
         <field name="payload_type">none</field>
@@ -215,6 +227,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_create</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/public/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -231,6 +244,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_write</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/public/upsert</field>
         <field name="auth_type">token</field>
         <field name="payload_type">record</field>
@@ -247,6 +261,7 @@
         </field>
         <field name="model_id" ref="document_page.model_document_page" />
         <field name="usage">ai_thread_unlink</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/kb/public/delete</field>
         <field name="auth_type">token</field>
         <field name="payload_type">none</field>

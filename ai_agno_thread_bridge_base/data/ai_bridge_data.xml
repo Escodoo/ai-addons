@@ -19,6 +19,7 @@
         <field name="result_type">message</field>
         <field name="result_kind">immediate</field>
         <field name="auth_type">token</field>
+        <field name="is_agno_bridge" eval="True" />
         <field name="url">http://agno:8000/bridge/odoo</field>
     </record>
 </odoo>

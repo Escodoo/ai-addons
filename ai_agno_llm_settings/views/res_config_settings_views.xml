@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ai_agno_llm</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app
+                    data-string="Agno AI"
+                    string="Agno AI"
+                    name="ai_agno_llm_settings"
+                    groups="base.group_system"
+                >
+                    <block title="LLM Provider (BYOK)" name="ai_agno_llm_provider">
+                        <setting
+                            id="agno_llm_provider_setting"
+                            string="Chat LLM"
+                            help="Leave provider empty to use the Agno service environment. Host must be reachable from Agno (not from the browser). Ollama API key is optional for local instances."
+                        >
+                            <div class="content-group">
+                                <field name="agno_llm_last_provider" invisible="1" />
+                                <div class="row mt16">
+                                    <label
+                                        for="agno_llm_provider"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_provider"
+                                        class="col-lg-6"
+                                        placeholder="Use Agno .env"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_provider or agno_llm_provider == 'gemini'"
+                                >
+                                    <label
+                                        for="agno_llm_host"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_host"
+                                        class="col-lg-6"
+                                        placeholder="http://ollama:11434 or https://ollama.com"
+                                        required="agno_llm_provider == 'ollama'"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_llm_provider">
+                                    <label
+                                        for="agno_llm_model"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_model"
+                                        class="col-lg-6"
+                                        placeholder="Model id"
+                                        required="agno_llm_provider"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_llm_provider">
+                                    <label
+                                        for="agno_llm_api_key"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_api_key"
+                                        password="True"
+                                        class="col-lg-6"
+                                        placeholder="Your API key (optional for local Ollama)"
+                                        required="agno_llm_provider in ('openai', 'gemini')"
+                                    />
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Embeddings (BYOK)" name="ai_agno_embedder_provider">
+                        <setting
+                            id="agno_embedder_provider_setting"
+                            string="Knowledge Embedder"
+                            help="Leave provider empty to use the Agno service environment (EMBEDDER_*). Changing model or dimensions requires re-indexing knowledge bases."
+                        >
+                            <div class="content-group">
+                                <field
+                                    name="agno_embedder_last_provider"
+                                    invisible="1"
+                                />
+                                <div class="row mt16">
+                                    <label
+                                        for="agno_embedder_provider"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_embedder_provider"
+                                        class="col-lg-6"
+                                        placeholder="Use Agno .env"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_embedder_provider">
+                                    <label
+                                        for="agno_embedder_host"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_embedder_host"
+                                        class="col-lg-6"
+                                        placeholder="http://ollama:11434"
+                                        required="agno_embedder_provider == 'ollama'"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_embedder_provider">
+                                    <label
+                                        for="agno_embedder_model"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_embedder_model"
+                                        class="col-lg-6"
+                                        placeholder="nomic-embed-text"
+                                        required="agno_embedder_provider"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_embedder_provider">
+                                    <label
+                                        for="agno_embedder_dimensions"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_embedder_dimensions"
+                                        class="col-lg-6"
+                                        placeholder="768"
+                                        required="agno_embedder_provider"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_embedder_provider">
+                                    <label
+                                        for="agno_embedder_api_key"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_embedder_api_key"
+                                        password="True"
+                                        class="col-lg-6"
+                                        placeholder="Your API key (optional for local Ollama)"
+                                        required="agno_embedder_provider == 'openai'"
+                                    />
+                                </div>
+                                <div class="mt16">
+                                    <button
+                                        name="action_reindex_agno_knowledge"
+                                        type="object"
+                                        string="Reindex knowledge bases"
+                                        class="btn-secondary"
+                                        confirm="This deletes and rebuilds the business knowledge bases (support, legal, processes, commercial, public) with the current embedder, then re-syncs tagged document.page records. The architect KB is not modified. Continue?"
+                                    />
+                                    <div class="text-muted mt8">
+                                        Use after changing embedder model, provider,
+                                        or dimensions. Does not reindex the architect
+                                        knowledge base.
+                                    </div>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
