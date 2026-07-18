@@ -29,14 +29,16 @@ class TestAgnoBridgeExecution(TransactionCase):
                 "usage": "thread",
                 "result_kind": "immediate",
                 "result_type": "none",
+                "is_agno_bridge": True,
             }
         )
         cls.partner = cls.env["res.partner"].create({"name": "Test Partner"})
 
-    def _create_execution(self):
+    def _create_execution(self, bridge=None):
+        bridge = bridge or self.bridge
         return self.env["ai.bridge.execution"].create(
             {
-                "ai_bridge_id": self.bridge.id,
+                "ai_bridge_id": bridge.id,
                 "model_id": self.env["ir.model"]._get_id("res.partner"),
                 "res_id": self.partner.id,
             }
@@ -65,6 +67,15 @@ class TestAgnoBridgeExecution(TransactionCase):
         self.assertEqual(odoo_meta["user_hmac"], expected)
         self.assertIn("db_hash", odoo_meta)
 
+    def test_add_extra_payload_fields_skips_non_agno_bridge(self):
+        other = self.bridge.copy({"name": "Third Party", "is_agno_bridge": False})
+        execution = self._create_execution(bridge=other)
+        payload = execution._add_extra_payload_fields({})
+        odoo_meta = payload["_odoo"]
+        self.assertEqual(odoo_meta["user_id"], self.env.user.id)
+        self.assertNotIn("user_hmac", odoo_meta)
+        self.assertNotIn("user_hmac_ts", odoo_meta)
+
     def test_execute_success_default_timeout(self):
         execution = self._create_execution()
         with mock.patch("requests.post") as mock_post:
@@ -79,6 +90,20 @@ class TestAgnoBridgeExecution(TransactionCase):
             self.assertIn("user_hmac_ts", sent["_odoo"])
         self.assertEqual(execution.state, "done")
         self.assertIn("user_hmac", execution.payload["_odoo"])
+
+    def test_execute_non_agno_uses_upstream_timeout(self):
+        other = self.bridge.copy({"name": "Third Party", "is_agno_bridge": False})
+        execution = self._create_execution(bridge=other)
+        with mock.patch(
+            "odoo.addons.ai_oca_bridge.models.ai_bridge_execution.requests.post"
+        ) as mock_post:
+            mock_post.return_value = self._mock_ok_response()
+            execution._execute()
+            mock_post.assert_called_once()
+            self.assertEqual(mock_post.call_args.kwargs["timeout"], 30)
+            sent = mock_post.call_args.kwargs["json"]
+            self.assertNotIn("user_hmac", sent["_odoo"])
+        self.assertEqual(execution.state, "done")
 
     def test_execute_honors_explicit_timeout(self):
         execution = self._create_execution()
