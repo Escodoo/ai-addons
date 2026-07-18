@@ -3,10 +3,15 @@
 
 from unittest import mock
 
+import requests
+
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
+from odoo.addons.ai_agno_connector.models.ai_bridge_execution import (
+    AiBridgeExecution as ConnectorAiBridgeExecution,
+)
 from odoo.addons.ai_agno_llm_settings.models.ai_bridge_execution import MASKED_API_KEY
 from odoo.addons.ai_agno_llm_settings.models.res_config_settings import (
     AGNO_BASE_URL,
@@ -124,6 +129,18 @@ class TestAgnoLlmSettings(TransactionCase):
         with self.assertRaises(UserError):
             settings.execute()
 
+    def test_settings_ollama_requires_host(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_provider": "ollama",
+                "agno_llm_host": "",
+                "agno_llm_model": "llama3.2:3b",
+                "agno_llm_api_key": "",
+            }
+        )
+        with self.assertRaises(UserError):
+            settings.execute()
+
     def test_payload_omits_llm_and_embedder_when_providers_empty(self):
         execution = self._create_execution()
         payload = execution._add_extra_payload_fields({})
@@ -229,6 +246,56 @@ class TestAgnoLlmSettings(TransactionCase):
         self.assertEqual(payload["_odoo"]["llm"]["api_key"], "plain-secret")
         self.assertEqual(payload["_odoo"]["embedder"]["api_key"], "embed-secret")
 
+    def test_mask_llm_secrets_passthrough_cases(self):
+        execution = self._create_execution()
+        self.assertEqual(execution._mask_llm_secrets({}), {})
+        self.assertFalse(execution._mask_llm_secrets(None))
+        without_meta = execution._mask_llm_secrets({"foo": 1})
+        self.assertEqual(without_meta, {"foo": 1})
+        odd_meta = execution._mask_llm_secrets({"_odoo": "not-a-dict"})
+        self.assertEqual(odd_meta, {"_odoo": "not-a-dict"})
+
+    def test_llm_settings_omit_empty_host_and_api_key(self):
+        self.icp.set_param(ICP_PROVIDER, "gemini")
+        self.icp.set_param(ICP_MODEL, "gemini-2.0-flash")
+        execution = self._create_execution()
+        llm = execution._get_agno_llm_settings()
+        self.assertEqual(llm["provider"], "gemini")
+        self.assertNotIn("host", llm)
+        self.assertNotIn("api_key", llm)
+
+    def test_embedder_settings_ignore_invalid_dimensions(self):
+        self.icp.set_param(ICP_EMBEDDER_PROVIDER, "ollama")
+        self.icp.set_param(ICP_EMBEDDER_MODEL, "nomic-embed-text")
+        self.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "not-a-number")
+        execution = self._create_execution()
+        embedder = execution._get_agno_embedder_settings()
+        self.assertEqual(embedder["provider"], "ollama")
+        self.assertNotIn("dimensions", embedder)
+        self.assertNotIn("host", embedder)
+        self.assertNotIn("api_key", embedder)
+
+    def test_add_extra_payload_fields_without_odoo_meta(self):
+        execution = self._create_execution()
+        with mock.patch.object(
+            ConnectorAiBridgeExecution,
+            "_add_extra_payload_fields",
+            new=lambda self, payload: payload,
+        ):
+            payload = execution._add_extra_payload_fields({"data": 1})
+        self.assertEqual(payload, {"data": 1})
+
+    def test_execute_skips_mask_when_no_payload(self):
+        execution = self._create_execution()
+        with mock.patch.object(
+            ConnectorAiBridgeExecution,
+            "_execute",
+            new=lambda self, **kwargs: "sentinel",
+        ):
+            result = execution._execute()
+        self.assertEqual(result, "sentinel")
+        self.assertFalse(execution.payload)
+
     def test_embedder_settings_persist_to_icp(self):
         settings = self.env["res.config.settings"].create(
             {
@@ -271,6 +338,46 @@ class TestAgnoLlmSettings(TransactionCase):
         with self.assertRaises(UserError):
             settings.execute()
 
+    def test_embedder_requires_model(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_embedder_provider": "ollama",
+                "agno_embedder_host": "http://ollama:11434",
+                "agno_embedder_model": "",
+                "agno_embedder_dimensions": "768",
+                "agno_embedder_api_key": "",
+            }
+        )
+        with self.assertRaises(UserError):
+            settings.execute()
+
+    def test_embedder_dimensions_must_be_positive_integer(self):
+        base_values = {
+            "agno_embedder_provider": "ollama",
+            "agno_embedder_host": "http://ollama:11434",
+            "agno_embedder_model": "nomic-embed-text",
+            "agno_embedder_api_key": "",
+        }
+        for bad_dims in ("not-a-number", "0", "-5"):
+            settings = self.env["res.config.settings"].create(
+                dict(base_values, agno_embedder_dimensions=bad_dims)
+            )
+            with self.assertRaises(UserError):
+                settings.execute()
+
+    def test_embedder_ollama_requires_host(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_embedder_provider": "ollama",
+                "agno_embedder_host": "",
+                "agno_embedder_model": "nomic-embed-text",
+                "agno_embedder_dimensions": "768",
+                "agno_embedder_api_key": "",
+            }
+        )
+        with self.assertRaises(UserError):
+            settings.execute()
+
     def test_embedder_onchange_sets_defaults_per_provider(self):
         settings = self.env["res.config.settings"].new(
             {"agno_embedder_provider": "openai"}
@@ -300,6 +407,19 @@ class TestAgnoLlmSettings(TransactionCase):
         self.assertEqual(settings.agno_embedder_dimensions, "512")
         settings._onchange_agno_embedder_provider()
         self.assertEqual(settings.agno_embedder_host, "http://custom:11434")
+
+    def test_embedder_onchange_clears_fields_when_provider_removed(self):
+        settings = self.env["res.config.settings"].new(
+            {"agno_embedder_provider": "ollama"}
+        )
+        settings._onchange_agno_embedder_provider()
+        self.assertEqual(settings.agno_embedder_host, "http://ollama:11434")
+        settings.agno_embedder_provider = False
+        settings._onchange_agno_embedder_provider()
+        self.assertFalse(settings.agno_embedder_host)
+        self.assertFalse(settings.agno_embedder_model)
+        self.assertFalse(settings.agno_embedder_dimensions)
+        self.assertFalse(settings.agno_embedder_last_provider)
 
     def test_execute_sends_embedder_and_masks_stored_payload(self):
         self.icp.set_param(ICP_EMBEDDER_PROVIDER, "openai")
@@ -399,3 +519,68 @@ class TestAgnoLlmSettings(TransactionCase):
             with self.assertRaises(UserError) as err:
                 settings.action_reindex_agno_knowledge()
             self.assertIn("No embedder configured", str(err.exception))
+
+    def test_reindex_raises_when_agno_unreachable(self):
+        self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "reindex-token")
+        settings = self.env["res.config.settings"].create({})
+        with mock.patch(
+            "odoo.addons.ai_agno_llm_settings.models.res_config_settings.requests.post",
+            side_effect=requests.ConnectionError("connection refused"),
+        ):
+            with self.assertRaises(UserError) as err:
+                settings.action_reindex_agno_knowledge()
+            self.assertIn("Could not reach Agno", str(err.exception))
+
+    def test_reindex_error_with_non_json_body_uses_raw_text(self):
+        self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "reindex-token")
+        settings = self.env["res.config.settings"].create({})
+        response = mock.Mock(status_code=500, text="plain error text")
+        response.json.side_effect = ValueError("not json")
+        with mock.patch(
+            "odoo.addons.ai_agno_llm_settings.models.res_config_settings.requests.post",
+            return_value=response,
+        ):
+            with self.assertRaises(UserError) as err:
+                settings.action_reindex_agno_knowledge()
+            self.assertIn("plain error text", str(err.exception))
+
+    def test_reindex_error_json_without_detail_keeps_raw_text(self):
+        self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "reindex-token")
+        settings = self.env["res.config.settings"].create({})
+        response = mock.Mock(status_code=502, text="bad gateway raw")
+        response.json.return_value = ["unexpected", "shape"]
+        with mock.patch(
+            "odoo.addons.ai_agno_llm_settings.models.res_config_settings.requests.post",
+            return_value=response,
+        ):
+            with self.assertRaises(UserError) as err:
+                settings.action_reindex_agno_knowledge()
+            self.assertIn("bad gateway raw", str(err.exception))
+
+    def test_reindex_skips_page_sync_when_kb_not_installed(self):
+        self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "reindex-token")
+        settings = self.env["res.config.settings"].create({})
+        module_cls = type(self.env["ir.module.module"])
+        original_search = module_cls.search
+
+        def fake_search(model, domain, *args, **kwargs):
+            # Pretend the KB module is not installed for this domain only.
+            if ("name", "=", "ai_agno_document_page_kb") in (domain or []):
+                return model.browse()
+            return original_search(model, domain, *args, **kwargs)
+
+        with (
+            mock.patch(
+                "odoo.addons.ai_agno_llm_settings.models."
+                "res_config_settings.requests.post"
+            ) as mock_post,
+            mock.patch.object(module_cls, "search", fake_search),
+        ):
+            mock_post.return_value = mock.Mock(
+                status_code=200,
+                json=lambda: {"ok": True},
+                text='{"ok": true}',
+            )
+            result = settings.action_reindex_agno_knowledge()
+        self.assertEqual(result["tag"], "display_notification")
+        self.assertNotIn("document.page", result["params"]["message"])
