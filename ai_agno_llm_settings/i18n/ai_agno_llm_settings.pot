@@ -1,0 +1,351 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_agno_llm_settings
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "%(base)s Tagged document.page records were re-sent to Agno."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Agno AI"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_embedder_last_provider
+msgid "Agno Embedder Last Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_last_provider
+msgid "Agno Llm Last Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "Agno reindex failed (%(code)s): %(detail)s"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model,name:ai_agno_llm_settings.model_ai_bridge_execution
+msgid "Ai Execution"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"Bridge auth token is not configured. Set agno_bridge_auth_token (odoo.conf) "
+"or the ICP ai_agno_llm_settings.bridge_auth_token."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"Business knowledge bases were reindexed (support, legal, processes, "
+"commercial, public). The architect KB was not modified."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Chat LLM"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model,name:ai_agno_llm_settings.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "Could not reach Agno at %(url)s: %(error)s"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_llm_api_key
+msgid ""
+"Customer API key sent to Agno per bridge request (BYOK). Required for OpenAI"
+" and Gemini. Optional for Ollama (local / no auth). Not the same as "
+"BRIDGE_AUTH_TOKEN (infrastructure)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_api_key
+msgid ""
+"Customer embedder API key sent to Agno per bridge/KB request (BYOK). "
+"Required for OpenAI. Optional for Ollama."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_embedder_api_key
+msgid "Embedder API Key"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_embedder_dimensions
+msgid "Embedder Dimensions"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "Embedder Dimensions must be a positive integer."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_embedder_host
+msgid "Embedder Host / Base URL"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_embedder_model
+msgid "Embedder Model"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_embedder_provider
+msgid "Embedder Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_model
+msgid ""
+"Embedding model id (e.g. nomic-embed-text, text-embedding-3-small). Changing"
+" it requires re-indexing."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Embeddings (BYOK)"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_provider__gemini
+msgid "Google Gemini"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Knowledge Embedder"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "Knowledge reindex"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_api_key
+msgid "LLM API Key"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_host
+msgid "LLM Host / Base URL"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_model
+msgid "LLM Model"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_provider
+msgid "LLM Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "LLM Provider (BYOK)"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid ""
+"Leave provider empty to use the Agno service environment (EMBEDDER_*). "
+"Changing model or dimensions requires re-indexing knowledge bases."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid ""
+"Leave provider empty to use the Agno service environment. Host must be "
+"reachable from Agno (not from the browser). Ollama API key is optional for "
+"local instances."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Model id"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_llm_model
+msgid ""
+"Model id for the selected provider (e.g. llama3.2:3b, qwen3.5:397b-cloud, "
+"gpt-4o, gemini-2.0-flash)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_embedder_provider__ollama
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_provider__ollama
+msgid "Ollama"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"Ollama embedder requires a Host / Base URL reachable from the Agno service "
+"(e.g. http://ollama:11434)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"Ollama requires a Host / Base URL reachable from the Agno service (e.g. "
+"http://ollama:11434 or https://ollama.com)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_embedder_provider__openai
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_provider__openai
+msgid "OpenAI"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"OpenAI and Google Gemini require an API Key when selected as LLM provider."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"OpenAI requires an Embedder API Key when selected as embedder provider."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Reindex knowledge bases"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid ""
+"This deletes and rebuilds the business knowledge bases (support, legal, "
+"processes, commercial, public) with the current embedder, then re-syncs "
+"tagged document.page records. The architect KB is not modified. Continue?"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_host
+msgid ""
+"URL reachable from the Agno container (e.g. http://ollama:11434 or "
+"https://api.openai.com/v1)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_llm_host
+msgid ""
+"URL reachable from the Agno container. Examples: http://ollama:11434 (Docker"
+" local), https://ollama.com (cloud), or https://api.openai.com/v1. Not used "
+"for Gemini."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Use Agno .env"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid ""
+"Use after changing embedder model, provider,\n"
+"                                        or dimensions. Does not reindex the architect\n"
+"                                        knowledge base."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_dimensions
+msgid ""
+"Vector size for the chosen model (e.g. 768 for nomic-embed-text, 1536 for "
+"text-embedding-3-small). Must match LanceDB tables; changing it requires re-"
+"indexing."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "When an LLM provider is selected, Model is required."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"When an embedder provider is selected, Embedder Dimensions is required."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "When an embedder provider is selected, Embedder Model is required."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_provider
+msgid ""
+"When empty, Agno uses its environment (EMBEDDER_*). When set, Agno uses only"
+" these credentials. Changing model or dimensions requires re-indexing "
+"knowledge bases."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_llm_provider
+msgid ""
+"When empty, Agno uses its environment (LLM_*). When set, Agno uses only "
+"these credentials (never the service env token). For Ollama, Host must be "
+"reachable from the Agno service (e.g. http://ollama:11434 or "
+"https://ollama.com)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Your API key (optional for local Ollama)"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "http://ollama:11434"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "http://ollama:11434 or https://ollama.com"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "nomic-embed-text"
+msgstr ""
