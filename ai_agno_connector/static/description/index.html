@@ -387,7 +387,7 @@ rights.</p>
 <ul class="simple">
 <li><a class="reference internal" href="#configuration" id="toc-entry-1">Configuration</a><ul>
 <li><a class="reference internal" href="#preferred-doodba" id="toc-entry-2">Preferred (Doodba)</a></li>
-<li><a class="reference internal" href="#agno-bridge-flag" id="toc-entry-3">Agno Bridge flag</a></li>
+<li><a class="reference internal" href="#agno-provider" id="toc-entry-3">Agno provider</a></li>
 <li><a class="reference internal" href="#without-doodba-plain-odoo-conf" id="toc-entry-4">Without Doodba (plain <tt class="docutils literal">odoo.conf</tt>)</a></li>
 <li><a class="reference internal" href="#optional-icp-override" id="toc-entry-5">Optional ICP override</a></li>
 </ul>
@@ -444,13 +444,12 @@ the Agno bridge modules (<tt class="docutils literal">ai_agno_chatter_bots</tt>,
 module’s CONFIGURE for how they apply it and for their optional ICP
 overrides.</p>
 </div>
-<div class="section" id="agno-bridge-flag">
-<h2><a class="toc-backref" href="#toc-entry-3">Agno Bridge flag</a></h2>
-<p>On each <tt class="docutils literal">ai.bridge</tt> form, enable <strong>Agno Bridge</strong> (<tt class="docutils literal">is_agno_bridge</tt>)
-for bridges that target Agno. Seed data from the Agno bridge modules set
-this flag automatically. Manual bridges must enable it explicitly;
-without it Odoo does not sign <tt class="docutils literal">user_hmac</tt> nor apply the longer request
-timeout.</p>
+<div class="section" id="agno-provider">
+<h2><a class="toc-backref" href="#toc-entry-3">Agno provider</a></h2>
+<p>On each <tt class="docutils literal">ai.bridge</tt> form, set <strong>Provider</strong> to <tt class="docutils literal">Agno</tt> for bridges
+that target Agno. Seed data from the Agno bridge modules set it
+automatically (together with a 120s <strong>Request Timeout</strong>). Manual bridges
+must select it explicitly; without it Odoo does not sign <tt class="docutils literal">user_hmac</tt>.</p>
 </div>
 <div class="section" id="without-doodba-plain-odoo-conf">
 <h2><a class="toc-backref" href="#toc-entry-4">Without Doodba (plain <tt class="docutils literal">odoo.conf</tt>)</a></h2>
@@ -509,11 +508,12 @@ leave unsigned RPC keys empty.</p>
 <ol class="arabic simple">
 <li>Install this module and configure
 <tt class="docutils literal">ai_agno_connector.service_token</tt>.</li>
-<li>Point an <tt class="docutils literal">ai.bridge</tt> URL at your Agno service and enable <strong>Agno
-Bridge</strong> (<tt class="docutils literal">is_agno_bridge</tt>) on that record. Only then does Odoo
-sign the user identity under <tt class="docutils literal">_odoo</tt> and use the longer HTTP
-timeout. Leave the flag unchecked for third-party bridges so they
-keep the upstream behaviour.</li>
+<li>Point an <tt class="docutils literal">ai.bridge</tt> URL at your Agno service and set <strong>Provider</strong>
+to <tt class="docutils literal">Agno</tt> on that record. Only then does Odoo sign the user
+identity under <tt class="docutils literal">_odoo</tt>. Keep other providers (e.g. <tt class="docutils literal">Generic</tt>) for
+third-party bridges so they keep the upstream behaviour. Optionally
+raise <strong>Request Timeout</strong> (from <tt class="docutils literal">ai_oca_bridge_request_timeout</tt>)
+for slow LLM-backed endpoints.</li>
 <li>The agent calls <tt class="docutils literal">POST <span class="pre">/agno/rpc?db=&lt;dbname&gt;</span></tt> with:<ul>
 <li>Header <tt class="docutils literal">Authorization: Bearer &lt;service_token&gt;</tt></li>
 <li>JSON body with <tt class="docutils literal">user_id</tt>, <tt class="docutils literal">user_hmac</tt>, <tt class="docutils literal">user_hmac_ts</tt>,

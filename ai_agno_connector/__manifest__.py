@@ -5,16 +5,17 @@
     "name": "Agno Connector",
     "summary": """RPC gateway that runs AI agent queries with the
     identity of the requesting user, enforcing ACLs and record rules""",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",
     "maintainers": ["marcelsavegnago"],
     "website": "https://github.com/Escodoo/ai-addons",
     "license": "AGPL-3",
-    "depends": ["ai_oca_bridge"],
-    "data": [
-        "views/ai_bridge_views.xml",
+    "depends": [
+        "ai_oca_bridge",
+        "ai_oca_bridge_provider",
+        "ai_oca_bridge_request_timeout",
     ],
     "post_load": "post_load",
     "installable": True,
