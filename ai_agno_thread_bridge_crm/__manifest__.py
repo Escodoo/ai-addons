@@ -4,7 +4,7 @@
 {
     "name": "Agno Thread Bridge CRM",
     "summary": """Agno thread bridge for CRM leads and opportunities""",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",
