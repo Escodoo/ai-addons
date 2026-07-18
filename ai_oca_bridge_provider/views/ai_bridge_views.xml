@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="ai_bridge_form_view_provider" model="ir.ui.view">
+        <field name="name">ai.bridge.form.provider</field>
+        <field name="model">ai.bridge</field>
+        <field name="inherit_id" ref="ai_oca_bridge.ai_bridge_form_view" />
+        <field name="arch" type="xml">
+            <field name="url" position="after">
+                <field name="provider" />
+            </field>
+        </field>
+    </record>
+</odoo>
