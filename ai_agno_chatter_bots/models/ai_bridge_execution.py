@@ -91,7 +91,6 @@ class AiBridgeExecution(models.Model):
         )
         channel.with_user(self.chatter_user_id.id).message_post(
             body=body,
-            body_is_html=True,
             author_id=self.chatter_user_id.partner_id.id,
             message_type="comment",
         )
