@@ -92,7 +92,7 @@ class AiBridgeExecution(models.Model):
 
     def _add_extra_payload_fields(self, payload):
         payload = super()._add_extra_payload_fields(payload)
-        if not self.ai_bridge_id.is_agno_bridge:
+        if self.ai_bridge_id.provider != "agno":
             return payload
         odoo_meta = payload.get("_odoo")
         if isinstance(odoo_meta, dict):

@@ -26,6 +26,9 @@ from odoo.addons.ai_agno_llm_settings.models.res_config_settings import (
     ICP_MODEL,
     ICP_PROVIDER,
 )
+from odoo.addons.ai_oca_bridge.models.ai_bridge_execution import (
+    AiBridgeExecution as BaseAiBridgeExecution,
+)
 
 
 @tagged("post_install", "-at_install")
@@ -42,7 +45,7 @@ class TestAgnoLlmSettings(TransactionCase):
                 "usage": "thread",
                 "result_kind": "immediate",
                 "result_type": "none",
-                "is_agno_bridge": True,
+                "provider": "agno",
             }
         )
         cls.partner = cls.env["res.partner"].create({"name": "LLM Settings Partner"})
@@ -157,7 +160,7 @@ class TestAgnoLlmSettings(TransactionCase):
         self.icp.set_param(ICP_EMBEDDER_MODEL, "text-embedding-3-small")
         self.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "1536")
         self.icp.set_param(ICP_EMBEDDER_API_KEY, "embed-should-not-leak")
-        other = self.bridge.copy({"name": "Third Party", "is_agno_bridge": False})
+        other = self.bridge.copy({"name": "Third Party", "provider": "generic"})
         execution = self._create_execution(bridge=other)
         payload = execution._add_extra_payload_fields({})
         self.assertNotIn("llm", payload["_odoo"])
@@ -287,8 +290,10 @@ class TestAgnoLlmSettings(TransactionCase):
 
     def test_execute_skips_mask_when_no_payload(self):
         execution = self._create_execution()
+        # Patch the upstream implementation: intermediate overrides
+        # (request timeout, error notify) just propagate its result here.
         with mock.patch.object(
-            ConnectorAiBridgeExecution,
+            BaseAiBridgeExecution,
             "_execute",
             new=lambda self, **kwargs: "sentinel",
         ):

@@ -60,8 +60,8 @@ By default **all fields are empty**. Leave a provider empty to let Agno
 use its service environment.
 
 BYOK values are injected into ``_odoo.llm`` / ``_odoo.embedder`` only
-for bridges with **Agno Bridge** (``is_agno_bridge``) enabled.
-Third-party bridges never receive the customer API keys.
+for bridges with **Provider** set to ``Agno``. Bridges of other
+providers never receive the customer API keys.
 
 Chat LLM (BYOK)
 ~~~~~~~~~~~~~~~
