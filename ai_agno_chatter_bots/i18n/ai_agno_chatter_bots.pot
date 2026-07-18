@@ -14,6 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: ai_agno_chatter_bots
+#. odoo-python
+#: code:addons/ai_agno_chatter_bots/models/ai_bridge_execution.py:0
+msgid "AI error"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
 #: model:ai.bridge,name:ai_agno_chatter_bots.ai_bridge_chatter_erp
 msgid "Agno Chatter ERP"
 msgstr ""
@@ -39,6 +45,11 @@ msgid "Agno Chatter Web"
 msgstr ""
 
 #. module: ai_agno_chatter_bots
+#: model:ir.model,name:ai_agno_chatter_bots.model_ai_bridge_execution
+msgid "Ai Execution"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_web
 msgid "Discuss / future livechat bot for public website (Agno"
 msgstr ""
@@ -61,6 +72,14 @@ msgstr ""
 #. module: ai_agno_chatter_bots
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_sales
 msgid "Discuss bot for the sales team (Agno"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#. odoo-python
+#: code:addons/ai_agno_chatter_bots/models/ai_bridge_execution.py:0
+msgid ""
+"The AI service could not process your message. Check the AI Execution log "
+"for details."
 msgstr ""
 
 #. module: ai_agno_chatter_bots
