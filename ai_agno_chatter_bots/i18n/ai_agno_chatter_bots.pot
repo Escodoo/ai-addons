@@ -19,6 +19,21 @@ msgid "Agno Chatter ERP"
 msgstr ""
 
 #. module: ai_agno_chatter_bots
+#: model:ai.bridge,name:ai_agno_chatter_bots.ai_bridge_chatter_finance
+msgid "Agno Chatter Finance"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#: model:ai.bridge,name:ai_agno_chatter_bots.ai_bridge_chatter_hr
+msgid "Agno Chatter HR"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#: model:ai.bridge,name:ai_agno_chatter_bots.ai_bridge_chatter_marketing
+msgid "Agno Chatter Marketing"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
 #: model:ai.bridge,name:ai_agno_chatter_bots.ai_bridge_chatter_ops
 msgid "Agno Chatter Ops"
 msgstr ""
@@ -54,8 +69,25 @@ msgid "Discuss bot for customer support / helpdesk (Agno"
 msgstr ""
 
 #. module: ai_agno_chatter_bots
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_hr
+msgid "Discuss bot for employee HR questions (Agno"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_ops
 msgid "Discuss bot for internal operations (Agno"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_marketing
+msgid ""
+"Discuss bot for marketing copy, blog drafts and SEO\n"
+"            (Agno"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_finance
+msgid "Discuss bot for the finance team (Agno"
 msgstr ""
 
 #. module: ai_agno_chatter_bots
@@ -69,12 +101,30 @@ msgid "erp"
 msgstr ""
 
 #. module: ai_agno_chatter_bots
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_finance
+msgid "finance"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_hr
+msgid "hr"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_marketing
+msgid "marketing"
+msgstr ""
+
+#. module: ai_agno_chatter_bots
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_ops
 msgid "ops"
 msgstr ""
 
 #. module: ai_agno_chatter_bots
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_erp
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_finance
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_hr
+#: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_marketing
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_ops
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_sales
 #: model_terms:ai.bridge,description:ai_agno_chatter_bots.ai_bridge_chatter_support
