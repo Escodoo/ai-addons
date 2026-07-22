@@ -4,13 +4,14 @@
 3. Create or edit a Knowledge page with `type=content` and tag it according to
    the audience of the content:
 
-   | Tag          | Intended content                                      |
-   | ------------ | ----------------------------------------------------- |
-   | `processes`  | Internal SOPs (ops agent only)                        |
-   | `legal`      | Contracts / compliance notes (ops and sales agents)   |
-   | `support`    | Customer helpdesk FAQs and manuals                    |
-   | `commercial` | Sales playbooks and commercial policies               |
-   | `public`     | Content safe for anonymous website / livechat visitors|
+   | Tag          | Intended content                                        |
+   | ------------ | ------------------------------------------------------- |
+   | `processes`  | Internal SOPs (ops and finance agents)                  |
+   | `legal`      | Contracts / compliance notes (ops, finance and sales)   |
+   | `hr`         | Employee-facing HR policies and benefits (hr agent)     |
+   | `support`    | Customer helpdesk FAQs and manuals                      |
+   | `commercial` | Sales playbooks and commercial policies                 |
+   | `public`     | Content safe for anonymous website / livechat visitors  |
 
 4. On create, write or unlink, the matching bridge runs. Check
    *Settings → Technical → AI Bridge Executions* for a successful call.

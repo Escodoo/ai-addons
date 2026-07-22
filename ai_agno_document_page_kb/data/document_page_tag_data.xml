@@ -9,6 +9,9 @@
     <record id="tag_processes" model="document.page.tag">
         <field name="name">processes</field>
     </record>
+    <record id="tag_hr" model="document.page.tag">
+        <field name="name">hr</field>
+    </record>
     <record id="tag_commercial" model="document.page.tag">
         <field name="name">commercial</field>
     </record>
