@@ -43,6 +43,11 @@ business KBs (``support``, ``legal``, ``processes``, ``commercial``,
 Infrastructure tokens (``BRIDGE_AUTH_TOKEN`` / ``AGNO_SERVICE_TOKEN``)
 are unchanged and remain separate.
 
+This bridge targets the companion **Agno service**
+(`Escodoo/agno-odoo <https://github.com/Escodoo/agno-odoo>`__), which
+exposes the AgentOS endpoints and the ``/agno/rpc`` gateway consumed
+here.
+
 **Table of contents**
 
 .. contents::
