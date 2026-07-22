@@ -43,6 +43,18 @@
         <field name="ai_bridge_id" ref="ai_bridge_chatter_sales" />
     </record>
 
+    <record
+        id="user_bot_marketing"
+        model="res.users"
+        context="{'no_reset_password': True}"
+    >
+        <field name="name">Bot Marketing</field>
+        <field name="login">bot.marketing</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_marketing" />
+    </record>
+
     <record id="user_bot_web" model="res.users" context="{'no_reset_password': True}">
         <field name="name">Bot Website</field>
         <field name="login">bot.website</field>

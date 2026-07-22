@@ -373,9 +373,10 @@ ul.auto-toc {
 <p>This module provisions Discuss AI bots and matching <tt class="docutils literal">ai.bridge</tt>
 records for the Agno chatter personas used in a Doodba / AgentOS stack.</p>
 <p>On install it creates one internal user and one chatter bridge per
-business channel (<tt class="docutils literal">erp</tt>, <tt class="docutils literal">ops</tt>, <tt class="docutils literal">support</tt>, <tt class="docutils literal">sales</tt>, <tt class="docutils literal">web</tt>).
-Each user has <tt class="docutils literal">ai_bridge_id</tt> pointing at its bridge so Discuss routes
-messages to <tt class="docutils literal"><span class="pre">/bridge/chatter/&lt;agent_key&gt;</span></tt> on the Agno service.</p>
+business channel (<tt class="docutils literal">erp</tt>, <tt class="docutils literal">ops</tt>, <tt class="docutils literal">support</tt>, <tt class="docutils literal">sales</tt>,
+<tt class="docutils literal">marketing</tt>, <tt class="docutils literal">web</tt>). Each user has <tt class="docutils literal">ai_bridge_id</tt> pointing at its
+bridge so Discuss routes messages to <tt class="docutils literal"><span class="pre">/bridge/chatter/&lt;agent_key&gt;</span></tt> on
+the Agno service.</p>
 <p>The Architect persona is intentionally <strong>not</strong> created here (dev /
 AgentOS only). Knowledge-base sync for <tt class="docutils literal">document.page</tt> lives in
 <tt class="docutils literal">ai_agno_document_page_kb</tt>.</p>
@@ -411,9 +412,9 @@ bridge.</p>
 <p>Default URLs (reachable from the Odoo container):</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="26%" />
 <col width="24%" />
-<col width="50%" />
+<col width="24%" />
+<col width="52%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head">User (login)</th>
@@ -422,11 +423,13 @@ bridge.</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>Bot ERP (<tt class="docutils literal">bot.erp</tt>)</td>
+<tr><td>Bot ERP
+(<tt class="docutils literal">bot.erp</tt>)</td>
 <td>Agno Chatter ERP</td>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/chatter/erp</span></tt></td>
 </tr>
-<tr><td>Bot Ops (<tt class="docutils literal">bot.ops</tt>)</td>
+<tr><td>Bot Ops
+(<tt class="docutils literal">bot.ops</tt>)</td>
 <td>Agno Chatter Ops</td>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/chatter/ops</span></tt></td>
 </tr>
@@ -439,6 +442,12 @@ bridge.</p>
 (<tt class="docutils literal">bot.comercial</tt>)</td>
 <td>Agno Chatter Sales</td>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/chatter/sales</span></tt></td>
+</tr>
+<tr><td>Bot Marketing
+(<tt class="docutils literal">bot.marketing</tt>)</td>
+<td>Agno Chatter
+Marketing</td>
+<td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/chatter/marketing</span></tt></td>
 </tr>
 <tr><td>Bot Website
 (<tt class="docutils literal">bot.website</tt>)</td>

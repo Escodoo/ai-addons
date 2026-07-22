@@ -74,6 +74,24 @@
         <field name="url">http://agno:8000/bridge/chatter/sales</field>
     </record>
 
+    <record id="ai_bridge_chatter_marketing" model="ai.bridge">
+        <field name="name">Agno Chatter Marketing</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for marketing copy, blog drafts and SEO
+            (Agno <tt>marketing</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/chatter/marketing</field>
+    </record>
+
     <record id="ai_bridge_chatter_web" model="ai.bridge">
         <field name="name">Agno Chatter Web</field>
         <field name="description">

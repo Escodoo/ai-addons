@@ -18,6 +18,12 @@ class TestAgnoChatterBotsData(TransactionCase):
                 "support",
             ),
             ("ai_bridge_chatter_sales", "user_bot_sales", "bot.comercial", "sales"),
+            (
+                "ai_bridge_chatter_marketing",
+                "user_bot_marketing",
+                "bot.marketing",
+                "marketing",
+            ),
             ("ai_bridge_chatter_web", "user_bot_web", "bot.website", "web"),
         )
         for bridge_xmlid, user_xmlid, login, agent_key in expected:
