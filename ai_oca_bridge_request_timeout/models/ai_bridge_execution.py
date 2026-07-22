@@ -22,6 +22,10 @@ class AiBridgeExecution(models.Model):
         replicated for bridges with a configured timeout. An explicit
         ``timeout`` kwarg still wins over the field. Keep this replica in
         sync with ``ai_oca_bridge``.
+
+        Follow-up: propose an upstream change in ``ai_oca_bridge`` so
+        ``timeout`` can be passed via ``_execute_kwargs`` and this replica
+        can be removed.
         """
         self.ensure_one()
         if not self.ai_bridge_id.request_timeout:
