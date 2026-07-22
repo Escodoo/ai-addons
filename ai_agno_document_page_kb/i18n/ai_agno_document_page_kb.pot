@@ -29,6 +29,21 @@ msgid "Document Page → Commercial KB (Update)"
 msgstr ""
 
 #. module: ai_agno_document_page_kb
+#: model:ai.bridge,name:ai_agno_document_page_kb.ai_bridge_hr_create
+msgid "Document Page → HR KB (Create)"
+msgstr ""
+
+#. module: ai_agno_document_page_kb
+#: model:ai.bridge,name:ai_agno_document_page_kb.ai_bridge_hr_unlink
+msgid "Document Page → HR KB (Delete)"
+msgstr ""
+
+#. module: ai_agno_document_page_kb
+#: model:ai.bridge,name:ai_agno_document_page_kb.ai_bridge_hr_write
+msgid "Document Page → HR KB (Update)"
+msgstr ""
+
+#. module: ai_agno_document_page_kb
 #: model:ai.bridge,name:ai_agno_document_page_kb.ai_bridge_legal_create
 msgid "Document Page → Legal KB (Create)"
 msgstr ""
@@ -96,6 +111,12 @@ msgid ""
 msgstr ""
 
 #. module: ai_agno_document_page_kb
+#: model_terms:ai.bridge,description:ai_agno_document_page_kb.ai_bridge_hr_create
+msgid ""
+"Indexes new document pages tagged <b>hr</b> into the Agno HR knowledge base."
+msgstr ""
+
+#. module: ai_agno_document_page_kb
 #: model_terms:ai.bridge,description:ai_agno_document_page_kb.ai_bridge_legal_create
 msgid ""
 "Indexes new document pages tagged <b>legal</b> into the Agno legal knowledge"
@@ -128,6 +149,13 @@ msgstr ""
 msgid ""
 "Re-indexes updated document pages tagged <b>commercial</b> in the Agno "
 "commercial knowledge base."
+msgstr ""
+
+#. module: ai_agno_document_page_kb
+#: model_terms:ai.bridge,description:ai_agno_document_page_kb.ai_bridge_hr_write
+msgid ""
+"Re-indexes updated document pages tagged <b>hr</b> in the Agno HR knowledge "
+"base."
 msgstr ""
 
 #. module: ai_agno_document_page_kb
@@ -166,6 +194,13 @@ msgid ""
 msgstr ""
 
 #. module: ai_agno_document_page_kb
+#: model_terms:ai.bridge,description:ai_agno_document_page_kb.ai_bridge_hr_unlink
+msgid ""
+"Removes deleted document pages tagged <b>hr</b> from the Agno HR knowledge "
+"base."
+msgstr ""
+
+#. module: ai_agno_document_page_kb
 #: model_terms:ai.bridge,description:ai_agno_document_page_kb.ai_bridge_legal_unlink
 msgid ""
 "Removes deleted document pages tagged <b>legal</b> from the Agno legal "
@@ -196,6 +231,11 @@ msgstr ""
 #. module: ai_agno_document_page_kb
 #: model:document.page.tag,name:ai_agno_document_page_kb.tag_commercial
 msgid "commercial"
+msgstr ""
+
+#. module: ai_agno_document_page_kb
+#: model:document.page.tag,name:ai_agno_document_page_kb.tag_hr
+msgid "hr"
 msgstr ""
 
 #. module: ai_agno_document_page_kb
