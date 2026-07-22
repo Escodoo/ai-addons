@@ -14,7 +14,8 @@ from odoo.addons.ai_agno_connector.models.ai_bridge_execution import (
 )
 from odoo.addons.ai_agno_llm_settings.models.ai_bridge_execution import MASKED_API_KEY
 from odoo.addons.ai_agno_llm_settings.models.res_config_settings import (
-    AGNO_BASE_URL,
+    DEFAULT_AGNO_BASE_URL,
+    ICP_AGNO_BASE_URL,
     ICP_API_KEY,
     ICP_BRIDGE_AUTH_TOKEN,
     ICP_EMBEDDER_API_KEY,
@@ -491,7 +492,7 @@ class TestAgnoLlmSettings(TransactionCase):
                 result = settings.action_reindex_agno_knowledge()
             mock_post.assert_called_once()
             args, kwargs = mock_post.call_args
-            self.assertEqual(args[0], f"{AGNO_BASE_URL}/bridge/kb/reindex")
+            self.assertEqual(args[0], f"{DEFAULT_AGNO_BASE_URL}/bridge/kb/reindex")
             self.assertEqual(kwargs["headers"]["Authorization"], "Bearer reindex-token")
             self.assertEqual(
                 kwargs["json"]["_odoo"]["embedder"]["model"], "qwen3-embedding:0.6b"
@@ -499,6 +500,39 @@ class TestAgnoLlmSettings(TransactionCase):
             self.assertNotIn("architect", kwargs["json"])
         self.assertEqual(result["type"], "ir.actions.client")
         self.assertEqual(result["tag"], "display_notification")
+
+    def test_reindex_uses_custom_agno_base_url(self):
+        self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "reindex-token")
+        self.icp.set_param(ICP_AGNO_BASE_URL, "http://agno.example:9000/")
+        settings = self.env["res.config.settings"].create({})
+        kb_installed = bool(
+            self.env["ir.module.module"]
+            .sudo()
+            .search(
+                [
+                    ("name", "=", "ai_agno_document_page_kb"),
+                    ("state", "=", "installed"),
+                ],
+                limit=1,
+            )
+        )
+        with mock.patch(
+            "odoo.addons.ai_agno_llm_settings.models.res_config_settings.requests.post"
+        ) as mock_post:
+            mock_post.return_value = mock.Mock(
+                status_code=200,
+                json=lambda: {"ok": True, "knowledge_bases": []},
+                text='{"ok": true}',
+            )
+            if kb_installed:
+                with mock.patch(
+                    "odoo.addons.ai_agno_document_page_kb.hooks.sync_kb_pages"
+                ):
+                    settings.action_reindex_agno_knowledge()
+            else:
+                settings.action_reindex_agno_knowledge()
+            args, _kwargs = mock_post.call_args
+            self.assertEqual(args[0], "http://agno.example:9000/bridge/kb/reindex")
 
     def test_reindex_requires_bridge_token(self):
         self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "")
