@@ -4,7 +4,7 @@
 {
     "name": "Agno Thread Bridge Base",
     "summary": """Base Agno thread bridges for Odoo base models (Partner Analysis)""",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.1.2",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",

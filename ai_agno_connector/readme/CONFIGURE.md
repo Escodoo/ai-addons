@@ -24,12 +24,12 @@ bridge modules (`ai_agno_chatter_bots`, `ai_agno_thread_bridge_*`,
 `ai_agno_document_page_kb`). See each module's CONFIGURE for how they apply it
 and for their optional ICP overrides.
 
-## Agno Bridge flag
+## Agno provider
 
-On each `ai.bridge` form, enable **Agno Bridge** (`is_agno_bridge`) for
-bridges that target Agno. Seed data from the Agno bridge modules set this
-flag automatically. Manual bridges must enable it explicitly; without it
-Odoo does not sign `user_hmac` nor apply the longer request timeout.
+On each `ai.bridge` form, set **Provider** to `Agno` for bridges that target
+Agno. Seed data from the Agno bridge modules set it automatically (together
+with a 120s **Request Timeout**). Manual bridges must select it explicitly;
+without it Odoo does not sign `user_hmac`.
 
 ## Without Doodba (plain `odoo.conf`)
 

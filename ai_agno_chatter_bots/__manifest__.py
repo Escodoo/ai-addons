@@ -4,7 +4,7 @@
 {
     "name": "Agno Chatter Bots",
     "summary": """Provision Discuss chatter bots and AI bridges for Agno personas""",
-    "version": "18.0.1.2.1",
+    "version": "18.0.1.3.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",
@@ -13,6 +13,7 @@
     "license": "AGPL-3",
     "depends": [
         "ai_oca_bridge_chatter",
+        "ai_oca_bridge_chatter_error_notify",
         "ai_agno_connector",
     ],
     "data": [
