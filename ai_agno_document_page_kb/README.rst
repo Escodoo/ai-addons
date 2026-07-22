@@ -25,14 +25,14 @@ Agno Document Page Knowledge Base
 This module wires Odoo Knowledge (``document.page``) into Agno knowledge
 bases through ``ai.bridge`` records.
 
-It creates content tags (``support``, ``legal``, ``processes``,
+It creates content tags (``support``, ``legal``, ``processes``, ``hr``,
 ``commercial``, ``public``) and create / write / unlink bridges per tag
 that call the Agno AgentOS HTTP endpoints for upsert and delete. Only
 content pages that carry the matching tag are synced.
 
 Tags map to **knowledge bases** (content), not to Discuss bots. Agno
-agents (``ops``, ``support``, ``sales``, ``web``) choose which bases to
-search.
+agents (``ops``, ``hr``, ``finance``, ``support``, ``sales``,
+``marketing``, ``web``) choose which bases to search.
 
 A post-install hook applies the bridge auth token (ICP override or
 odoo.conf ``agno_bridge_auth_token`` from ``conf.d``) to bridges with an
@@ -84,6 +84,8 @@ stack):
 +----------------+--------------------------------------------------+--------------------------------------------------+
 | ``processes``  | ``http://agno:8000/bridge/kb/processes/upsert``  | ``http://agno:8000/bridge/kb/processes/delete``  |
 +----------------+--------------------------------------------------+--------------------------------------------------+
+| ``hr``         | ``http://agno:8000/bridge/kb/hr/upsert``         | ``http://agno:8000/bridge/kb/hr/delete``         |
++----------------+--------------------------------------------------+--------------------------------------------------+
 | ``commercial`` | ``http://agno:8000/bridge/kb/commercial/upsert`` | ``http://agno:8000/bridge/kb/commercial/delete`` |
 +----------------+--------------------------------------------------+--------------------------------------------------+
 | ``public``     | ``http://agno:8000/bridge/kb/public/upsert``     | ``http://agno:8000/bridge/kb/public/delete``     |
@@ -93,9 +95,9 @@ Adjust the host or path if your Agno service is exposed differently.
 Keep the bridge domains filtered to content pages with the matching tag.
 
 Discuss / livechat bots are configured separately (one ``ai.bridge``
-chatter URL per agent: ``/bridge/chatter/ops``, ``/support``,
-``/sales``, ``/web``). Website livechat wiring to
-``/bridge/chatter/web`` is a later integration step.
+chatter URL per agent: ``/bridge/chatter/ops``, ``/hr``, ``/finance``,
+``/support``, ``/sales``, ``/marketing``, ``/web``). Website livechat
+wiring to ``/bridge/chatter/web`` is a later integration step.
 
 Usage
 =====
@@ -112,8 +114,9 @@ Usage
    ============== ======================================================
    Tag            Intended content
    ============== ======================================================
-   ``processes``  Internal SOPs (ops agent only)
-   ``legal``      Contracts / compliance notes (ops and sales agents)
+   ``processes``  Internal SOPs (ops and finance agents)
+   ``legal``      Contracts / compliance notes (ops, finance and sales)
+   ``hr``         Employee-facing HR policies and benefits (hr agent)
    ``support``    Customer helpdesk FAQs and manuals
    ``commercial`` Sales playbooks and commercial policies
    ``public``     Content safe for anonymous website / livechat visitors

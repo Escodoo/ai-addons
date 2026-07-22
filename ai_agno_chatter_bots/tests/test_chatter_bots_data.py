@@ -11,6 +11,13 @@ class TestAgnoChatterBotsData(TransactionCase):
         expected = (
             ("ai_bridge_chatter_erp", "user_bot_erp", "bot.erp", "erp"),
             ("ai_bridge_chatter_ops", "user_bot_ops", "bot.ops", "ops"),
+            ("ai_bridge_chatter_hr", "user_bot_hr", "bot.rh", "hr"),
+            (
+                "ai_bridge_chatter_finance",
+                "user_bot_finance",
+                "bot.financeiro",
+                "finance",
+            ),
             (
                 "ai_bridge_chatter_support",
                 "user_bot_support",
@@ -18,6 +25,12 @@ class TestAgnoChatterBotsData(TransactionCase):
                 "support",
             ),
             ("ai_bridge_chatter_sales", "user_bot_sales", "bot.comercial", "sales"),
+            (
+                "ai_bridge_chatter_marketing",
+                "user_bot_marketing",
+                "bot.marketing",
+                "marketing",
+            ),
             ("ai_bridge_chatter_web", "user_bot_web", "bot.website", "web"),
         )
         for bridge_xmlid, user_xmlid, login, agent_key in expected:

@@ -331,6 +331,115 @@
         </field>
     </record>
 
+    <!-- HR KB: employee-facing people policies for hr agent -->
+    <record id="demo_category_hr" model="document.page">
+        <field name="name">HR Knowledge (Demo)</field>
+        <field name="type">category</field>
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_hr')])]" />
+    </record>
+
+    <record id="demo_page_hr_leave_policy" model="document.page">
+        <field name="name">Time off and leave request policy</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_hr" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_hr')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Time off and leave request policy (demo)</h2>
+<p>
+    Employee-facing summary of how to request time off. Demo values; the
+    signed employment contract and local law prevail.
+</p>
+<h3>How to request</h3>
+<ol>
+    <li>Open <strong>Time Off</strong> in Odoo and create a new request.</li>
+    <li>Pick the leave type (vacation, sick, unpaid) and the date range.</li>
+    <li>Submit; your manager approves or refuses with a comment.</li>
+    <li>Check remaining days on your Time Off dashboard at any time.</li>
+</ol>
+<h3>Demo rules</h3>
+<ul>
+    <li>Vacation requests need at least 30 days notice (except emergencies).</li>
+    <li>Sick leave over 2 days requires a medical certificate.</li>
+    <li>Carry-over of unused vacation needs HR approval before December.</li>
+</ul>
+<p>
+    The HR bot can explain rules and show your own balances, but it never
+    creates or approves requests. Payroll disputes go to a human HR contact.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_hr_benefits" model="document.page">
+        <field name="name">Benefits overview and how to enroll</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_hr" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_hr')])]" />
+        <field name="content">
+<![CDATA[
+<h2>Benefits overview and how to enroll (demo)</h2>
+<p>
+    Fictional benefits package for demos. Individual eligibility follows the
+    employment contract.
+</p>
+<ul>
+    <li><strong>Health plan:</strong> company-paid base plan; dependents can be added during onboarding or the annual window.</li>
+    <li><strong>Meal allowance:</strong> monthly credit on the benefits card.</li>
+    <li><strong>Remote work aid:</strong> fixed monthly amount for home-office costs.</li>
+    <li><strong>Learning budget:</strong> yearly amount for courses and books, manager approval required.</li>
+</ul>
+<h3>Enrollment</h3>
+<ol>
+    <li>Complete the onboarding checklist within the first week.</li>
+    <li>Send dependent documents to HR through the employee portal.</li>
+    <li>Changes outside the annual window require a qualifying life event.</li>
+</ol>
+<p>
+    Amounts and providers are examples only; confirm current values with HR
+    before communicating them externally.
+</p>
+]]>
+        </field>
+    </record>
+
+    <record id="demo_page_hr_onboarding" model="document.page">
+        <field name="name">New employee onboarding guide</field>
+        <field name="type">content</field>
+        <field name="parent_id" ref="demo_category_hr" />
+        <field name="tag_ids" eval="[(6, 0, [ref('tag_hr')])]" />
+        <field name="content">
+<![CDATA[
+<h2>New employee onboarding guide (demo)</h2>
+<p>
+    Checklist for the first weeks. Your buddy and manager help with anything
+    not covered here.
+</p>
+<h3>First day</h3>
+<ul>
+    <li>Sign pending documents in the employee portal.</li>
+    <li>Set up your workstation, email and chat access.</li>
+    <li>Meet your buddy and review the week-one agenda.</li>
+</ul>
+<h3>First week</h3>
+<ul>
+    <li>Complete security and data-privacy training.</li>
+    <li>Enroll in benefits (see the benefits overview page).</li>
+    <li>Read the team handbook and tools guide.</li>
+</ul>
+<h3>First month</h3>
+<ul>
+    <li>Agree on 30/60/90-day goals with your manager.</li>
+    <li>Schedule intro calls with the teams you will work with.</li>
+</ul>
+<p>
+    Questions about contracts, salary or personal data go directly to the HR
+    team, not to public channels.
+</p>
+]]>
+        </field>
+    </record>
+
     <!-- Commercial KB: sales playbooks and policies -->
     <record id="demo_category_commercial" model="document.page">
         <field name="name">Commercial Knowledge (Demo)</field>

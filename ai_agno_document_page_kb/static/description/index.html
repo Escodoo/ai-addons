@@ -372,13 +372,13 @@ ul.auto-toc {
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_document_page_kb"><img alt="Escodoo/ai-addons" src="https://img.shields.io/badge/github-Escodoo%2Fai--addons-lightgray.png?logo=github" /></a></p>
 <p>This module wires Odoo Knowledge (<tt class="docutils literal">document.page</tt>) into Agno knowledge
 bases through <tt class="docutils literal">ai.bridge</tt> records.</p>
-<p>It creates content tags (<tt class="docutils literal">support</tt>, <tt class="docutils literal">legal</tt>, <tt class="docutils literal">processes</tt>,
+<p>It creates content tags (<tt class="docutils literal">support</tt>, <tt class="docutils literal">legal</tt>, <tt class="docutils literal">processes</tt>, <tt class="docutils literal">hr</tt>,
 <tt class="docutils literal">commercial</tt>, <tt class="docutils literal">public</tt>) and create / write / unlink bridges per tag
 that call the Agno AgentOS HTTP endpoints for upsert and delete. Only
 content pages that carry the matching tag are synced.</p>
 <p>Tags map to <strong>knowledge bases</strong> (content), not to Discuss bots. Agno
-agents (<tt class="docutils literal">ops</tt>, <tt class="docutils literal">support</tt>, <tt class="docutils literal">sales</tt>, <tt class="docutils literal">web</tt>) choose which bases to
-search.</p>
+agents (<tt class="docutils literal">ops</tt>, <tt class="docutils literal">hr</tt>, <tt class="docutils literal">finance</tt>, <tt class="docutils literal">support</tt>, <tt class="docutils literal">sales</tt>,
+<tt class="docutils literal">marketing</tt>, <tt class="docutils literal">web</tt>) choose which bases to search.</p>
 <p>A post-install hook applies the bridge auth token (ICP override or
 odoo.conf <tt class="docutils literal">agno_bridge_auth_token</tt> from <tt class="docutils literal">conf.d</tt>) to bridges with an
 empty token, rewrites each bridge domain / field list, then upserts all
@@ -446,6 +446,10 @@ stack):</p>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/kb/processes/upsert</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/kb/processes/delete</span></tt></td>
 </tr>
+<tr><td><tt class="docutils literal">hr</tt></td>
+<td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/kb/hr/upsert</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/kb/hr/delete</span></tt></td>
+</tr>
 <tr><td><tt class="docutils literal">commercial</tt></td>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/kb/commercial/upsert</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">http://agno:8000/bridge/kb/commercial/delete</span></tt></td>
@@ -459,9 +463,9 @@ stack):</p>
 <p>Adjust the host or path if your Agno service is exposed differently.
 Keep the bridge domains filtered to content pages with the matching tag.</p>
 <p>Discuss / livechat bots are configured separately (one <tt class="docutils literal">ai.bridge</tt>
-chatter URL per agent: <tt class="docutils literal">/bridge/chatter/ops</tt>, <tt class="docutils literal">/support</tt>,
-<tt class="docutils literal">/sales</tt>, <tt class="docutils literal">/web</tt>). Website livechat wiring to
-<tt class="docutils literal">/bridge/chatter/web</tt> is a later integration step.</p>
+chatter URL per agent: <tt class="docutils literal">/bridge/chatter/ops</tt>, <tt class="docutils literal">/hr</tt>, <tt class="docutils literal">/finance</tt>,
+<tt class="docutils literal">/support</tt>, <tt class="docutils literal">/sales</tt>, <tt class="docutils literal">/marketing</tt>, <tt class="docutils literal">/web</tt>). Website livechat
+wiring to <tt class="docutils literal">/bridge/chatter/web</tt> is a later integration step.</p>
 </div>
 <div class="section" id="usage">
 <h1><a class="toc-backref" href="#toc-entry-2">Usage</a></h1>
@@ -486,10 +490,13 @@ according to the audience of the content:</p>
 </thead>
 <tbody valign="top">
 <tr><td><tt class="docutils literal">processes</tt></td>
-<td>Internal SOPs (ops agent only)</td>
+<td>Internal SOPs (ops and finance agents)</td>
 </tr>
 <tr><td><tt class="docutils literal">legal</tt></td>
-<td>Contracts / compliance notes (ops and sales agents)</td>
+<td>Contracts / compliance notes (ops, finance and sales)</td>
+</tr>
+<tr><td><tt class="docutils literal">hr</tt></td>
+<td>Employee-facing HR policies and benefits (hr agent)</td>
 </tr>
 <tr><td><tt class="docutils literal">support</tt></td>
 <td>Customer helpdesk FAQs and manuals</td>

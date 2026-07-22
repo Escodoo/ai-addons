@@ -49,12 +49,12 @@ EMBEDDER_HOST_BY_PROVIDER = {
 }
 
 EMBEDDER_MODEL_BY_PROVIDER = {
-    "ollama": "nomic-embed-text",
+    "ollama": "qwen3-embedding:0.6b",
     "openai": "text-embedding-3-small",
 }
 
 EMBEDDER_DIMENSIONS_BY_PROVIDER = {
-    "ollama": "768",
+    "ollama": "1024",
     "openai": "1536",
 }
 
@@ -132,15 +132,15 @@ class ResConfigSettings(models.TransientModel):
     agno_embedder_model = fields.Char(
         string="Embedder Model",
         config_parameter=ICP_EMBEDDER_MODEL,
-        help="Embedding model id (e.g. nomic-embed-text, "
+        help="Embedding model id (e.g. qwen3-embedding:0.6b, "
         "text-embedding-3-small). Changing it requires re-indexing.",
     )
     agno_embedder_dimensions = fields.Char(
         string="Embedder Dimensions",
         config_parameter=ICP_EMBEDDER_DIMENSIONS,
-        help="Vector size for the chosen model (e.g. 768 for nomic-embed-text, "
-        "1536 for text-embedding-3-small). Must match LanceDB tables; "
-        "changing it requires re-indexing.",
+        help="Vector size for the chosen model (e.g. 1024 for "
+        "qwen3-embedding:0.6b, 1536 for text-embedding-3-small). Must match "
+        "LanceDB tables; changing it requires re-indexing.",
     )
     agno_embedder_last_provider = fields.Char(store=False)
 

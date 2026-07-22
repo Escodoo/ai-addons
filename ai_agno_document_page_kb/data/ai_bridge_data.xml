@@ -174,6 +174,61 @@
         <field name="result_kind">immediate</field>
     </record>
 
+    <!-- HR KB (employee-facing people content for hr agent) -->
+    <record id="ai_bridge_hr_create" model="ai.bridge">
+        <field name="name">Document Page → HR KB (Create)</field>
+        <field name="description">
+            <![CDATA[
+            <p>Indexes new document pages tagged <b>hr</b> into the Agno HR knowledge base.</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="document_page.model_document_page" />
+        <field name="usage">ai_thread_create</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/kb/hr/upsert</field>
+        <field name="auth_type">token</field>
+        <field name="payload_type">record</field>
+        <field name="result_type">none</field>
+        <field name="result_kind">immediate</field>
+    </record>
+
+    <record id="ai_bridge_hr_write" model="ai.bridge">
+        <field name="name">Document Page → HR KB (Update)</field>
+        <field name="description">
+            <![CDATA[
+            <p>Re-indexes updated document pages tagged <b>hr</b> in the Agno HR knowledge base.</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="document_page.model_document_page" />
+        <field name="usage">ai_thread_write</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/kb/hr/upsert</field>
+        <field name="auth_type">token</field>
+        <field name="payload_type">record</field>
+        <field name="result_type">none</field>
+        <field name="result_kind">immediate</field>
+    </record>
+
+    <record id="ai_bridge_hr_unlink" model="ai.bridge">
+        <field name="name">Document Page → HR KB (Delete)</field>
+        <field name="description">
+            <![CDATA[
+            <p>Removes deleted document pages tagged <b>hr</b> from the Agno HR knowledge base.</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="document_page.model_document_page" />
+        <field name="usage">ai_thread_unlink</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/kb/hr/delete</field>
+        <field name="auth_type">token</field>
+        <field name="payload_type">none</field>
+        <field name="result_type">none</field>
+        <field name="result_kind">immediate</field>
+    </record>
+
     <!-- Commercial KB (sales team content) -->
     <record id="ai_bridge_commercial_create" model="ai.bridge">
         <field name="name">Document Page → Commercial KB (Create)</field>

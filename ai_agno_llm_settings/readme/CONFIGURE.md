@@ -27,7 +27,7 @@ ICP keys: `ai_agno_llm_settings.provider|host|model|api_key`.
 | Embedder Provider     | Empty, `Ollama`, or `OpenAI`                                         |
 | Embedder Host         | Reachable from **Agno**                                              |
 | Embedder Model        | **Required** when a provider is selected                             |
-| Embedder Dimensions   | **Required** (e.g. `768` for nomic, `1536` for text-embedding-3-small) |
+| Embedder Dimensions   | **Required** (e.g. `1024` for qwen3-embedding, `1536` for text-embedding-3-small) |
 | Embedder API Key      | **Required** for OpenAI; **optional** for local Ollama               |
 
 ICP keys: `ai_agno_llm_settings.embedder_provider|host|model|api_key|dimensions`.

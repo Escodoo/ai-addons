@@ -19,8 +19,11 @@ Default URLs (reachable from the Odoo container):
 | -------------- | ------------------- | ------------------------------------------- |
 | Bot ERP (`bot.erp`)           | Agno Chatter ERP     | `http://agno:8000/bridge/chatter/erp`       |
 | Bot Ops (`bot.ops`)           | Agno Chatter Ops     | `http://agno:8000/bridge/chatter/ops`       |
+| Bot RH (`bot.rh`)             | Agno Chatter HR      | `http://agno:8000/bridge/chatter/hr`        |
+| Bot Financeiro (`bot.financeiro`) | Agno Chatter Finance | `http://agno:8000/bridge/chatter/finance` |
 | Bot Suporte (`bot.suporte`)   | Agno Chatter Support | `http://agno:8000/bridge/chatter/support`   |
 | Bot Comercial (`bot.comercial`) | Agno Chatter Sales | `http://agno:8000/bridge/chatter/sales`     |
+| Bot Marketing (`bot.marketing`) | Agno Chatter Marketing | `http://agno:8000/bridge/chatter/marketing` |
 | Bot Website (`bot.website`)   | Agno Chatter Web     | `http://agno:8000/bridge/chatter/web`       |
 
 There is **no** Architect bot in this module. Create it manually only if needed

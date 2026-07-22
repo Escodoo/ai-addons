@@ -53,6 +53,14 @@ _TAG_BRIDGE_PAIRS = (
         ),
     ),
     (
+        "ai_agno_document_page_kb.tag_hr",
+        (
+            "ai_agno_document_page_kb.ai_bridge_hr_create",
+            "ai_agno_document_page_kb.ai_bridge_hr_write",
+            "ai_agno_document_page_kb.ai_bridge_hr_unlink",
+        ),
+    ),
+    (
         "ai_agno_document_page_kb.tag_commercial",
         (
             "ai_agno_document_page_kb.ai_bridge_commercial_create",

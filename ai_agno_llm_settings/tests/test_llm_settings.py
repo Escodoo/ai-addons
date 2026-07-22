@@ -269,7 +269,7 @@ class TestAgnoLlmSettings(TransactionCase):
 
     def test_embedder_settings_ignore_invalid_dimensions(self):
         self.icp.set_param(ICP_EMBEDDER_PROVIDER, "ollama")
-        self.icp.set_param(ICP_EMBEDDER_MODEL, "nomic-embed-text")
+        self.icp.set_param(ICP_EMBEDDER_MODEL, "qwen3-embedding:0.6b")
         self.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "not-a-number")
         execution = self._create_execution()
         embedder = execution._get_agno_embedder_settings()
@@ -306,16 +306,16 @@ class TestAgnoLlmSettings(TransactionCase):
             {
                 "agno_embedder_provider": "ollama",
                 "agno_embedder_host": "http://ollama:11434",
-                "agno_embedder_model": "nomic-embed-text",
-                "agno_embedder_dimensions": "768",
+                "agno_embedder_model": "qwen3-embedding:0.6b",
+                "agno_embedder_dimensions": "1024",
                 "agno_embedder_api_key": "",
             }
         )
         settings.execute()
         self.assertEqual(self.icp.get_param(ICP_EMBEDDER_PROVIDER), "ollama")
         self.assertEqual(self.icp.get_param(ICP_EMBEDDER_HOST), "http://ollama:11434")
-        self.assertEqual(self.icp.get_param(ICP_EMBEDDER_MODEL), "nomic-embed-text")
-        self.assertEqual(self.icp.get_param(ICP_EMBEDDER_DIMENSIONS), "768")
+        self.assertEqual(self.icp.get_param(ICP_EMBEDDER_MODEL), "qwen3-embedding:0.6b")
+        self.assertEqual(self.icp.get_param(ICP_EMBEDDER_DIMENSIONS), "1024")
 
     def test_embedder_openai_requires_api_key(self):
         settings = self.env["res.config.settings"].create(
@@ -335,7 +335,7 @@ class TestAgnoLlmSettings(TransactionCase):
             {
                 "agno_embedder_provider": "ollama",
                 "agno_embedder_host": "http://ollama:11434",
-                "agno_embedder_model": "nomic-embed-text",
+                "agno_embedder_model": "qwen3-embedding:0.6b",
                 "agno_embedder_dimensions": "",
                 "agno_embedder_api_key": "",
             }
@@ -349,7 +349,7 @@ class TestAgnoLlmSettings(TransactionCase):
                 "agno_embedder_provider": "ollama",
                 "agno_embedder_host": "http://ollama:11434",
                 "agno_embedder_model": "",
-                "agno_embedder_dimensions": "768",
+                "agno_embedder_dimensions": "1024",
                 "agno_embedder_api_key": "",
             }
         )
@@ -360,7 +360,7 @@ class TestAgnoLlmSettings(TransactionCase):
         base_values = {
             "agno_embedder_provider": "ollama",
             "agno_embedder_host": "http://ollama:11434",
-            "agno_embedder_model": "nomic-embed-text",
+            "agno_embedder_model": "qwen3-embedding:0.6b",
             "agno_embedder_api_key": "",
         }
         for bad_dims in ("not-a-number", "0", "-5"):
@@ -375,8 +375,8 @@ class TestAgnoLlmSettings(TransactionCase):
             {
                 "agno_embedder_provider": "ollama",
                 "agno_embedder_host": "",
-                "agno_embedder_model": "nomic-embed-text",
-                "agno_embedder_dimensions": "768",
+                "agno_embedder_model": "qwen3-embedding:0.6b",
+                "agno_embedder_dimensions": "1024",
                 "agno_embedder_api_key": "",
             }
         )
@@ -394,8 +394,8 @@ class TestAgnoLlmSettings(TransactionCase):
         settings.agno_embedder_provider = "ollama"
         settings._onchange_agno_embedder_provider()
         self.assertEqual(settings.agno_embedder_host, "http://ollama:11434")
-        self.assertEqual(settings.agno_embedder_model, "nomic-embed-text")
-        self.assertEqual(settings.agno_embedder_dimensions, "768")
+        self.assertEqual(settings.agno_embedder_model, "qwen3-embedding:0.6b")
+        self.assertEqual(settings.agno_embedder_dimensions, "1024")
 
     def test_embedder_onchange_preserves_custom_values(self):
         settings = self.env["res.config.settings"].new(
@@ -447,8 +447,8 @@ class TestAgnoLlmSettings(TransactionCase):
         self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "reindex-token")
         self.icp.set_param(ICP_EMBEDDER_PROVIDER, "ollama")
         self.icp.set_param(ICP_EMBEDDER_HOST, "http://ollama:11434")
-        self.icp.set_param(ICP_EMBEDDER_MODEL, "nomic-embed-text")
-        self.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "768")
+        self.icp.set_param(ICP_EMBEDDER_MODEL, "qwen3-embedding:0.6b")
+        self.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "1024")
         settings = self.env["res.config.settings"].create({})
         kb_installed = bool(
             self.env["ir.module.module"]
@@ -494,7 +494,7 @@ class TestAgnoLlmSettings(TransactionCase):
             self.assertEqual(args[0], f"{AGNO_BASE_URL}/bridge/kb/reindex")
             self.assertEqual(kwargs["headers"]["Authorization"], "Bearer reindex-token")
             self.assertEqual(
-                kwargs["json"]["_odoo"]["embedder"]["model"], "nomic-embed-text"
+                kwargs["json"]["_odoo"]["embedder"]["model"], "qwen3-embedding:0.6b"
             )
             self.assertNotIn("architect", kwargs["json"])
         self.assertEqual(result["type"], "ir.actions.client")

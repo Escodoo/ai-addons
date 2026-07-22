@@ -26,9 +26,10 @@ This module provisions Discuss AI bots and matching ``ai.bridge``
 records for the Agno chatter personas used in a Doodba / AgentOS stack.
 
 On install it creates one internal user and one chatter bridge per
-business channel (``erp``, ``ops``, ``support``, ``sales``, ``web``).
-Each user has ``ai_bridge_id`` pointing at its bridge so Discuss routes
-messages to ``/bridge/chatter/<agent_key>`` on the Agno service.
+business channel (``erp``, ``ops``, ``hr``, ``finance``, ``support``,
+``sales``, ``marketing``, ``web``). Each user has ``ai_bridge_id``
+pointing at its bridge so Discuss routes messages to
+``/bridge/chatter/<agent_key>`` on the Agno service.
 
 The Architect persona is intentionally **not** created here (dev /
 AgentOS only). Knowledge-base sync for ``document.page`` lives in
@@ -61,22 +62,32 @@ bridge.
 
 Default URLs (reachable from the Odoo container):
 
-+-----------------------+----------------------+---------------------------------------------+
-| User (login)          | Bridge               | URL                                         |
-+=======================+======================+=============================================+
-| Bot ERP (``bot.erp``) | Agno Chatter ERP     | ``http://agno:8000/bridge/chatter/erp``     |
-+-----------------------+----------------------+---------------------------------------------+
-| Bot Ops (``bot.ops``) | Agno Chatter Ops     | ``http://agno:8000/bridge/chatter/ops``     |
-+-----------------------+----------------------+---------------------------------------------+
-| Bot Suporte           | Agno Chatter Support | ``http://agno:8000/bridge/chatter/support`` |
-| (``bot.suporte``)     |                      |                                             |
-+-----------------------+----------------------+---------------------------------------------+
-| Bot Comercial         | Agno Chatter Sales   | ``http://agno:8000/bridge/chatter/sales``   |
-| (``bot.comercial``)   |                      |                                             |
-+-----------------------+----------------------+---------------------------------------------+
-| Bot Website           | Agno Chatter Web     | ``http://agno:8000/bridge/chatter/web``     |
-| (``bot.website``)     |                      |                                             |
-+-----------------------+----------------------+---------------------------------------------+
++----------------------+----------------------+-----------------------------------------------+
+| User (login)         | Bridge               | URL                                           |
++======================+======================+===============================================+
+| Bot ERP              | Agno Chatter ERP     | ``http://agno:8000/bridge/chatter/erp``       |
+| (``bot.erp``)        |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Ops              | Agno Chatter Ops     | ``http://agno:8000/bridge/chatter/ops``       |
+| (``bot.ops``)        |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot RH (``bot.rh``)  | Agno Chatter HR      | ``http://agno:8000/bridge/chatter/hr``        |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Financeiro       | Agno Chatter Finance | ``http://agno:8000/bridge/chatter/finance``   |
+| (``bot.financeiro``) |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Suporte          | Agno Chatter Support | ``http://agno:8000/bridge/chatter/support``   |
+| (``bot.suporte``)    |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Comercial        | Agno Chatter Sales   | ``http://agno:8000/bridge/chatter/sales``     |
+| (``bot.comercial``)  |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Marketing        | Agno Chatter         | ``http://agno:8000/bridge/chatter/marketing`` |
+| (``bot.marketing``)  | Marketing            |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Website          | Agno Chatter Web     | ``http://agno:8000/bridge/chatter/web``       |
+| (``bot.website``)    |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
 
 There is **no** Architect bot in this module. Create it manually only if
 needed for Discuss; the AgentOS UI already exposes an architect agent.
