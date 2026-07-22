@@ -34,6 +34,11 @@ pattern.
 Discuss bots live in ``ai_agno_chatter_bots``; Knowledge sync lives in
 ``ai_agno_document_page_kb``.
 
+This bridge targets the companion **Agno service**
+(`Escodoo/agno-odoo <https://github.com/Escodoo/agno-odoo>`__), which
+exposes the AgentOS endpoints and the ``/agno/rpc`` gateway consumed
+here.
+
 **Table of contents**
 
 .. contents::

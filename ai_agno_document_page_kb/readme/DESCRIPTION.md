@@ -14,3 +14,7 @@ A post-install hook applies the bridge auth token (ICP override or odoo.conf
 `agno_bridge_auth_token` from `conf.d`) to bridges with an empty token,
 rewrites each bridge domain / field list, then upserts all matching content
 pages (demo and pre-existing) into Agno.
+
+This bridge targets the companion **Agno service**
+([Escodoo/agno-odoo](https://github.com/Escodoo/agno-odoo)), which exposes the
+AgentOS endpoints and the `/agno/rpc` gateway consumed here.

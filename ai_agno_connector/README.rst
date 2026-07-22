@@ -37,6 +37,11 @@ Only a small allowlist of read-only ORM methods is exposed
 and credential field names are blocked regardless of the caller's own
 rights.
 
+This bridge targets the companion **Agno service**
+(`Escodoo/agno-odoo <https://github.com/Escodoo/agno-odoo>`__), which
+exposes the AgentOS endpoints and the ``/agno/rpc`` gateway consumed
+here.
+
 **Table of contents**
 
 .. contents::
