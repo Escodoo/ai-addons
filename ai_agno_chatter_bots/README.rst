@@ -26,10 +26,10 @@ This module provisions Discuss AI bots and matching ``ai.bridge``
 records for the Agno chatter personas used in a Doodba / AgentOS stack.
 
 On install it creates one internal user and one chatter bridge per
-business channel (``erp``, ``ops``, ``support``, ``sales``,
-``marketing``, ``web``). Each user has ``ai_bridge_id`` pointing at its
-bridge so Discuss routes messages to ``/bridge/chatter/<agent_key>`` on
-the Agno service.
+business channel (``erp``, ``ops``, ``hr``, ``finance``, ``support``,
+``sales``, ``marketing``, ``web``). Each user has ``ai_bridge_id``
+pointing at its bridge so Discuss routes messages to
+``/bridge/chatter/<agent_key>`` on the Agno service.
 
 The Architect persona is intentionally **not** created here (dev /
 AgentOS only). Knowledge-base sync for ``document.page`` lives in
@@ -70,6 +70,11 @@ Default URLs (reachable from the Odoo container):
 +----------------------+----------------------+-----------------------------------------------+
 | Bot Ops              | Agno Chatter Ops     | ``http://agno:8000/bridge/chatter/ops``       |
 | (``bot.ops``)        |                      |                                               |
++----------------------+----------------------+-----------------------------------------------+
+| Bot RH (``bot.rh``)  | Agno Chatter HR      | ``http://agno:8000/bridge/chatter/hr``        |
++----------------------+----------------------+-----------------------------------------------+
+| Bot Financeiro       | Agno Chatter Finance | ``http://agno:8000/bridge/chatter/finance``   |
+| (``bot.financeiro``) |                      |                                               |
 +----------------------+----------------------+-----------------------------------------------+
 | Bot Suporte          | Agno Chatter Support | ``http://agno:8000/bridge/chatter/support``   |
 | (``bot.suporte``)    |                      |                                               |

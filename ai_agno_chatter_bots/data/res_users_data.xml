@@ -23,6 +23,26 @@
         <field name="ai_bridge_id" ref="ai_bridge_chatter_ops" />
     </record>
 
+    <record id="user_bot_hr" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Bot RH</field>
+        <field name="login">bot.rh</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_hr" />
+    </record>
+
+    <record
+        id="user_bot_finance"
+        model="res.users"
+        context="{'no_reset_password': True}"
+    >
+        <field name="name">Bot Financeiro</field>
+        <field name="login">bot.financeiro</field>
+        <field name="password">bot</field>
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
+        <field name="ai_bridge_id" ref="ai_bridge_chatter_finance" />
+    </record>
+
     <record
         id="user_bot_support"
         model="res.users"

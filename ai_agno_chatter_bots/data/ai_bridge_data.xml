@@ -40,6 +40,40 @@
         <field name="url">http://agno:8000/bridge/chatter/ops</field>
     </record>
 
+    <record id="ai_bridge_chatter_hr" model="ai.bridge">
+        <field name="name">Agno Chatter HR</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for employee HR questions (Agno <tt>hr</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/chatter/hr</field>
+    </record>
+
+    <record id="ai_bridge_chatter_finance" model="ai.bridge">
+        <field name="name">Agno Chatter Finance</field>
+        <field name="description">
+            <![CDATA[
+            <p>Discuss bot for the finance team (Agno <tt>finance</tt> persona).</p>
+            ]]>
+        </field>
+        <field name="usage">chatter</field>
+        <field name="payload_type">chatter</field>
+        <field name="result_type">message</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/chatter/finance</field>
+    </record>
+
     <record id="ai_bridge_chatter_support" model="ai.bridge">
         <field name="name">Agno Chatter Support</field>
         <field name="description">

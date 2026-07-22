@@ -11,6 +11,8 @@ from odoo.addons.ai_agno_connector.token_utils import (
 _BRIDGE_XMLIDS = (
     "ai_agno_chatter_bots.ai_bridge_chatter_erp",
     "ai_agno_chatter_bots.ai_bridge_chatter_ops",
+    "ai_agno_chatter_bots.ai_bridge_chatter_hr",
+    "ai_agno_chatter_bots.ai_bridge_chatter_finance",
     "ai_agno_chatter_bots.ai_bridge_chatter_support",
     "ai_agno_chatter_bots.ai_bridge_chatter_sales",
     "ai_agno_chatter_bots.ai_bridge_chatter_marketing",

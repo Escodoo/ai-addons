@@ -11,6 +11,13 @@ class TestAgnoChatterBotsData(TransactionCase):
         expected = (
             ("ai_bridge_chatter_erp", "user_bot_erp", "bot.erp", "erp"),
             ("ai_bridge_chatter_ops", "user_bot_ops", "bot.ops", "ops"),
+            ("ai_bridge_chatter_hr", "user_bot_hr", "bot.rh", "hr"),
+            (
+                "ai_bridge_chatter_finance",
+                "user_bot_finance",
+                "bot.financeiro",
+                "finance",
+            ),
             (
                 "ai_bridge_chatter_support",
                 "user_bot_support",
