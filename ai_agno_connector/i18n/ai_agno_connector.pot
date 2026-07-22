@@ -14,8 +14,16 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: ai_agno_connector
-#: model:ir.model.fields,field_description:ai_agno_connector.field_ai_bridge__is_agno_bridge
-msgid "Agno Bridge"
+#: model:ir.model.fields,help:ai_agno_connector.field_ai_bridge__provider
+msgid ""
+"AI runtime this bridge targets. Integration modules add their own values and"
+" scope provider-specific behaviour (extra payload, signing, timeouts) to "
+"bridges with their provider."
+msgstr ""
+
+#. module: ai_agno_connector
+#: model:ir.model.fields.selection,name:ai_agno_connector.selection__ai_bridge__provider__agno
+msgid "Agno"
 msgstr ""
 
 #. module: ai_agno_connector
@@ -29,10 +37,6 @@ msgid "Ai Execution"
 msgstr ""
 
 #. module: ai_agno_connector
-#: model:ir.model.fields,help:ai_agno_connector.field_ai_bridge__is_agno_bridge
-msgid ""
-"Enable Agno-specific behaviour for this bridge: signed user identity "
-"(user_hmac), longer HTTP timeout, and BYOK LLM/embedder payload injection "
-"when ai_agno_llm_settings is installed. Leave unchecked for third-party "
-"bridges (e.g. Hermes)."
+#: model:ir.model.fields,field_description:ai_agno_connector.field_ai_bridge__provider
+msgid "Provider"
 msgstr ""
