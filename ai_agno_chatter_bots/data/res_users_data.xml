@@ -3,14 +3,13 @@
     <!--
         Bots are Discuss endpoints only; they do not need rich ACLs.
         ERP queries run as the requesting user via ai_agno_connector.
-        Password is a placeholder so the record can be created; bots are
-        not meant for interactive UI login.
+        No password is set by design: bots must not support interactive
+        UI login. They still post in Discuss via with_user / author_id.
     -->
 
     <record id="user_bot_erp" model="res.users" context="{'no_reset_password': True}">
         <field name="name">Bot ERP</field>
         <field name="login">bot.erp</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_erp" />
     </record>
@@ -18,7 +17,6 @@
     <record id="user_bot_ops" model="res.users" context="{'no_reset_password': True}">
         <field name="name">Bot Ops</field>
         <field name="login">bot.ops</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_ops" />
     </record>
@@ -26,7 +24,6 @@
     <record id="user_bot_hr" model="res.users" context="{'no_reset_password': True}">
         <field name="name">Bot RH</field>
         <field name="login">bot.rh</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_hr" />
     </record>
@@ -38,7 +35,6 @@
     >
         <field name="name">Bot Financeiro</field>
         <field name="login">bot.financeiro</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_finance" />
     </record>
@@ -50,7 +46,6 @@
     >
         <field name="name">Bot Suporte</field>
         <field name="login">bot.suporte</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_support" />
     </record>
@@ -58,7 +53,6 @@
     <record id="user_bot_sales" model="res.users" context="{'no_reset_password': True}">
         <field name="name">Bot Comercial</field>
         <field name="login">bot.comercial</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_sales" />
     </record>
@@ -70,7 +64,6 @@
     >
         <field name="name">Bot Marketing</field>
         <field name="login">bot.marketing</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_marketing" />
     </record>
@@ -78,7 +71,6 @@
     <record id="user_bot_web" model="res.users" context="{'no_reset_password': True}">
         <field name="name">Bot Website</field>
         <field name="login">bot.website</field>
-        <field name="password">bot</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_web" />
     </record>

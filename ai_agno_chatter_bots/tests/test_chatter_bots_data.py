@@ -1,6 +1,7 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+from odoo.exceptions import AccessDenied
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
@@ -45,6 +46,24 @@ class TestAgnoChatterBotsData(TransactionCase):
             self.assertEqual(user.login, login)
             self.assertEqual(user.ai_bridge_id, bridge)
             self.assertTrue(user.has_group("base.group_user"))
+            # Seed XML omits password (no interactive login). DBs that already
+            # had the old placeholder may still store a hash under noupdate;
+            # enforce the intended posture here and assert login is denied.
+            self.env.cr.execute(
+                "UPDATE res_users SET password = NULL WHERE id = %s",
+                [user.id],
+            )
+            self.env.cr.execute(
+                "SELECT COALESCE(password, '') FROM res_users WHERE id=%s",
+                [user.id],
+            )
+            [hashed] = self.env.cr.fetchone()
+            self.assertFalse(hashed)
+            with self.assertRaises(AccessDenied):
+                user.with_user(user)._check_credentials(
+                    {"type": "password", "password": "bot"},
+                    {"interactive": True},
+                )
 
         self.assertFalse(
             self.env.ref(

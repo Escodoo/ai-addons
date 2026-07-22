@@ -92,6 +92,10 @@ Default URLs (reachable from the Odoo container):
 There is **no** Architect bot in this module. Create it manually only if
 needed for Discuss; the AgentOS UI already exposes an architect agent.
 
+Bot users are created **without a password** by design: they must not
+support interactive UI login. They still post in Discuss via
+``with_user`` / ``author_id``.
+
 Also ensure ``agno_service_token`` / ``ai_agno_connector.service_token``
 matches Agno ``AGNO_SERVICE_TOKEN`` so personas with Odoo tools can call
 ``/agno/rpc``.
