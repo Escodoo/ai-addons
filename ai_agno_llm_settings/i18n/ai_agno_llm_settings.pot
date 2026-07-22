@@ -126,8 +126,8 @@ msgstr ""
 #. module: ai_agno_llm_settings
 #: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_model
 msgid ""
-"Embedding model id (e.g. nomic-embed-text, text-embedding-3-small). Changing"
-" it requires re-indexing."
+"Embedding model id (e.g. qwen3-embedding:0.6b, text-embedding-3-small). "
+"Changing it requires re-indexing."
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -289,9 +289,9 @@ msgstr ""
 #. module: ai_agno_llm_settings
 #: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_dimensions
 msgid ""
-"Vector size for the chosen model (e.g. 768 for nomic-embed-text, 1536 for "
-"text-embedding-3-small). Must match LanceDB tables; changing it requires re-"
-"indexing."
+"Vector size for the chosen model (e.g. 1024 for qwen3-embedding:0.6b, 1536 "
+"for text-embedding-3-small). Must match LanceDB tables; changing it requires"
+" re-indexing."
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -347,5 +347,5 @@ msgstr ""
 
 #. module: ai_agno_llm_settings
 #: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
-msgid "nomic-embed-text"
+msgid "qwen3-embedding:0.6b"
 msgstr ""
