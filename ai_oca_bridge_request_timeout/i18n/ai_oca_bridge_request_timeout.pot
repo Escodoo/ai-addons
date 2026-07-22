@@ -1,0 +1,37 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_oca_bridge_request_timeout
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_oca_bridge_request_timeout
+#: model:ir.model,name:ai_oca_bridge_request_timeout.model_ai_bridge
+msgid "Ai Bridge Configuration"
+msgstr ""
+
+#. module: ai_oca_bridge_request_timeout
+#: model:ir.model,name:ai_oca_bridge_request_timeout.model_ai_bridge_execution
+msgid "Ai Execution"
+msgstr ""
+
+#. module: ai_oca_bridge_request_timeout
+#: model:ir.model.fields,help:ai_oca_bridge_request_timeout.field_ai_bridge__request_timeout
+msgid ""
+"HTTP timeout in seconds for requests sent by this bridge. 0 keeps the "
+"default timeout (30s). Raise it for endpoints backed by LLMs, which "
+"routinely take longer to answer."
+msgstr ""
+
+#. module: ai_oca_bridge_request_timeout
+#: model:ir.model.fields,field_description:ai_oca_bridge_request_timeout.field_ai_bridge__request_timeout
+msgid "Request Timeout"
+msgstr ""
