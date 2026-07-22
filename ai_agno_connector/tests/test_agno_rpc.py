@@ -5,6 +5,7 @@ import time
 
 from odoo.tests import HttpCase, tagged
 from odoo.tools import hmac as odoo_hmac
+from odoo.tools import mute_logger
 
 from odoo.addons.ai_agno_connector.controllers.main import HMAC_MAX_AGE
 from odoo.addons.ai_agno_connector.models.ai_bridge_execution import HMAC_SCOPE
@@ -109,7 +110,9 @@ class TestAgnoRpc(HttpCase):
         )
         self.assertEqual(resp.status_code, 403)
 
+    @mute_logger("odoo.addons.ai_agno_connector.controllers.main")
     def test_unsigned_double_gate_accepted(self):
+        # Mute the production-warning logged when the unsigned bypass is used.
         self._set_icp(
             {
                 "ai_agno_connector.allow_unsigned_rpc": "True",
@@ -149,7 +152,7 @@ class TestAgnoRpc(HttpCase):
             self.rpc_user, model="res.users", method="search_count", domain=[]
         )
         resp = self._rpc(payload)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.json().get("error"), "model_not_allowed")
 
     def test_blocked_fields_filtered(self):

@@ -125,6 +125,26 @@ knowledge bases** on the same Settings page (manual confirmation).
 Requires a resolvable embedder (BYOK here or ``EMBEDDER_*`` on Agno) and
 a configured bridge auth token (``agno_bridge_auth_token`` / ICP).
 
+Agno base URL (reindex)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Reindex calls Agno at ``{base}/bridge/kb/reindex``. Default base is
+``http://agno:8000`` (Docker Compose service name). Override with ICP
+``ai_agno_llm_settings.agno_base_url`` when Agno is reachable under
+another host (e.g. ``http://agno.internal:8000``).
+
+API keys in ICP
+---------------
+
+BYOK keys (``ai_agno_llm_settings.api_key``,
+``ai_agno_llm_settings.embedder_api_key``) are stored as plain text in
+``ir.config_parameter``, which is the usual Odoo pattern for system
+secrets. The Settings fields are restricted to ``base.group_system``,
+and keys are masked (``***``) before being persisted on
+``ai.bridge.execution`` payloads. Database admins (and anyone with SQL
+access) can still read ICP values — treat the database as a trust
+boundary, same as other Odoo secrets.
+
 Not this module
 ---------------
 

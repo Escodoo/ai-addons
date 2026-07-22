@@ -26,9 +26,13 @@ ICP_EMBEDDER_HOST = "ai_agno_llm_settings.embedder_host"
 ICP_EMBEDDER_MODEL = "ai_agno_llm_settings.embedder_model"
 ICP_EMBEDDER_DIMENSIONS = "ai_agno_llm_settings.embedder_dimensions"
 ICP_BRIDGE_AUTH_TOKEN = "ai_agno_llm_settings.bridge_auth_token"
+ICP_AGNO_BASE_URL = "ai_agno_llm_settings.agno_base_url"
 
-# Same host the document.page / chatter bridges use inside Docker.
-AGNO_BASE_URL = "http://agno:8000"
+# Default host the document.page / chatter bridges use inside Docker.
+# Override with ICP ``ai_agno_llm_settings.agno_base_url`` outside Compose.
+DEFAULT_AGNO_BASE_URL = "http://agno:8000"
+# Kept for backward-compatible imports in tests.
+AGNO_BASE_URL = DEFAULT_AGNO_BASE_URL
 REINDEX_TIMEOUT_SECONDS = 300
 
 HOST_BY_PROVIDER = {
@@ -277,6 +281,13 @@ class ResConfigSettings(models.TransientModel):
                 )
         return super().set_values()
 
+    def _get_agno_base_url(self):
+        """Return Agno base URL from ICP, or the Docker Compose default."""
+        configured = (
+            self.env["ir.config_parameter"].sudo().get_param(ICP_AGNO_BASE_URL) or ""
+        ).strip()
+        return configured or DEFAULT_AGNO_BASE_URL
+
     def action_reindex_agno_knowledge(self):
         """Call Agno to wipe/rebuild business KBs, then sync document.pages.
 
@@ -302,7 +313,7 @@ class ResConfigSettings(models.TransientModel):
         if embedder:
             payload["_odoo"]["embedder"] = embedder
 
-        url = f"{AGNO_BASE_URL.rstrip('/')}/bridge/kb/reindex"
+        url = f"{self._get_agno_base_url().rstrip('/')}/bridge/kb/reindex"
         try:
             response = requests.post(
                 url,

@@ -467,6 +467,9 @@ Marketing</td>
 </table>
 <p>There is <strong>no</strong> Architect bot in this module. Create it manually only if
 needed for Discuss; the AgentOS UI already exposes an architect agent.</p>
+<p>Bot users are created <strong>without a password</strong> by design: they must not
+support interactive UI login. They still post in Discuss via
+<tt class="docutils literal">with_user</tt> / <tt class="docutils literal">author_id</tt>.</p>
 <p>Also ensure <tt class="docutils literal">agno_service_token</tt> / <tt class="docutils literal">ai_agno_connector.service_token</tt>
 matches Agno <tt class="docutils literal">AGNO_SERVICE_TOKEN</tt> so personas with Odoo tools can call
 <tt class="docutils literal">/agno/rpc</tt>.</p>

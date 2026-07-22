@@ -79,3 +79,41 @@ class TestRequestTimeout(TransactionCase):
             execution._execute()
         self.assertEqual(execution.state, "error")
         self.assertTrue(execution.error)
+
+    def test_zero_timeout_delegates_to_super(self):
+        """Drift guard: request_timeout=0 must keep the upstream _execute path.
+
+        The override must not use this module's ``requests.post``; upstream
+        hardcodes ``timeout=30``.
+        """
+        self.bridge.request_timeout = 0
+        execution = self._create_execution()
+        override_post = (
+            "odoo.addons.ai_oca_bridge_request_timeout.models."
+            "ai_bridge_execution.requests.post"
+        )
+        with (
+            mock.patch(override_post) as our_post,
+            mock.patch("requests.post") as requests_post,
+        ):
+            requests_post.return_value = self._mock_ok_response()
+            execution._execute()
+            our_post.assert_not_called()
+            requests_post.assert_called_once()
+            self.assertEqual(requests_post.call_args.kwargs["timeout"], 30)
+        self.assertEqual(execution.state, "done")
+
+    def test_configured_timeout_uses_override_path(self):
+        """Drift guard: a positive request_timeout must use the replica path."""
+        self.bridge.request_timeout = 90
+        execution = self._create_execution()
+        override_post = (
+            "odoo.addons.ai_oca_bridge_request_timeout.models."
+            "ai_bridge_execution.requests.post"
+        )
+        with mock.patch(override_post) as our_post:
+            our_post.return_value = self._mock_ok_response()
+            execution._execute()
+            our_post.assert_called_once()
+            self.assertEqual(our_post.call_args.kwargs["timeout"], 90)
+        self.assertEqual(execution.state, "done")

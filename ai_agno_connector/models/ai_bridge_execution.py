@@ -19,6 +19,11 @@ class AiBridgeExecution(models.Model):
         signature untouched and the /agno/rpc gateway verifies it before
         impersonating the user, so a compromised agent (or any bridge-token
         holder) cannot forge an arbitrary user_id.
+
+        The signature is valid for ``HMAC_MAX_AGE`` seconds (10 minutes) from
+        ``user_hmac_ts``. Immediate bridges (e.g. chatter) are fine; async or
+        queued agents that call ``/agno/rpc`` after that window will be
+        rejected as ``invalid_user``.
         """
         payload = super()._add_extra_payload_fields(payload)
         if self.ai_bridge_id.provider != "agno":
