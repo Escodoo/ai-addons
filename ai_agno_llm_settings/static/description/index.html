@@ -475,8 +475,9 @@ for local Ollama</td>
 <td><strong>Required</strong> when a provider is selected</td>
 </tr>
 <tr><td>Embedder Dimensions</td>
-<td><strong>Required</strong> (e.g. <tt class="docutils literal">768</tt> for nomic, <tt class="docutils literal">1536</tt>
-for text-embedding-3-small)</td>
+<td><strong>Required</strong> (e.g. <tt class="docutils literal">1024</tt> for
+qwen3-embedding, <tt class="docutils literal">1536</tt> for
+text-embedding-3-small)</td>
 </tr>
 <tr><td>Embedder API Key</td>
 <td><strong>Required</strong> for OpenAI; <strong>optional</strong> for
@@ -548,7 +549,7 @@ service when using BYOK — configure them here instead.</p>
 <strong>or</strong> select a provider, set model + API key (host is suggested
 automatically), and save.</li>
 <li>Embedder: same pattern under <strong>Embeddings (BYOK)</strong>. Set dimensions to
-match the model (e.g. <tt class="docutils literal">768</tt> for <tt class="docutils literal"><span class="pre">nomic-embed-text</span></tt>).</li>
+match the model (e.g. <tt class="docutils literal">1024</tt> for <tt class="docutils literal"><span class="pre">qwen3-embedding:0.6b</span></tt>).</li>
 <li>The next Agno bridge / KB call includes <tt class="docutils literal">_odoo.llm</tt> and/or
 <tt class="docutils literal">_odoo.embedder</tt> only when the corresponding provider is set.</li>
 <li>Stored <tt class="docutils literal">ai.bridge.execution</tt> payloads mask API keys as <tt class="docutils literal">***</tt>.</li>

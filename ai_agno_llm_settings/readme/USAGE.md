@@ -3,7 +3,7 @@
 3. Chat LLM: leave the provider empty to use the Agno service env, **or** select
    a provider, set model + API key (host is suggested automatically), and save.
 4. Embedder: same pattern under **Embeddings (BYOK)**. Set dimensions to match
-   the model (e.g. `768` for `nomic-embed-text`).
+   the model (e.g. `1024` for `qwen3-embedding:0.6b`).
 5. The next Agno bridge / KB call includes `_odoo.llm` and/or `_odoo.embedder`
    only when the corresponding provider is set.
 6. Stored `ai.bridge.execution` payloads mask API keys as `***`.

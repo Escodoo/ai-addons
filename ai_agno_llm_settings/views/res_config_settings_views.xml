@@ -118,7 +118,7 @@
                                     <field
                                         name="agno_embedder_model"
                                         class="col-lg-6"
-                                        placeholder="nomic-embed-text"
+                                        placeholder="qwen3-embedding:0.6b"
                                         required="agno_embedder_provider"
                                     />
                                 </div>
@@ -130,7 +130,7 @@
                                     <field
                                         name="agno_embedder_dimensions"
                                         class="col-lg-6"
-                                        placeholder="768"
+                                        placeholder="1024"
                                         required="agno_embedder_provider"
                                     />
                                 </div>
