@@ -129,7 +129,18 @@ System parameters win over ``odoo.conf`` when set:
 +------------------------------------------+----------------------------------+
 
 Secrets are **not** written into ICP from ``odoo.conf``. In production
-leave unsigned RPC keys empty.
+leave unsigned RPC keys empty. When the unsigned bypass is used, Odoo
+logs a WARNING on every accepted request — treat that as a signal to
+disable it.
+
+HMAC identity window
+--------------------
+
+``user_hmac`` / ``user_hmac_ts`` are valid for **10 minutes**
+(``HMAC_MAX_AGE``). Immediate bridges (chatter, synchronous thread
+analysis) stay well inside that window. If an Agno agent queues
+``/agno/rpc`` and runs it later than 10 minutes after the bridge payload
+was built, the gateway rejects the call as ``invalid_user``.
 
 Usage
 =====

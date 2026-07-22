@@ -390,14 +390,15 @@ rights.</p>
 <li><a class="reference internal" href="#agno-provider" id="toc-entry-3">Agno provider</a></li>
 <li><a class="reference internal" href="#without-doodba-plain-odoo-conf" id="toc-entry-4">Without Doodba (plain <tt class="docutils literal">odoo.conf</tt>)</a></li>
 <li><a class="reference internal" href="#optional-icp-override" id="toc-entry-5">Optional ICP override</a></li>
+<li><a class="reference internal" href="#hmac-identity-window" id="toc-entry-6">HMAC identity window</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#usage" id="toc-entry-6">Usage</a></li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-7">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-8">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-9">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-10">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-11">Maintainers</a></li>
+<li><a class="reference internal" href="#usage" id="toc-entry-7">Usage</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-8">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-9">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-10">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-11">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-12">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -500,11 +501,21 @@ unsigned RPC is enabled.</td>
 </tbody>
 </table>
 <p>Secrets are <strong>not</strong> written into ICP from <tt class="docutils literal">odoo.conf</tt>. In production
-leave unsigned RPC keys empty.</p>
+leave unsigned RPC keys empty. When the unsigned bypass is used, Odoo
+logs a WARNING on every accepted request — treat that as a signal to
+disable it.</p>
+</div>
+<div class="section" id="hmac-identity-window">
+<h2><a class="toc-backref" href="#toc-entry-6">HMAC identity window</a></h2>
+<p><tt class="docutils literal">user_hmac</tt> / <tt class="docutils literal">user_hmac_ts</tt> are valid for <strong>10 minutes</strong>
+(<tt class="docutils literal">HMAC_MAX_AGE</tt>). Immediate bridges (chatter, synchronous thread
+analysis) stay well inside that window. If an Agno agent queues
+<tt class="docutils literal">/agno/rpc</tt> and runs it later than 10 minutes after the bridge payload
+was built, the gateway rejects the call as <tt class="docutils literal">invalid_user</tt>.</p>
 </div>
 </div>
 <div class="section" id="usage">
-<h1><a class="toc-backref" href="#toc-entry-6">Usage</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-7">Usage</a></h1>
 <ol class="arabic simple">
 <li>Install this module and configure
 <tt class="docutils literal">ai_agno_connector.service_token</tt>.</li>
@@ -530,7 +541,7 @@ truncated). Blocked models (for example <tt class="docutils literal">res.users</
 <tt class="docutils literal">token</tt>, <tt class="docutils literal">secret</tt>, or <tt class="docutils literal">api_key</tt> are never returned.</p>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-7">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-8">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/Escodoo/ai-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -538,15 +549,15 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-8">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-9">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-9">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-10">Authors</a></h2>
 <ul class="simple">
 <li>Escodoo</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-10">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-11">Contributors</a></h2>
 <ul class="simple">
 <li><a class="reference external" href="https://www.escodoo.com.br">Escodoo</a><ul>
 <li><a class="reference external" href="https://github.com/marcelsavegnago">Marcel Savegnago</a></li>
@@ -555,7 +566,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-11">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-12">Maintainers</a></h2>
 <p>Current maintainer:</p>
 <p><a class="reference external image-reference" href="https://github.com/marcelsavegnago"><img alt="marcelsavegnago" src="https://github.com/marcelsavegnago.png?size=40px" /></a></p>
 <p>This module is part of the <a class="reference external" href="https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_connector">Escodoo/ai-addons</a> project on GitHub.</p>

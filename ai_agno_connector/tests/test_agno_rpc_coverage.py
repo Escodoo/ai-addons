@@ -147,7 +147,7 @@ class TestAgnoRpcCoverage(HttpCase):
             self.rpc_user, model="agno.missing.model", method="search_count"
         )
         resp = self._rpc(payload)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 404)
         self.assertEqual(resp.json().get("error"), "unknown_model")
 
     def test_access_denied(self):
@@ -163,6 +163,7 @@ class TestAgnoRpcCoverage(HttpCase):
     def test_server_error(self):
         # Intentionally raises to cover the server_error branch; mute the
         # WARNING so oca_checklog_odoo does not treat it as a CI failure.
+        # Exception detail stays in the log; the JSON body is generic.
         payload = self._signed_payload(self.rpc_user)
         with mock.patch.object(
             AgnoRpcController, "_dispatch", side_effect=RuntimeError("boom")
@@ -171,7 +172,8 @@ class TestAgnoRpcCoverage(HttpCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(data.get("error"), "server_error")
-        self.assertIn("boom", data.get("detail", ""))
+        self.assertEqual(data.get("detail"), "Internal error, see server logs.")
+        self.assertNotIn("boom", data.get("detail", ""))
 
     def test_fields_get_filters_blocked_and_binary(self):
         payload = self._signed_payload(

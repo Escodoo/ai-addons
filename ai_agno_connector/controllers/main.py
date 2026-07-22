@@ -90,13 +90,15 @@ class AgnoRpcController(http.Controller):
                 {
                     "error": "model_not_allowed",
                     "detail": f"Model {model!r} is not available to agents.",
-                }
+                },
+                status=403,
             )
 
         env = request.env(user=user.id, su=False)
         if model not in env:
             return request.make_json_response(
-                {"error": "unknown_model", "detail": f"Model {model!r} not found."}
+                {"error": "unknown_model", "detail": f"Model {model!r} not found."},
+                status=404,
             )
 
         try:
@@ -105,10 +107,13 @@ class AgnoRpcController(http.Controller):
             return request.make_json_response(
                 {"error": "access_denied", "detail": str(exc)}
             )
-        except Exception as exc:  # noqa: BLE001 - report errors to the agent
+        except Exception as exc:  # noqa: BLE001 - log detail, return generic message
             _logger.warning("Agno RPC error on %s.%s: %s", model, method, exc)
             return request.make_json_response(
-                {"error": "server_error", "detail": str(exc)}
+                {
+                    "error": "server_error",
+                    "detail": "Internal error, see server logs.",
+                }
             )
         return request.make_json_response({"result": result})
 
@@ -179,7 +184,15 @@ class AgnoRpcController(http.Controller):
         if icp.get_param("ai_agno_connector.allow_unsigned_rpc") != "True":
             return False
         unsigned_user_id = icp.get_param("ai_agno_connector.unsigned_user_id", "")
-        return unsigned_user_id.isdigit() and int(unsigned_user_id) == user_id
+        if not (unsigned_user_id.isdigit() and int(unsigned_user_id) == user_id):
+            return False
+        _logger.warning(
+            "Accepting unsigned /agno/rpc for user_id=%s "
+            "(ai_agno_connector.allow_unsigned_rpc is enabled; "
+            "disable in production).",
+            user_id,
+        )
+        return True
 
     def _dispatch(self, records, method, params):
         domain = params.get("domain") or []
