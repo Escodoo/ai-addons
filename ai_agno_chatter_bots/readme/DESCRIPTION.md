@@ -10,3 +10,7 @@ Each user has
 
 The Architect persona is intentionally **not** created here (dev / AgentOS
 only). Knowledge-base sync for `document.page` lives in `ai_agno_document_page_kb`.
+
+This bridge targets the companion **Agno service**
+([Escodoo/agno-odoo](https://github.com/Escodoo/agno-odoo)), which exposes the
+AgentOS endpoints and the `/agno/rpc` gateway consumed here.
