@@ -155,6 +155,35 @@ class TestAiAssistantSanitize(TransactionCase):
                 {"action_type": "ir.actions.act_window", "action_id": 999999999}
             )
         )
+        # Whitelisted type missing from the registry.
+        original_contains = type(self.env).__contains__
+
+        def fake_contains(env, key):
+            if key == "ir.actions.act_url":
+                return False
+            return original_contains(env, key)
+
+        with mock.patch.object(type(self.env), "__contains__", fake_contains):
+            self.assertFalse(
+                self.Assistant._sanitize_open_action_ref(
+                    {"action_type": "ir.actions.act_url", "action_id": 1}
+                )
+            )
+        # Record exists but cannot be turned into a client action dict.
+        action = self.env.ref("purchase.purchase_rfq")
+        with mock.patch.object(
+            type(self.Assistant),
+            "_action_record_to_dict",
+            return_value=False,
+        ):
+            self.assertFalse(
+                self.Assistant._sanitize_open_action_ref(
+                    {
+                        "action_type": "ir.actions.act_window",
+                        "action_id": action.id,
+                    }
+                )
+            )
 
     def test_sanitize_open_record_requires_access(self):
         partner = self.env["res.partner"].create({"name": "AI Assistant Partner"})
@@ -279,11 +308,10 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertIn("action", actions[0])
         self.assertTrue(actions[0]["action"].get("type"))
 
-    def test_sanitize_open_action_crm_pipeline(self):
-        if not self.env.ref("crm.crm_lead_action_pipeline", raise_if_not_found=False):
-            self.skipTest("crm pipeline action is not available")
+    def test_sanitize_open_action_purchase_form(self):
+        """Sanitize a hard dependency action (purchase), not an optional CRM one."""
         actions = self.Assistant._sanitize_ai_chat_actions(
-            [{"type": "open_action", "xml_id": "crm.crm_lead_action_pipeline"}]
+            [{"type": "open_action", "xml_id": "purchase.purchase_form_action"}]
         )
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0]["type"], "open_action")
@@ -391,15 +419,9 @@ class TestAiAssistantSanitize(TransactionCase):
         cleaned = self.Assistant._normalize_ui_context({"company_id": object()})
         self.assertIs(cleaned["company_id"], False)
 
-    def test_find_navigation_pipeline(self):
-        if (
-            self.env["ir.module.module"].search_count(
-                [("name", "=", "crm"), ("state", "=", "installed")]
-            )
-            == 0
-        ):
-            self.skipTest("crm is not installed")
-        result = self.Assistant.find_navigation(query="funil", limit=8)
+    def test_find_navigation_purchases(self):
+        """Alias expansion for purchases (hard dep), without optional CRM."""
+        result = self.Assistant.find_navigation(query="compras", limit=8)
         self.assertNotIn("error", result)
         self.assertTrue(result.get("results"))
         suggested = [
@@ -539,8 +561,10 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(len(results), 1)
 
         results = []
-        seen = {"purchase.purchase_rfq"}
+        seen = set()
         action = self.env.ref("purchase.purchase_rfq")
+        # Keep a real xml id so the ValueError branch is reached (not the
+        # ``xml in seen`` continue that previously short-circuited this test).
         with (
             mock.patch.object(
                 type(self.env["ir.actions.act_window"]),
@@ -622,17 +646,11 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(result["actions"][0]["type"], "open_action")
 
     def test_run_assistant_bridge_not_configured(self):
-        bridge_xml = "ai_agno_assistant.ai_bridge_assistant_chat"
-        real_ref = self.env.ref
-
-        def fake_ref(xmlid, raise_if_not_found=True):
-            if xmlid == bridge_xml:
-                if raise_if_not_found:
-                    raise ValueError(xmlid)
-                return self.env["ai.bridge"]
-            return real_ref(xmlid, raise_if_not_found=raise_if_not_found)
-
-        with mock.patch.object(type(self.env), "ref", side_effect=fake_ref):
+        with mock.patch.object(
+            type(self.env),
+            "ref",
+            return_value=self.env["ai.bridge"],
+        ):
             with self.assertRaises(UserError):
                 self.Assistant._run_assistant_bridge(message="hi")
 

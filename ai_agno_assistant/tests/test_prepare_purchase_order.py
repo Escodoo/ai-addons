@@ -176,26 +176,26 @@ class TestPreparePurchaseOrder(TransactionCase):
         self.assertGreaterEqual(len(result.get("candidates") or []), 2)
 
     def test_prepare_purchase_order_product_exact_default_code(self):
+        # Both match name ilike the query; only one has matching default_code.
         self.env["product.product"].create(
             {
-                "name": "AI Exact Code Extra",
-                "default_code": "AI-EXACT-OTHER",
+                "name": "Widget AI-SHARED-TOKEN Alpha",
+                "default_code": "OTHER-CODE-1",
                 "purchase_ok": True,
                 "type": "consu",
             }
         )
         exact = self.env["product.product"].create(
             {
-                "name": "AI Exact Code Extra Twin",
-                "default_code": "AI-EXACT-CODE",
+                "name": "Widget AI-SHARED-TOKEN Beta",
+                "default_code": "AI-SHARED-TOKEN",
                 "purchase_ok": True,
                 "type": "consu",
             }
         )
-        # Force ambiguity via name search then resolve by exact default_code.
         result = self.Assistant.prepare_purchase_order(
             vendor_ref=self.vendor.id,
-            lines=[{"product_ref": "AI-EXACT-CODE", "qty": 1}],
+            lines=[{"product_ref": "AI-SHARED-TOKEN", "qty": 1}],
         )
         self.assertNotIn("error", result)
         order = self.env["purchase.order"].browse(result["po_id"])
@@ -265,14 +265,13 @@ class TestPreparePurchaseOrder(TransactionCase):
         self.assertEqual(result.get("error"), "invalid_price")
 
     def test_prepare_purchase_order_unavailable(self):
-        original_contains = type(self.env).__contains__
-
-        def fake_contains(env, model):
-            if model == "purchase.order":
-                return False
-            return original_contains(env, model)
-
-        with mock.patch.object(type(self.env), "__contains__", fake_contains):
+        # Use ``new=`` (not MagicMock): patching ``__contains__`` with a mock
+        # breaks the ``in`` operator arity.
+        with mock.patch.object(
+            type(self.env),
+            "__contains__",
+            new=lambda _env, model: model != "purchase.order",
+        ):
             result = self.Assistant.prepare_purchase_order(
                 vendor_ref=self.vendor.id,
                 lines=[{"product_id": self.product.id, "qty": 1}],
