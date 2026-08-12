@@ -29,6 +29,9 @@
         "web.assets_backend": [
             "ai_agno_assistant/static/src/assistant/**/*",
         ],
+        "web.assets_unit_tests": [
+            "ai_agno_assistant/static/tests/**/*",
+        ],
     },
     "post_init_hook": "post_init_hook",
     "installable": True,
