@@ -41,6 +41,11 @@ class TestAgnoRpcAssistant(HttpCase):
                 }
             )
 
+    def _require_models(self, *models, reason):
+        """Skip when optional apps are missing (local runs without soft deps)."""
+        if any(model not in self.env for model in models):  # pragma: no cover
+            self.skipTest(reason)
+
     def _headers(self):
         return {
             "Authorization": f"Bearer {self.service_token}",
@@ -67,8 +72,11 @@ class TestAgnoRpcAssistant(HttpCase):
         return self.opener.post(url, json=payload, headers=self._headers(), timeout=30)
 
     def test_prepare_purchase_order_allowed(self):
-        if not self.has_purchase:
-            self.skipTest("Purchase/Product apps are not installed")
+        self._require_models(
+            "purchase.order",
+            "product.product",
+            reason="Purchase/Product apps are not installed",
+        )
         resp = self._rpc(
             self._signed_payload(
                 vendor_ref=self.vendor.id,
@@ -82,8 +90,7 @@ class TestAgnoRpcAssistant(HttpCase):
         self.assertEqual(data["result"]["state"], "draft")
 
     def test_prepare_opportunity_allowed(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         resp = self._rpc(
             self._signed_payload(
                 method="prepare_opportunity",
