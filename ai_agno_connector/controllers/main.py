@@ -21,6 +21,8 @@ ALLOWED_METHODS = {"search_read", "search_count", "fields_get"}
 
 # High-level write helpers allowed only on dedicated assistant models.
 # Never expose generic create/write/unlink through the gateway.
+# Keep in sync with ai_agno_assistant helpers + Agno AssistantTools
+# (see readme/USAGE.md — "Typed model allowlist").
 ALLOWED_MODEL_METHODS = {
     "ai.assistant": frozenset(
         {

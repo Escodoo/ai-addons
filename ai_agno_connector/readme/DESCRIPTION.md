@@ -10,11 +10,14 @@ arbitrary `user_id`.
 
 Only a small allowlist of read-only ORM methods is exposed
 (`search_read`, `search_count`, `fields_get`). In addition, typed helpers on
-dedicated models may be allowlisted (for example
-`ai.assistant.prepare_purchase_order`, `prepare_opportunity`,
+dedicated models may be allowlisted (for example `ai.assistant` methods
+`find_navigation`, `prepare_purchase_order`, `prepare_opportunity`,
 `prepare_helpdesk_ticket`, `prepare_sale_order`, `prepare_timesheet`) — never
 generic `create` / `write` / `unlink`. Sensitive models and credential field
 names are blocked regardless of the caller's own rights.
+
+When adding a new assistant helper, update this allowlist together with the
+Agno `AssistantTools` toolkit (see Usage).
 
 This bridge targets the companion **Agno service**
 ([Escodoo/agno-odoo](https://github.com/Escodoo/agno-odoo)), which exposes the
