@@ -29,7 +29,7 @@ class TestAiAssistantSanitize(TransactionCase):
         cls.stable_menu = cls.env.ref(cls._STABLE_MENU_XMLID)
 
     def _require_purchase(self):
-        if not self.has_purchase:
+        if not self.has_purchase:  # pragma: no cover
             self.skipTest("Purchase app is not installed")
 
     def test_sanitize_rejects_unknown_action_type(self):
@@ -563,7 +563,7 @@ class TestAiAssistantSanitize(TransactionCase):
         )
 
     def test_find_navigation_invoicing(self):
-        if "account.move" not in self.env:
+        if "account.move" not in self.env:  # pragma: no cover
             self.skipTest("Accounting app is not installed")
         result = self.Assistant.find_navigation(query="faturamento", limit=8)
         self.assertNotIn("error", result)
