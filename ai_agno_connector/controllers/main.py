@@ -19,6 +19,12 @@ HMAC_MAX_AGE = 600
 
 ALLOWED_METHODS = {"search_read", "search_count", "fields_get"}
 
+# High-level write helpers allowed only on dedicated assistant models.
+# Never expose generic create/write/unlink through the gateway.
+ALLOWED_MODEL_METHODS = {
+    "ai.assistant": frozenset({"prepare_purchase_order", "find_navigation"}),
+}
+
 # Technical / credential models that must never be exposed to agents,
 # regardless of the requesting user's own access rights.
 BLOCKED_MODELS = {
@@ -59,7 +65,16 @@ def _truncate(value, size=TEXT_TRUNCATE_LIMIT):
 
 
 class AgnoRpcController(http.Controller):
-    @http.route("/agno/rpc", type="http", auth="none", methods=["POST"], csrf=False)
+    # auth=none defaults to readonly=True in Odoo 18; assistant prepare_* helpers
+    # need a read/write cursor (still gated by allowlists + HMAC identity).
+    @http.route(
+        "/agno/rpc",
+        type="http",
+        auth="none",
+        methods=["POST"],
+        csrf=False,
+        readonly=False,
+    )
     def agno_rpc(self, db=None):
         # ``db`` is consumed by the post_load patch for database resolution;
         # declared here so the dispatcher does not warn about ignored args.
@@ -80,7 +95,8 @@ class AgnoRpcController(http.Controller):
 
         model = params.get("model") or ""
         method = params.get("method") or ""
-        if method not in ALLOWED_METHODS:
+        allowed_for_model = ALLOWED_MODEL_METHODS.get(model, frozenset())
+        if method not in ALLOWED_METHODS and method not in allowed_for_model:
             return request.make_json_response(
                 {"error": "method_not_allowed", "detail": f"Method {method!r}."},
                 status=400,
@@ -205,6 +221,17 @@ class AgnoRpcController(http.Controller):
                 for name, info in fields_data.items()
                 if not _is_blocked_field(name) and info.get("type") != "binary"
             }
+        if method == "prepare_purchase_order":
+            return records.prepare_purchase_order(
+                vendor_ref=params.get("vendor_ref"),
+                lines=params.get("lines") or [],
+                notes=params.get("notes"),
+            )
+        if method == "find_navigation":
+            return records.find_navigation(
+                query=params.get("query"),
+                limit=params.get("limit") or 8,
+            )
         # search_read
         field_defs = records._fields
         field_names = [
