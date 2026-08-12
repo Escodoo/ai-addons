@@ -14,8 +14,9 @@ from odoo.addons.ai_agno_assistant.models import ai_assistant as ai_assistant_mo
 
 @tagged("post_install", "-at_install")
 class TestAiAssistantSanitize(TransactionCase):
-    # Always available act_window (no business app dependency).
+    # Always available act_window / menu (no business app dependency).
     _STABLE_ACTION_XMLID = "base.ir_sequence_actions"
+    _STABLE_MENU_XMLID = "base.menu_ir_sequence_form"
 
     @classmethod
     def setUpClass(cls):
@@ -23,6 +24,13 @@ class TestAiAssistantSanitize(TransactionCase):
         cls.Assistant = cls.env["ai.assistant"]
         cls.ai_group = cls.env.ref("ai_agno_assistant.group_system_ai_user")
         cls.env.user.groups_id = [(4, cls.ai_group.id)]
+        cls.has_purchase = "purchase.order" in cls.env
+        cls.stable_action = cls.env.ref(cls._STABLE_ACTION_XMLID)
+        cls.stable_menu = cls.env.ref(cls._STABLE_MENU_XMLID)
+
+    def _require_purchase(self):
+        if not self.has_purchase:
+            self.skipTest("Purchase app is not installed")
 
     def test_sanitize_rejects_unknown_action_type(self):
         actions = self.Assistant._sanitize_ai_chat_actions(
@@ -175,7 +183,7 @@ class TestAiAssistantSanitize(TransactionCase):
             )
 
     def test_sanitize_open_action_ref(self):
-        action = self.env.ref("purchase.purchase_rfq")
+        action = self.stable_action
         actions = self.Assistant._sanitize_ai_chat_actions(
             [
                 {
@@ -220,7 +228,7 @@ class TestAiAssistantSanitize(TransactionCase):
                 )
             )
         # Record exists but cannot be turned into a client action dict.
-        action = self.env.ref("purchase.purchase_rfq")
+        action = self.stable_action
         with mock.patch.object(
             type(self.Assistant),
             "_action_record_to_dict",
@@ -303,7 +311,7 @@ class TestAiAssistantSanitize(TransactionCase):
             [
                 {
                     "type": "open_menu",
-                    "menu_xml_id": "purchase.menu_purchase_form_action",
+                    "menu_xml_id": self._STABLE_MENU_XMLID,
                 }
             ]
         )
@@ -320,7 +328,9 @@ class TestAiAssistantSanitize(TransactionCase):
         )
         # Point at a non-menu xml id.
         self.assertFalse(
-            self.Assistant._sanitize_open_menu({"menu_xml_id": "purchase.purchase_rfq"})
+            self.Assistant._sanitize_open_menu(
+                {"menu_xml_id": self._STABLE_ACTION_XMLID}
+            )
         )
 
     def test_sanitize_open_menu_no_resolvable_action(self):
@@ -350,18 +360,18 @@ class TestAiAssistantSanitize(TransactionCase):
             )
 
     def test_sanitize_open_root_app_menu_resolves_child(self):
-        """Root apps (Invoicing) have no action; resolve the first child screen."""
+        """Root apps often have no action; resolve the first child screen."""
         actions = self.Assistant._sanitize_ai_chat_actions(
-            [{"type": "open_menu", "menu_xml_id": "account.menu_finance"}]
+            [{"type": "open_menu", "menu_xml_id": "base.menu_administration"}]
         )
         self.assertEqual(len(actions), 1)
         self.assertIn("action", actions[0])
         self.assertTrue(actions[0]["action"].get("type"))
 
-    def test_sanitize_open_action_purchase_form(self):
-        """Sanitize a hard dependency action (purchase), not an optional CRM one."""
+    def test_sanitize_open_action_stable_form(self):
+        """Sanitize a core act_window that does not need business apps."""
         actions = self.Assistant._sanitize_ai_chat_actions(
-            [{"type": "open_action", "xml_id": "purchase.purchase_form_action"}]
+            [{"type": "open_action", "xml_id": self._STABLE_ACTION_XMLID}]
         )
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0]["type"], "open_action")
@@ -369,19 +379,19 @@ class TestAiAssistantSanitize(TransactionCase):
     def test_sanitize_open_action_menu_xml_id_fallback(self):
         """LLM sometimes passes a menu xml id as open_action."""
         actions = self.Assistant._sanitize_ai_chat_actions(
-            [{"type": "open_action", "xml_id": "account.menu_finance"}]
+            [{"type": "open_action", "xml_id": self._STABLE_MENU_XMLID}]
         )
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0]["type"], "open_menu")
 
     def test_action_record_to_dict_empty_and_fallback(self):
         self.assertFalse(self.Assistant._action_record_to_dict(False))
-        action = self.env.ref("purchase.purchase_rfq")
+        action = self.stable_action
         with (
             mock.patch.object(
                 type(action),
                 "get_external_id",
-                return_value={action.id: "purchase.purchase_rfq"},
+                return_value={action.id: self._STABLE_ACTION_XMLID},
             ),
             mock.patch.object(
                 type(self.env["ir.actions.actions"]),
@@ -402,7 +412,7 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(action_dict["type"], "ir.actions.act_window")
 
     def test_resolve_menu_to_action_guards(self):
-        menu = self.env.ref("purchase.menu_purchase_form_action")
+        menu = self.stable_menu
         self.assertFalse(self.Assistant._resolve_menu_to_action(False))
         self.assertFalse(self.Assistant._resolve_menu_to_action(self.env.user))
         self.assertFalse(self.Assistant._resolve_menu_to_action(menu, _seen={menu.id}))
@@ -444,14 +454,14 @@ class TestAiAssistantSanitize(TransactionCase):
         cleaned = self.Assistant._normalize_ui_context(
             {
                 "current_action": "a" * 250,
-                "current_model": "purchase.order",
+                "current_model": "res.partner",
                 "current_res_id": "42",
                 "company_id": "",
                 "ignored": True,
             }
         )
         self.assertEqual(cleaned["current_action"], "a" * 200)
-        self.assertEqual(cleaned["current_model"], "purchase.order")
+        self.assertEqual(cleaned["current_model"], "res.partner")
         self.assertEqual(cleaned["current_res_id"], 42)
         self.assertIs(cleaned["company_id"], False)
 
@@ -470,7 +480,8 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertIs(cleaned["company_id"], False)
 
     def test_find_navigation_purchases(self):
-        """Alias expansion for purchases (hard dep), without optional CRM."""
+        """Alias expansion for purchases when the Purchase app is installed."""
+        self._require_purchase()
         result = self.Assistant.find_navigation(query="compras", limit=8)
         self.assertNotIn("error", result)
         self.assertTrue(result.get("results"))
@@ -481,7 +492,19 @@ class TestAiAssistantSanitize(TransactionCase):
         ]
         self.assertTrue(suggested)
 
+    def test_find_navigation_settings(self):
+        """Core menus are always searchable without business apps."""
+        result = self.Assistant.find_navigation(query="sequence", limit=8)
+        self.assertNotIn("error", result)
+        self.assertTrue(result.get("results"))
+        self.assertTrue(
+            all(row.get("suggested_action") for row in result["results"]),
+            result,
+        )
+
     def test_find_navigation_invoicing(self):
+        if "account.move" not in self.env:
+            self.skipTest("Accounting app is not installed")
         result = self.Assistant.find_navigation(query="faturamento", limit=8)
         self.assertNotIn("error", result)
         names = " ".join(
@@ -505,7 +528,7 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(
             self.Assistant.find_navigation(query="a").get("error"), "missing_query"
         )
-        result = self.Assistant.find_navigation(query="purchase", limit="bad")
+        result = self.Assistant.find_navigation(query="sequence", limit="bad")
         self.assertNotIn("error", result)
         self.assertLessEqual(len(result["results"]), 8)
 
@@ -516,12 +539,12 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(result.get("error"), "not_found")
 
     def test_find_navigation_respects_limit(self):
-        result = self.Assistant.find_navigation(query="purchase", limit=1)
+        result = self.Assistant.find_navigation(query="sequence", limit=1)
         self.assertNotIn("error", result)
         self.assertEqual(len(result["results"]), 1)
 
     def test_navigation_menu_result_branches(self):
-        menu = self.env.ref("purchase.menu_purchase_form_action")
+        menu = self.stable_menu
         self.assertFalse(self.Assistant._navigation_menu_result(menu, set()))
         empty = self.env["ir.ui.menu"].create(
             {
@@ -531,7 +554,7 @@ class TestAiAssistantSanitize(TransactionCase):
         )
         self.assertFalse(self.Assistant._navigation_menu_result(empty, {empty.id}))
 
-        action = self.env.ref("purchase.purchase_rfq")
+        action = self.stable_action
         orphan_menu = self.env["ir.ui.menu"].create(
             {
                 "name": "AI Nav Orphan Action Menu",
@@ -549,7 +572,7 @@ class TestAiAssistantSanitize(TransactionCase):
             )
         self.assertTrue(entry)
         self.assertEqual(entry["suggested_action"]["type"], "open_action")
-        self.assertEqual(entry["suggested_action"]["xml_id"], "purchase.purchase_rfq")
+        self.assertEqual(entry["suggested_action"]["xml_id"], self._STABLE_ACTION_XMLID)
 
         with (
             mock.patch.object(
@@ -570,7 +593,7 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(entry["suggested_action"]["action_id"], action.id)
 
     def test_append_menu_navigation_dedupe_and_skip(self):
-        menu = self.env.ref("purchase.menu_purchase_form_action")
+        menu = self.stable_menu
         results = []
         seen = set()
         self.Assistant._append_menu_navigation_results(
@@ -606,13 +629,13 @@ class TestAiAssistantSanitize(TransactionCase):
         results = [{"name": "full"}]
         seen = set()
         self.Assistant._append_window_navigation_results(
-            ["purchase"], results, seen, limit=1
+            ["sequence"], results, seen, limit=1
         )
         self.assertEqual(len(results), 1)
 
         results = []
         seen = set()
-        action = self.env.ref("purchase.purchase_rfq")
+        action = self.stable_action
         # Keep a real xml id so the ValueError branch is reached (not the
         # ``xml in seen`` continue that previously short-circuited this test).
         with (
@@ -686,13 +709,13 @@ class TestAiAssistantSanitize(TransactionCase):
             result = self.Assistant.action_ai_chat(
                 message=long_message,
                 history=[{"role": "user", "content": "prev"}],
-                ui_context={"current_model": "purchase.order", "current_res_id": 1},
+                ui_context={"current_model": "res.partner", "current_res_id": 1},
             )
         self.assertEqual(
             len(captured["message"]), ai_assistant_mod._AI_CHAT_MESSAGE_MAX_LEN
         )
         self.assertEqual(captured["history"][0]["content"], "prev")
-        self.assertEqual(captured["ui_context"]["current_model"], "purchase.order")
+        self.assertEqual(captured["ui_context"]["current_model"], "res.partner")
         self.assertEqual(result["body"], "<p>ok</p>")
         self.assertTrue(result["body_is_html"])
         self.assertEqual(len(result["actions"]), 1)
