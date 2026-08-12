@@ -98,10 +98,11 @@ class TestAgnoRpcAssistant(HttpCase):
         self.assertEqual(data["result"]["open_record"]["model"], "crm.lead")
 
     def test_find_navigation_allowed(self):
+        # Use a base Settings query — Purchase menus are absent on minimal CI DBs.
         resp = self._rpc(
             self._signed_payload(
                 method="find_navigation",
-                query="purchase",
+                query="settings",
                 limit=5,
             )
         )
