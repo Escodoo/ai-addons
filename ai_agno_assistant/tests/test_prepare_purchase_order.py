@@ -14,9 +14,13 @@ class TestPreparePurchaseOrder(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        if "purchase.order" not in cls.env or "product.product" not in cls.env:
+        if (  # pragma: no branch
+            "purchase.order" not in cls.env or "product.product" not in cls.env
+        ):
             # Soft dependency: skip when Purchase/Product are not installed.
-            raise SkipTest("Purchase/Product apps are not installed")
+            raise SkipTest(  # pragma: no cover
+                "Purchase/Product apps are not installed"
+            )
         cls.Assistant = cls.env["ai.assistant"]
         cls.ai_group = cls.env.ref("ai_agno_assistant.group_system_ai_user")
         cls.env.user.groups_id = [(4, cls.ai_group.id)]
@@ -24,7 +28,7 @@ class TestPreparePurchaseOrder(TransactionCase):
             "name": "AI Test Vendor Unique XYZ",
             "is_company": True,
         }
-        if "supplier_rank" in cls.env["res.partner"]._fields:
+        if "supplier_rank" in cls.env["res.partner"]._fields:  # pragma: no branch
             vendor_vals["supplier_rank"] = 1
         cls.vendor = cls.env["res.partner"].create(vendor_vals)
         cls.product = cls.env["product.product"].create(
@@ -132,7 +136,7 @@ class TestPreparePurchaseOrder(TransactionCase):
             "name": "AI Contact Only Display Unique",
             "is_company": False,
         }
-        if "supplier_rank" in self.env["res.partner"]._fields:
+        if "supplier_rank" in self.env["res.partner"]._fields:  # pragma: no branch
             contact_vals["supplier_rank"] = 0
         contact = self.env["res.partner"].create(contact_vals)
         result = self.Assistant.prepare_purchase_order(
@@ -149,7 +153,7 @@ class TestPreparePurchaseOrder(TransactionCase):
                 "name": f"AI Ambiguous Vendor {suffix}",
                 "is_company": True,
             }
-            if "supplier_rank" in self.env["res.partner"]._fields:
+            if "supplier_rank" in self.env["res.partner"]._fields:  # pragma: no branch
                 vals["supplier_rank"] = 1
             self.env["res.partner"].create(vals)
         result = self.Assistant.prepare_purchase_order(
