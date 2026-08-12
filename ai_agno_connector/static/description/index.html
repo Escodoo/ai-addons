@@ -380,11 +380,12 @@ impersonating the user, so a compromised agent (or any bridge-token
 holder) cannot forge an arbitrary <tt class="docutils literal">user_id</tt>.</p>
 <p>Only a small allowlist of read-only ORM methods is exposed
 (<tt class="docutils literal">search_read</tt>, <tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>). In addition, typed
-helpers on dedicated models (for example
-<tt class="docutils literal">ai.assistant.prepare_purchase_order</tt>) may be allowlisted — never
-generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> / <tt class="docutils literal">unlink</tt>. Sensitive models and
-credential field names are blocked regardless of the caller’s own
-rights.</p>
+helpers on dedicated models may be allowlisted (for example
+<tt class="docutils literal">ai.assistant.prepare_purchase_order</tt>, <tt class="docutils literal">prepare_opportunity</tt>,
+<tt class="docutils literal">prepare_helpdesk_ticket</tt>, <tt class="docutils literal">prepare_sale_order</tt>,
+<tt class="docutils literal">prepare_timesheet</tt>) — never generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> /
+<tt class="docutils literal">unlink</tt>. Sensitive models and credential field names are blocked
+regardless of the caller’s own rights.</p>
 <p>This bridge targets the companion <strong>Agno service</strong>
 (<a class="reference external" href="https://github.com/Escodoo/agno-odoo">Escodoo/agno-odoo</a>), which
 exposes the AgentOS endpoints and the <tt class="docutils literal">/agno/rpc</tt> gateway consumed

@@ -349,10 +349,14 @@ class TestAgnoRpcFormatters(HttpCase):
         records.browse.assert_called_once_with([1])
 
     def test_dispatch_assistant_typed_helpers(self):
-        """Cover prepare_purchase_order / find_navigation dispatch branches."""
+        """Cover typed prepare_* / find_navigation dispatch branches."""
         controller = AgnoRpcController()
         records = mock.MagicMock()
         records.prepare_purchase_order.return_value = {"po_id": 42, "state": "draft"}
+        records.prepare_opportunity.return_value = {"opportunity_id": 1}
+        records.prepare_helpdesk_ticket.return_value = {"ticket_id": 2}
+        records.prepare_sale_order.return_value = {"so_id": 3}
+        records.prepare_timesheet.return_value = {"timesheet_id": 4}
         records.find_navigation.return_value = {"results": [{"name": "Purchase"}]}
 
         po_result = controller._dispatch(
@@ -370,6 +374,51 @@ class TestAgnoRpcFormatters(HttpCase):
             notes="rush",
         )
         self.assertEqual(po_result["po_id"], 42)
+
+        controller._dispatch(
+            records,
+            "prepare_opportunity",
+            {"name": "Deal", "partner_ref": 1},
+        )
+        records.prepare_opportunity.assert_called_once_with(
+            name="Deal",
+            partner_ref=1,
+            description=None,
+            expected_revenue=None,
+        )
+        controller._dispatch(
+            records,
+            "prepare_helpdesk_ticket",
+            {"name": "Outage", "description": "<p>down</p>"},
+        )
+        records.prepare_helpdesk_ticket.assert_called_once_with(
+            name="Outage",
+            description="<p>down</p>",
+            partner_ref=None,
+            team_ref=None,
+        )
+        controller._dispatch(
+            records,
+            "prepare_sale_order",
+            {"partner_ref": 9},
+        )
+        records.prepare_sale_order.assert_called_once_with(
+            partner_ref=9,
+            lines=[],
+            notes=None,
+        )
+        controller._dispatch(
+            records,
+            "prepare_timesheet",
+            {"project_ref": 5, "unit_amount": 2.5},
+        )
+        records.prepare_timesheet.assert_called_once_with(
+            project_ref=5,
+            task_ref=None,
+            unit_amount=2.5,
+            name=None,
+            date=None,
+        )
 
         nav_result = controller._dispatch(
             records,
