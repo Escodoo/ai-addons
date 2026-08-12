@@ -316,6 +316,24 @@ class TestPrepareDrafts(TransactionCase):
         )
         self.assertEqual(result.get("error"), "project_not_found")
 
+    def test_prepare_timesheet_task_not_found(self):
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            "project.task",
+            reason="Timesheet/Project apps are not installed",
+        )
+        result = self.Assistant.prepare_timesheet(
+            task_ref=999999999,
+            unit_amount=1,
+        )
+        self.assertEqual(result.get("error"), "task_not_found")
+        result = self.Assistant.prepare_timesheet(
+            task_ref="Missing Task ZZZ999",
+            unit_amount=1,
+        )
+        self.assertEqual(result.get("error"), "task_not_found")
+
     def test_prepare_timesheet_unavailable(self):
         with mock.patch.object(
             type(self.env),
