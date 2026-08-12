@@ -379,9 +379,15 @@ class AiAssistantDrafts(models.AbstractModel):
                 }
             return partner
         name = str(partner_ref).strip()
-        if as_supplier:
+        # supplier_rank / customer_rank come from account; keep working without it.
+        partner_fields = Partner._fields
+        if as_supplier and "supplier_rank" in partner_fields:
             rank_domain = ["|", ("supplier_rank", ">", 0), ("is_company", "=", True)]
-        else:
+        elif (
+            not as_supplier
+            and "customer_rank" in partner_fields
+            and "supplier_rank" in partner_fields
+        ):
             rank_domain = [
                 "|",
                 "|",
@@ -389,6 +395,8 @@ class AiAssistantDrafts(models.AbstractModel):
                 ("supplier_rank", ">", 0),
                 ("is_company", "=", True),
             ]
+        else:
+            rank_domain = [("is_company", "=", True)]
         domain = expression.AND(
             [
                 rank_domain,

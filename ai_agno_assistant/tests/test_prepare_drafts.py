@@ -17,12 +17,10 @@ class TestPrepareDrafts(TransactionCase):
         cls.Assistant = cls.env["ai.assistant"]
         cls.ai_group = cls.env.ref("ai_agno_assistant.group_system_ai_user")
         cls.env.user.groups_id = [(4, cls.ai_group.id)]
-        cls.partner = cls.env["res.partner"].create(
-            {
-                "name": "AI Draft Partner Unique XYZ",
-                "customer_rank": 1,
-            }
-        )
+        partner_vals = {"name": "AI Draft Partner Unique XYZ"}
+        if "customer_rank" in cls.env["res.partner"]._fields:
+            partner_vals["customer_rank"] = 1
+        cls.partner = cls.env["res.partner"].create(partner_vals)
 
     def test_prepare_opportunity_creates_draft(self):
         if "crm.lead" not in self.env:

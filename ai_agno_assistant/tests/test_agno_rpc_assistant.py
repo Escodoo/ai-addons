@@ -25,9 +25,10 @@ class TestAgnoRpcAssistant(HttpCase):
             "ai_agno_connector.service_token", cls.service_token
         )
         cls.has_purchase = "purchase.order" in cls.env and "product.product" in cls.env
-        cls.vendor = cls.env["res.partner"].create(
-            {"name": "RPC AI Vendor", "supplier_rank": 1}
-        )
+        vendor_vals = {"name": "RPC AI Vendor"}
+        if "supplier_rank" in cls.env["res.partner"]._fields:
+            vendor_vals["supplier_rank"] = 1
+        cls.vendor = cls.env["res.partner"].create(vendor_vals)
         cls.product = None
         if cls.has_purchase:
             cls.product = cls.env["product.product"].create(
