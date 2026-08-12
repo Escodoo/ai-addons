@@ -347,3 +347,41 @@ class TestAgnoRpcFormatters(HttpCase):
         self.assertEqual(len(formatted), 1)
         self.assertIsInstance(formatted[0]["amount"], str)
         records.browse.assert_called_once_with([1])
+
+    def test_dispatch_assistant_typed_helpers(self):
+        """Cover prepare_purchase_order / find_navigation dispatch branches."""
+        controller = AgnoRpcController()
+        records = mock.MagicMock()
+        records.prepare_purchase_order.return_value = {"po_id": 42, "state": "draft"}
+        records.find_navigation.return_value = {"results": [{"name": "Purchase"}]}
+
+        po_result = controller._dispatch(
+            records,
+            "prepare_purchase_order",
+            {
+                "vendor_ref": 7,
+                "notes": "rush",
+                # omit lines to exercise the ``or []`` default
+            },
+        )
+        records.prepare_purchase_order.assert_called_once_with(
+            vendor_ref=7,
+            lines=[],
+            notes="rush",
+        )
+        self.assertEqual(po_result["po_id"], 42)
+
+        nav_result = controller._dispatch(
+            records,
+            "find_navigation",
+            {"query": "purchase"},
+        )
+        records.find_navigation.assert_called_once_with(query="purchase", limit=8)
+        self.assertEqual(nav_result["results"][0]["name"], "Purchase")
+
+        controller._dispatch(
+            records,
+            "find_navigation",
+            {"query": "crm", "limit": 3},
+        )
+        records.find_navigation.assert_called_with(query="crm", limit=3)
