@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<templates xml:space="preserve">
+    <t t-name="ai_agno_assistant.Systray">
+        <div class="o_ai_assistant_systray o-dropdown dropdown">
+            <a
+                class="dropdown-toggle o-no-caret o-dropdown--narrow"
+                href="#"
+                title="System AI Assistant"
+                t-on-click.prevent="openPanel"
+            >
+                <i
+                    class="fa fa-comments-o fa-lg"
+                    role="img"
+                    aria-label="System AI Assistant"
+                />
+            </a>
+            <div
+                t-if="state.panelOpen"
+                class="o_ai_assistant_panel border bg-view d-flex flex-column shadow"
+            >
+                <div
+                    class="o_ai_assistant_panel_header d-flex align-items-center gap-2 px-3 py-2 border-bottom"
+                >
+                    <h6 class="mb-0 text-truncate flex-grow-1">System assistant</h6>
+                    <button
+                        class="btn btn-sm btn-light"
+                        title="Copy to clipboard"
+                        t-att-disabled="!canCopyBody"
+                        t-on-click="copyBody"
+                    >
+                        <i class="fa fa-clipboard" role="img" aria-label="Copy" />
+                    </button>
+                    <button
+                        class="btn btn-sm btn-light"
+                        title="Close"
+                        t-on-click="closePanel"
+                    >
+                        <i class="fa fa-times" role="img" aria-label="Close" />
+                    </button>
+                </div>
+                <div
+                    class="o_ai_assistant_panel_body flex-grow-1 overflow-auto p-3 d-flex flex-column gap-2"
+                >
+                    <div
+                        t-if="!state.messages.length and !state.loading"
+                        class="text-muted small"
+                    >
+                        Ask about ERP data, open screens, or prepare a draft
+                        purchase order for review.
+                    </div>
+                    <t t-foreach="state.messages" t-as="message" t-key="message.id">
+                        <div
+                            class="o_ai_assistant_message"
+                            t-att-class="message.role === 'user' ? 'o_ai_assistant_message_user' : 'o_ai_assistant_message_assistant'"
+                        >
+                            <div
+                                class="o_ai_assistant_message_role small mb-1 d-flex align-items-center gap-1"
+                            >
+                                <span class="flex-grow-1">
+                                    <t t-if="message.role === 'user'">You</t>
+                                    <t t-else="">AI</t>
+                                </span>
+                                <button
+                                    t-if="message.role === 'assistant'"
+                                    class="btn btn-sm btn-light o_ai_assistant_message_copy"
+                                    title="Copy to clipboard"
+                                    t-on-click="() => this.copyMessage(message)"
+                                >
+                                    <i
+                                        class="fa fa-clipboard"
+                                        role="img"
+                                        aria-label="Copy"
+                                    />
+                                </button>
+                            </div>
+                            <div
+                                t-if="message.isHtml"
+                                class="o_ai_assistant_content"
+                                t-out="message.html"
+                            />
+                            <div
+                                t-else=""
+                                class="o_ai_assistant_content"
+                                t-esc="message.text"
+                            />
+                        </div>
+                    </t>
+                    <div
+                        t-if="state.loading"
+                        class="d-flex align-items-center justify-content-center text-muted py-3"
+                    >
+                        <i
+                            class="fa fa-circle-o-notch fa-spin fa-lg"
+                            role="img"
+                            aria-label="Loading"
+                        />
+                    </div>
+                </div>
+                <div class="o_ai_assistant_composer border-top p-2">
+                    <div class="input-group input-group-sm">
+                        <textarea
+                            class="form-control o_ai_assistant_input"
+                            rows="2"
+                            placeholder="Ask the system assistant…"
+                            t-att-disabled="state.loading"
+                            t-model="state.draft"
+                            t-on-keydown="onDraftKeydown"
+                        />
+                        <button
+                            class="btn btn-primary"
+                            title="Send"
+                            t-att-disabled="!canSend"
+                            t-on-click="sendMessage"
+                        >
+                            <i class="fa fa-paper-plane" role="img" aria-label="Send" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

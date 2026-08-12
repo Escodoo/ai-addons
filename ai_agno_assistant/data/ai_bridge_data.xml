@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        auth_token left empty: set ICP ai_agno_assistant.bridge_auth_token
+        before install, or rely on odoo.conf agno_bridge_auth_token (post_init_hook).
+    -->
+    <record id="ai_bridge_assistant_chat" model="ai.bridge">
+        <field name="name">System AI Assistant Chat</field>
+        <field name="description">
+            <![CDATA[
+            <p>Answers system-wide assistant questions via Agno
+            <tt>/bridge/assistant/chat</tt>. Returns HTML body plus typed
+            client actions (open screens / records).</p>
+            ]]>
+        </field>
+        <field name="model_id" ref="model_ai_assistant" />
+        <field name="usage">none</field>
+        <field name="payload_type">assistant</field>
+        <field name="result_type">assistant</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="120" />
+        <field name="url">http://agno:8000/bridge/assistant/chat</field>
+        <field
+            name="group_ids"
+            eval="[(4, ref('ai_agno_assistant.group_system_ai_user'))]"
+        />
+    </record>
+</odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="module_category_system_ai" model="ir.module.category">
+        <field name="name">System AI Assistant</field>
+        <field name="sequence">45</field>
+    </record>
+
+    <record id="group_system_ai_user" model="res.groups">
+        <field name="name">Use System AI Assistant</field>
+        <field name="category_id" ref="module_category_system_ai" />
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+        <field name="comment">
+            Allow using the global AI assistant to query data, open screens
+            and prepare draft purchase orders.
+        </field>
+    </record>
+</odoo>
