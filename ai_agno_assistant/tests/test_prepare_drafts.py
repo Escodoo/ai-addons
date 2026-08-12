@@ -588,3 +588,96 @@ class TestPrepareDrafts(TransactionCase):
             ).get("error"),
             "partner_not_found",
         )
+
+    def test_resolve_partner_without_rank_fields(self):
+        company = self.env["res.partner"].create(
+            {"name": "AI No Rank Company Unique XYZ", "is_company": True}
+        )
+        fields_without_rank = {
+            name: field
+            for name, field in self.env["res.partner"]._fields.items()
+            if name not in ("supplier_rank", "customer_rank")
+        }
+        with mock.patch.object(
+            type(self.env["res.partner"]),
+            "_fields",
+            fields_without_rank,
+        ):
+            found = self.Assistant._resolve_partner(
+                "AI No Rank Company Unique XYZ",
+                as_supplier=False,
+                role="partner",
+            )
+            self.assertEqual(found, company)
+            found_vendor = self.Assistant._resolve_partner(
+                "AI No Rank Company Unique XYZ",
+                as_supplier=True,
+                role="vendor",
+            )
+            self.assertEqual(found_vendor, company)
+
+    def test_prepare_helpdesk_ticket_create_error_and_partner_error(self):
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="No partner",
+            partner_ref=999999999,
+        )
+        self.assertEqual(result.get("error"), "partner_not_found")
+        Ticket = type(self.env["helpdesk.ticket"])
+        with mock.patch.object(Ticket, "create", side_effect=AccessError("nope")):
+            result = self.Assistant.prepare_helpdesk_ticket(name="Blocked ticket")
+        self.assertEqual(result.get("error"), "access_denied")
+
+    def test_prepare_sale_order_partner_and_create_errors(self):
+        self._require_models(
+            "sale.order",
+            "product.product",
+            reason="Sales/Product apps are not installed",
+        )
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=None,
+            lines=[{"product_id": 1, "qty": 1}],
+        )
+        self.assertEqual(result.get("error"), "missing_customer")
+        product = self.env["product.product"].create(
+            {
+                "name": "AI SO Create Error Unique XYZ",
+                "type": "consu",
+                "sale_ok": True,
+            }
+        )
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=self.partner.id,
+            lines=[{"product_id": product.id, "qty": "abc"}],
+        )
+        self.assertEqual(result.get("error"), "invalid_qty")
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=self.partner.id,
+            lines=[{"product_ref": "", "qty": 1}],
+        )
+        self.assertEqual(result.get("error"), "missing_product")
+        SaleOrder = type(self.env["sale.order"])
+        with mock.patch.object(SaleOrder, "create", side_effect=AccessError("nope")):
+            result = self.Assistant.prepare_sale_order(
+                partner_ref=self.partner.id,
+                lines=[{"product_id": product.id, "qty": 1}],
+            )
+        self.assertEqual(result.get("error"), "access_denied")
+
+    def test_prepare_timesheet_create_error(self):
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
+        self._ensure_user_employee()
+        project = self.env["project.project"].create(
+            {"name": "AI Timesheet Create Error Unique XYZ"}
+        )
+        AnalyticLine = type(self.env["account.analytic.line"])
+        with mock.patch.object(AnalyticLine, "create", side_effect=AccessError("nope")):
+            result = self.Assistant.prepare_timesheet(
+                project_ref=project.id,
+                unit_amount=1,
+            )
+        self.assertEqual(result.get("error"), "access_denied")
