@@ -1,0 +1,217 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_agno_assistant
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_agno_assistant
+#: model:res.groups,comment:ai_agno_assistant.group_system_ai_user
+msgid ""
+"\n"
+"            Allow using the global AI assistant to query data, open screens\n"
+"            and prepare draft purchase orders.\n"
+"        "
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+msgid "%s is not active."
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model_terms:ai.bridge,description:ai_agno_assistant.ai_bridge_assistant_chat
+msgid ""
+". Returns HTML body plus typed\n"
+"            client actions (open screens / records)."
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model_terms:ai.bridge,description:ai_agno_assistant.ai_bridge_assistant_chat
+msgid "/bridge/assistant/chat"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "AI"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "AI request failed."
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model,name:ai_agno_assistant.model_ai_bridge
+msgid "Ai Bridge Configuration"
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model,name:ai_agno_assistant.model_ai_bridge_execution
+msgid "Ai Execution"
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model_terms:ai.bridge,description:ai_agno_assistant.ai_bridge_assistant_chat
+msgid "Answers system-wide assistant questions via Agno"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid ""
+"Ask about ERP data, open screens, or prepare a draft\n"
+"                        purchase order for review."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Ask the system assistant…"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Close"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Copied to clipboard."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Copy"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Copy to clipboard"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not copy to the clipboard."
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,help:ai_agno_assistant.field_ai_bridge__result_type
+msgid "Defines the type of result expected from the AI system."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Loading"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "No response was returned."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Opening the requested screen…"
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_bridge__payload_type
+msgid "Payload Type"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+msgid "Please enter a question for the assistant."
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_bridge__result_type
+msgid "Result Type"
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields.selection,name:ai_agno_assistant.selection__ai_bridge__result_type__assistant
+msgid "Return Assistant Result"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Send"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+#: model:ir.model,name:ai_agno_assistant.model_ai_assistant
+#: model:ir.module.category,name:ai_agno_assistant.module_category_system_ai
+msgid "System AI Assistant"
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ai.bridge,name:ai_agno_assistant.ai_bridge_assistant_chat
+msgid "System AI Assistant Chat"
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields.selection,name:ai_agno_assistant.selection__ai_bridge__payload_type__assistant
+msgid "System Assistant"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "System assistant"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+msgid "The AI request failed. Check the AI Bridge Execution log for details."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+msgid "The system AI assistant bridge is not configured."
+msgstr ""
+
+#. module: ai_agno_assistant
+#: model:res.groups,name:ai_agno_assistant.group_system_ai_user
+msgid "Use System AI Assistant"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "You"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+msgid "You are not allowed to use the system AI assistant."
+msgstr ""
