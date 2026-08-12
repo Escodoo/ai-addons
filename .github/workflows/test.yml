@@ -63,6 +63,14 @@ jobs:
         run: manifestoo -d . check-dev-status --default-dev-status=Beta
       - name: Initialize test db
         run: oca_init_test_database
+      # Soft deps of ai_agno_assistant draft/navigation tools (not in manifest).
+      # Lets gated prepare_* / find_navigation tests run for Codecov coverage.
+      - name: Install soft-dependency apps for assistant coverage
+        run: |
+          odoo -d "${PGDATABASE}" \
+            -i purchase,sale_management,project,hr_timesheet \
+            --http-interface=127.0.0.1 \
+            --stop-after-init
       - name: Run tests
         run: oca_run_tests
       - name: Upload screenshots from JS tests
