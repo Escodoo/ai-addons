@@ -103,6 +103,18 @@ msgstr "Pergunte ao assistente do sistema…"
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Clear"
+msgstr "Limpar"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Clear conversation"
+msgstr "Limpar conversa"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
 msgid "Close"
 msgstr "Fechar"
 

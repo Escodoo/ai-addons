@@ -35,6 +35,8 @@ panel to:
   quotation, timesheet). There is no hard dependency on those apps; each
   helper returns a structured ``*_unavailable`` error when the model is
   missing.
+- keep a short per-user chat history in the browser across panel
+  close/reopen
 
 The Discuss ERP bot shares the same write helpers and deep-link
 guidance.
@@ -75,7 +77,9 @@ Usage
    or timesheet), the form opens so you can review and confirm it in
    Odoo. Draft helpers only work when the matching business app is
    installed.
-4. Optionally chat with the Discuss ERP bot for longer conversations;
+4. Closing the panel keeps the last messages in the browser (per user).
+   Use the trash icon to clear the conversation.
+5. Optionally chat with the Discuss ERP bot for longer conversations;
    answers may include ``/web#…`` links to open records.
 
 Bug Tracker

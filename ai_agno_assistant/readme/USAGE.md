@@ -10,5 +10,7 @@
 3. When a draft record is prepared (RFQ, opportunity, ticket, quotation or
    timesheet), the form opens so you can review and confirm it in Odoo.
    Draft helpers only work when the matching business app is installed.
-4. Optionally chat with the Discuss ERP bot for longer conversations; answers
+4. Closing the panel keeps the last messages in the browser (per user). Use
+   the trash icon to clear the conversation.
+5. Optionally chat with the Discuss ERP bot for longer conversations; answers
    may include `/web#…` links to open records.

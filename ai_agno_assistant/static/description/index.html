@@ -382,6 +382,8 @@ are installed (purchase RFQ, CRM opportunity, helpdesk ticket, sales
 quotation, timesheet). There is no hard dependency on those apps; each
 helper returns a structured <tt class="docutils literal">*_unavailable</tt> error when the model is
 missing.</li>
+<li>keep a short per-user chat history in the browser across panel
+close/reopen</li>
 </ul>
 <p>The Discuss ERP bot shares the same write helpers and deep-link
 guidance.</p>
@@ -431,6 +433,8 @@ Interior”</li>
 or timesheet), the form opens so you can review and confirm it in
 Odoo. Draft helpers only work when the matching business app is
 installed.</li>
+<li>Closing the panel keeps the last messages in the browser (per user).
+Use the trash icon to clear the conversation.</li>
 <li>Optionally chat with the Discuss ERP bot for longer conversations;
 answers may include <tt class="docutils literal">/web#…</tt> links to open records.</li>
 </ol>
