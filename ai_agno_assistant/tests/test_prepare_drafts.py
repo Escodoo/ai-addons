@@ -24,9 +24,13 @@ class TestPrepareDrafts(TransactionCase):
             partner_vals["customer_rank"] = 1
         cls.partner = cls.env["res.partner"].create(partner_vals)
 
+    def _require_models(self, *models, reason):
+        """Skip when optional apps are missing (local runs without soft deps)."""
+        if any(model not in self.env for model in models):  # pragma: no cover
+            self.skipTest(reason)
+
     def test_prepare_opportunity_creates_draft(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         result = self.Assistant.prepare_opportunity(
             name="AI Opportunity Unique XYZ",
             partner_ref=self.partner.id,
@@ -41,22 +45,19 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result["open_record"]["model"], "crm.lead")
 
     def test_prepare_opportunity_missing_name(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         result = self.Assistant.prepare_opportunity()
         self.assertEqual(result.get("error"), "missing_name")
 
     def test_prepare_opportunity_title_from_partner(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         result = self.Assistant.prepare_opportunity(partner_ref=self.partner.id)
         self.assertNotIn("error", result)
         lead = self.env["crm.lead"].browse(result["opportunity_id"])
         self.assertIn(self.partner.display_name, lead.name)
 
     def test_prepare_opportunity_invalid_revenue(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         result = self.Assistant.prepare_opportunity(
             name="Bad revenue",
             expected_revenue="not-a-number",
@@ -64,8 +65,7 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "invalid_expected_revenue")
 
     def test_prepare_opportunity_partner_not_found(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         result = self.Assistant.prepare_opportunity(
             name="Orphan opportunity",
             partner_ref=999999999,
@@ -82,8 +82,7 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "crm_unavailable")
 
     def test_prepare_helpdesk_ticket_creates_draft(self):
-        if "helpdesk.ticket" not in self.env:
-            self.skipTest("Helpdesk app is not installed")
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
         result = self.Assistant.prepare_helpdesk_ticket(
             name="AI Ticket Unique XYZ",
             description="Printer offline",
@@ -96,16 +95,15 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result["open_record"]["model"], "helpdesk.ticket")
 
     def test_prepare_helpdesk_ticket_missing_name(self):
-        if "helpdesk.ticket" not in self.env:
-            self.skipTest("Helpdesk app is not installed")
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
         result = self.Assistant.prepare_helpdesk_ticket(description="x")
         self.assertEqual(result.get("error"), "missing_name")
 
     def test_prepare_helpdesk_ticket_with_team(self):
-        if "helpdesk.ticket" not in self.env:
-            self.skipTest("Helpdesk app is not installed")
-        if "helpdesk.ticket.team" not in self.env:
-            self.skipTest("Helpdesk teams are not available")
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        self._require_models(
+            "helpdesk.ticket.team", reason="Helpdesk teams are not available"
+        )
         team = self.env["helpdesk.ticket.team"].create(
             {"name": "AI Draft Team Unique XYZ"}
         )
@@ -119,10 +117,10 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result["team"]["id"], team.id)
 
     def test_prepare_helpdesk_ticket_team_not_found(self):
-        if "helpdesk.ticket" not in self.env:
-            self.skipTest("Helpdesk app is not installed")
-        if "helpdesk.ticket.team" not in self.env:
-            self.skipTest("Helpdesk teams are not available")
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        self._require_models(
+            "helpdesk.ticket.team", reason="Helpdesk teams are not available"
+        )
         result = self.Assistant.prepare_helpdesk_ticket(
             name="Missing team",
             team_ref=999999999,
@@ -139,8 +137,11 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "helpdesk_unavailable")
 
     def test_prepare_sale_order_creates_draft(self):
-        if "sale.order" not in self.env or "product.product" not in self.env:
-            self.skipTest("Sales/Product apps are not installed")
+        self._require_models(
+            "sale.order",
+            "product.product",
+            reason="Sales/Product apps are not installed",
+        )
         product = self.env["product.product"].create(
             {
                 "name": "AI SO Product Unique XYZ",
@@ -165,14 +166,20 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result["open_record"]["model"], "sale.order")
 
     def test_prepare_sale_order_missing_lines(self):
-        if "sale.order" not in self.env or "product.product" not in self.env:
-            self.skipTest("Sales/Product apps are not installed")
+        self._require_models(
+            "sale.order",
+            "product.product",
+            reason="Sales/Product apps are not installed",
+        )
         result = self.Assistant.prepare_sale_order(partner_ref=self.partner.id)
         self.assertEqual(result.get("error"), "missing_lines")
 
     def test_prepare_sale_order_invalid_qty_and_price(self):
-        if "sale.order" not in self.env or "product.product" not in self.env:
-            self.skipTest("Sales/Product apps are not installed")
+        self._require_models(
+            "sale.order",
+            "product.product",
+            reason="Sales/Product apps are not installed",
+        )
         product = self.env["product.product"].create(
             {
                 "name": "AI SO Qty Product Unique XYZ",
@@ -212,8 +219,7 @@ class TestPrepareDrafts(TransactionCase):
 
     def _ensure_user_employee(self):
         """Timesheets require an active employee on the current user."""
-        if "hr.employee" not in self.env:
-            self.skipTest("HR employees are not available")
+        self._require_models("hr.employee", reason="HR employees are not available")
         employee = self.env.user.employee_id
         if not employee:
             employee = self.env["hr.employee"].create(
@@ -226,8 +232,11 @@ class TestPrepareDrafts(TransactionCase):
         return employee
 
     def test_prepare_timesheet_creates_draft(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
         self._ensure_user_employee()
         project = self.env["project.project"].create(
             {"name": "AI Timesheet Project Unique XYZ"}
@@ -245,14 +254,20 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result["open_record"]["model"], "account.analytic.line")
 
     def test_prepare_timesheet_missing_project(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
         result = self.Assistant.prepare_timesheet(unit_amount=1)
         self.assertEqual(result.get("error"), "missing_project")
 
     def test_prepare_timesheet_invalid_hours(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
         project = self.env["project.project"].create(
             {"name": "AI Timesheet Hours Unique XYZ"}
         )
@@ -263,12 +278,12 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "invalid_unit_amount")
 
     def test_prepare_timesheet_by_task(self):
-        if (
-            "account.analytic.line" not in self.env
-            or "project.project" not in self.env
-            or "project.task" not in self.env
-        ):
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            "project.task",
+            reason="Timesheet/Project apps are not installed",
+        )
         self._ensure_user_employee()
         project = self.env["project.project"].create(
             {"name": "AI Timesheet Task Project Unique XYZ"}
@@ -290,8 +305,11 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(line.project_id, project)
 
     def test_prepare_timesheet_project_not_found(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
         result = self.Assistant.prepare_timesheet(
             project_ref=999999999,
             unit_amount=1,
@@ -360,18 +378,17 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(error.get("error"), "create_failed")
 
     def test_prepare_opportunity_create_error(self):
-        if "crm.lead" not in self.env:
-            self.skipTest("CRM app is not installed")
+        self._require_models("crm.lead", reason="CRM app is not installed")
         Lead = type(self.env["crm.lead"])
         with mock.patch.object(Lead, "create", side_effect=AccessError("nope")):
             result = self.Assistant.prepare_opportunity(name="Blocked")
         self.assertEqual(result.get("error"), "access_denied")
 
     def test_prepare_helpdesk_ticket_team_by_name(self):
-        if "helpdesk.ticket" not in self.env:
-            self.skipTest("Helpdesk app is not installed")
-        if "helpdesk.ticket.team" not in self.env:
-            self.skipTest("Helpdesk teams are not available")
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        self._require_models(
+            "helpdesk.ticket.team", reason="Helpdesk teams are not available"
+        )
         team = self.env["helpdesk.ticket.team"].create(
             {"name": "AI Draft Team By Name Unique XYZ"}
         )
@@ -401,8 +418,7 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "team_not_found")
 
     def test_prepare_helpdesk_ticket_team_model_missing(self):
-        if "helpdesk.ticket" not in self.env:
-            self.skipTest("Helpdesk app is not installed")
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
         with mock.patch.object(
             type(self.env),
             "__contains__",
@@ -415,8 +431,11 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "team_not_found")
 
     def test_prepare_sale_order_skips_non_dict_lines(self):
-        if "sale.order" not in self.env or "product.product" not in self.env:
-            self.skipTest("Sales/Product apps are not installed")
+        self._require_models(
+            "sale.order",
+            "product.product",
+            reason="Sales/Product apps are not installed",
+        )
         result = self.Assistant.prepare_sale_order(
             partner_ref=self.partner.id,
             lines=["skip-me"],
@@ -436,9 +455,13 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "invalid_price")
 
     def test_prepare_timesheet_missing_employee(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
-        if "employee_id" not in self.env["account.analytic.line"]._fields:
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
+        AnalyticLine = self.env["account.analytic.line"]
+        if "employee_id" not in AnalyticLine._fields:  # pragma: no cover
             self.skipTest("Timesheet employee_id is not available")
         project = self.env["project.project"].create(
             {"name": "AI Timesheet Missing Employee Unique XYZ"}
@@ -456,8 +479,11 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "missing_employee")
 
     def test_prepare_timesheet_invalid_hours_non_numeric(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
         project = self.env["project.project"].create(
             {"name": "AI Timesheet Bad Hours Unique XYZ"}
         )
@@ -468,8 +494,11 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "invalid_unit_amount")
 
     def test_prepare_timesheet_task_unavailable(self):
-        if "account.analytic.line" not in self.env or "project.project" not in self.env:
-            self.skipTest("Timesheet/Project apps are not installed")
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet/Project apps are not installed",
+        )
         original = type(self.env).__contains__
 
         def _contains(_env, model):
@@ -485,8 +514,11 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(result.get("error"), "timesheet_unavailable")
 
     def test_resolve_project_and_task_by_name(self):
-        if "project.project" not in self.env or "project.task" not in self.env:
-            self.skipTest("Project app is not installed")
+        self._require_models(
+            "project.project",
+            "project.task",
+            reason="Project app is not installed",
+        )
         project = self.env["project.project"].create(
             {"name": "AI Resolve Project Unique XYZ"}
         )
