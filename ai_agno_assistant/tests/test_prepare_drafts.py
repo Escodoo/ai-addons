@@ -44,6 +44,32 @@ class TestPrepareDrafts(TransactionCase):
         result = self.Assistant.prepare_opportunity()
         self.assertEqual(result.get("error"), "missing_name")
 
+    def test_prepare_opportunity_title_from_partner(self):
+        if "crm.lead" not in self.env:
+            self.skipTest("CRM app is not installed")
+        result = self.Assistant.prepare_opportunity(partner_ref=self.partner.id)
+        self.assertNotIn("error", result)
+        lead = self.env["crm.lead"].browse(result["opportunity_id"])
+        self.assertIn(self.partner.display_name, lead.name)
+
+    def test_prepare_opportunity_invalid_revenue(self):
+        if "crm.lead" not in self.env:
+            self.skipTest("CRM app is not installed")
+        result = self.Assistant.prepare_opportunity(
+            name="Bad revenue",
+            expected_revenue="not-a-number",
+        )
+        self.assertEqual(result.get("error"), "invalid_expected_revenue")
+
+    def test_prepare_opportunity_partner_not_found(self):
+        if "crm.lead" not in self.env:
+            self.skipTest("CRM app is not installed")
+        result = self.Assistant.prepare_opportunity(
+            name="Orphan opportunity",
+            partner_ref=999999999,
+        )
+        self.assertEqual(result.get("error"), "partner_not_found")
+
     def test_prepare_opportunity_unavailable(self):
         with mock.patch.object(
             type(self.env),
@@ -72,6 +98,34 @@ class TestPrepareDrafts(TransactionCase):
             self.skipTest("Helpdesk app is not installed")
         result = self.Assistant.prepare_helpdesk_ticket(description="x")
         self.assertEqual(result.get("error"), "missing_name")
+
+    def test_prepare_helpdesk_ticket_with_team(self):
+        if "helpdesk.ticket" not in self.env:
+            self.skipTest("Helpdesk app is not installed")
+        if "helpdesk.ticket.team" not in self.env:
+            self.skipTest("Helpdesk teams are not available")
+        team = self.env["helpdesk.ticket.team"].create(
+            {"name": "AI Draft Team Unique XYZ"}
+        )
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="Ticket with team",
+            team_ref=team.id,
+        )
+        self.assertNotIn("error", result)
+        ticket = self.env["helpdesk.ticket"].browse(result["ticket_id"])
+        self.assertEqual(ticket.team_id, team)
+        self.assertEqual(result["team"]["id"], team.id)
+
+    def test_prepare_helpdesk_ticket_team_not_found(self):
+        if "helpdesk.ticket" not in self.env:
+            self.skipTest("Helpdesk app is not installed")
+        if "helpdesk.ticket.team" not in self.env:
+            self.skipTest("Helpdesk teams are not available")
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="Missing team",
+            team_ref=999999999,
+        )
+        self.assertEqual(result.get("error"), "team_not_found")
 
     def test_prepare_helpdesk_ticket_unavailable(self):
         with mock.patch.object(
@@ -113,6 +167,34 @@ class TestPrepareDrafts(TransactionCase):
             self.skipTest("Sales/Product apps are not installed")
         result = self.Assistant.prepare_sale_order(partner_ref=self.partner.id)
         self.assertEqual(result.get("error"), "missing_lines")
+
+    def test_prepare_sale_order_invalid_qty_and_price(self):
+        if "sale.order" not in self.env or "product.product" not in self.env:
+            self.skipTest("Sales/Product apps are not installed")
+        product = self.env["product.product"].create(
+            {
+                "name": "AI SO Qty Product Unique XYZ",
+                "type": "consu",
+                "sale_ok": True,
+                "list_price": 10.0,
+            }
+        )
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=self.partner.id,
+            lines=[{"product_id": product.id, "qty": 0}],
+        )
+        self.assertEqual(result.get("error"), "invalid_qty")
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=self.partner.id,
+            lines=[
+                {
+                    "product_id": product.id,
+                    "qty": 1,
+                    "price_unit": "bad",
+                }
+            ],
+        )
+        self.assertEqual(result.get("error"), "invalid_price")
 
     def test_prepare_sale_order_unavailable(self):
         with mock.patch.object(
@@ -178,6 +260,42 @@ class TestPrepareDrafts(TransactionCase):
         )
         self.assertEqual(result.get("error"), "invalid_unit_amount")
 
+    def test_prepare_timesheet_by_task(self):
+        if (
+            "account.analytic.line" not in self.env
+            or "project.project" not in self.env
+            or "project.task" not in self.env
+        ):
+            self.skipTest("Timesheet/Project apps are not installed")
+        self._ensure_user_employee()
+        project = self.env["project.project"].create(
+            {"name": "AI Timesheet Task Project Unique XYZ"}
+        )
+        task = self.env["project.task"].create(
+            {
+                "name": "AI Timesheet Task Unique XYZ",
+                "project_id": project.id,
+            }
+        )
+        result = self.Assistant.prepare_timesheet(
+            task_ref=task.id,
+            unit_amount=2,
+            name="From task",
+        )
+        self.assertNotIn("error", result)
+        line = self.env["account.analytic.line"].browse(result["timesheet_id"])
+        self.assertEqual(line.task_id, task)
+        self.assertEqual(line.project_id, project)
+
+    def test_prepare_timesheet_project_not_found(self):
+        if "account.analytic.line" not in self.env or "project.project" not in self.env:
+            self.skipTest("Timesheet/Project apps are not installed")
+        result = self.Assistant.prepare_timesheet(
+            project_ref=999999999,
+            unit_amount=1,
+        )
+        self.assertEqual(result.get("error"), "project_not_found")
+
     def test_prepare_timesheet_unavailable(self):
         with mock.patch.object(
             type(self.env),
@@ -190,3 +308,27 @@ class TestPrepareDrafts(TransactionCase):
                 unit_amount=1,
             )
         self.assertEqual(result.get("error"), "timesheet_unavailable")
+
+    def test_resolve_partner_missing_and_ambiguous(self):
+        result = self.Assistant._resolve_partner(None, role="customer")
+        self.assertEqual(result.get("error"), "missing_customer")
+        self.env["res.partner"].create(
+            {"name": "AI Ambiguous Partner Alpha", "is_company": True}
+        )
+        self.env["res.partner"].create(
+            {"name": "AI Ambiguous Partner Beta", "is_company": True}
+        )
+        result = self.Assistant._resolve_partner(
+            "AI Ambiguous Partner", as_supplier=False, role="partner"
+        )
+        self.assertEqual(result.get("error"), "partner_ambiguous")
+        self.assertGreaterEqual(len(result.get("candidates") or []), 2)
+
+    def test_resolve_product_unavailable(self):
+        with mock.patch.object(
+            type(self.env),
+            "__contains__",
+            new=lambda _env, model: model != "product.product",
+        ):
+            result = self.Assistant._resolve_product("X")
+        self.assertEqual(result.get("error"), "product_unavailable")

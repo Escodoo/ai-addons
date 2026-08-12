@@ -20,12 +20,13 @@ class TestPreparePurchaseOrder(TransactionCase):
         cls.Assistant = cls.env["ai.assistant"]
         cls.ai_group = cls.env.ref("ai_agno_assistant.group_system_ai_user")
         cls.env.user.groups_id = [(4, cls.ai_group.id)]
-        cls.vendor = cls.env["res.partner"].create(
-            {
-                "name": "AI Test Vendor Unique XYZ",
-                "supplier_rank": 1,
-            }
-        )
+        vendor_vals = {
+            "name": "AI Test Vendor Unique XYZ",
+            "is_company": True,
+        }
+        if "supplier_rank" in cls.env["res.partner"]._fields:
+            vendor_vals["supplier_rank"] = 1
+        cls.vendor = cls.env["res.partner"].create(vendor_vals)
         cls.product = cls.env["product.product"].create(
             {
                 "name": "AI Test Product Unique XYZ",
@@ -127,13 +128,13 @@ class TestPreparePurchaseOrder(TransactionCase):
         self.assertEqual(result.get("error"), "vendor_not_found")
 
     def test_prepare_purchase_order_vendor_fallback_display_name(self):
-        contact = self.env["res.partner"].create(
-            {
-                "name": "AI Contact Only Display Unique",
-                "supplier_rank": 0,
-                "is_company": False,
-            }
-        )
+        contact_vals = {
+            "name": "AI Contact Only Display Unique",
+            "is_company": False,
+        }
+        if "supplier_rank" in self.env["res.partner"]._fields:
+            contact_vals["supplier_rank"] = 0
+        contact = self.env["res.partner"].create(contact_vals)
         result = self.Assistant.prepare_purchase_order(
             vendor_ref="AI Contact Only Display Unique",
             lines=[{"product_id": self.product.id, "qty": 1}],
@@ -143,12 +144,14 @@ class TestPreparePurchaseOrder(TransactionCase):
         self.assertEqual(order.partner_id, contact)
 
     def test_prepare_purchase_order_vendor_ambiguous(self):
-        self.env["res.partner"].create(
-            {"name": "AI Ambiguous Vendor Alpha", "supplier_rank": 1}
-        )
-        self.env["res.partner"].create(
-            {"name": "AI Ambiguous Vendor Beta", "supplier_rank": 1}
-        )
+        for suffix in ("Alpha", "Beta"):
+            vals = {
+                "name": f"AI Ambiguous Vendor {suffix}",
+                "is_company": True,
+            }
+            if "supplier_rank" in self.env["res.partner"]._fields:
+                vals["supplier_rank"] = 1
+            self.env["res.partner"].create(vals)
         result = self.Assistant.prepare_purchase_order(
             vendor_ref="AI Ambiguous Vendor",
             lines=[{"product_id": self.product.id, "qty": 1}],
@@ -322,7 +325,7 @@ class TestPreparePurchaseOrder(TransactionCase):
                 "create",
                 side_effect=RuntimeError("unexpected"),
             ),
-            mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant"),
+            mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant_drafts"),
         ):
             result = self.Assistant.prepare_purchase_order(
                 vendor_ref=self.vendor.id,
