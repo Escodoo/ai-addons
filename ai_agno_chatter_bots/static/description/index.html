@@ -377,6 +377,9 @@ business channel (<tt class="docutils literal">erp</tt>, <tt class="docutils lit
 <tt class="docutils literal">sales</tt>, <tt class="docutils literal">marketing</tt>, <tt class="docutils literal">web</tt>). Each user has <tt class="docutils literal">ai_bridge_id</tt>
 pointing at its bridge so Discuss routes messages to
 <tt class="docutils literal"><span class="pre">/bridge/chatter/&lt;agent_key&gt;</span></tt> on the Agno service.</p>
+<p>The <tt class="docutils literal">erp</tt> persona can query ERP data, suggest <tt class="docutils literal">/web#…</tt> deep links,
+and (with <tt class="docutils literal">ai_agno_assistant</tt> installed) prepare draft purchase orders
+for human review.</p>
 <p>The Architect persona is intentionally <strong>not</strong> created here (dev /
 AgentOS only). Knowledge-base sync for <tt class="docutils literal">document.page</tt> lives in
 <tt class="docutils literal">ai_agno_document_page_kb</tt>.</p>
