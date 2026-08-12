@@ -14,6 +14,9 @@ from odoo.addons.ai_agno_assistant.models import ai_assistant as ai_assistant_mo
 
 @tagged("post_install", "-at_install")
 class TestAiAssistantSanitize(TransactionCase):
+    # Always available act_window (no business app dependency).
+    _STABLE_ACTION_XMLID = "base.ir_sequence_actions"
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -58,7 +61,7 @@ class TestAiAssistantSanitize(TransactionCase):
 
     def test_sanitize_open_action_purchase_rfq(self):
         actions = self.Assistant._sanitize_ai_chat_actions(
-            [{"type": "open_action", "xml_id": "purchase.purchase_rfq"}]
+            [{"type": "open_action", "xml_id": self._STABLE_ACTION_XMLID}]
         )
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0]["type"], "open_action")
@@ -70,19 +73,66 @@ class TestAiAssistantSanitize(TransactionCase):
             [
                 {
                     "type": "open_action",
-                    "xml_id": "purchase.purchase_rfq",
-                    "domain": [("state", "=", "draft")],
+                    "xml_id": self._STABLE_ACTION_XMLID,
+                    "domain": [("code", "=", "draft")],
                     "context": {"search_default_draft": 1},
                 }
             ]
         )
         self.assertEqual(len(actions), 1)
-        self.assertEqual(actions[0]["domain"], [("state", "=", "draft")])
+        self.assertEqual(actions[0]["domain"], [["code", "=", "draft"]])
         self.assertEqual(actions[0]["context"]["search_default_draft"], 1)
         self.assertIn("search_default_draft", actions[0]["action"]["context"])
 
+    def test_sanitize_open_action_drops_invalid_domain(self):
+        actions = self.Assistant._sanitize_ai_chat_actions(
+            [
+                {
+                    "type": "open_action",
+                    "xml_id": self._STABLE_ACTION_XMLID,
+                    "domain": "state = draft",
+                }
+            ]
+        )
+        self.assertEqual(len(actions), 1)
+        self.assertNotIn("domain", actions[0])
+
+        actions = self.Assistant._sanitize_ai_chat_actions(
+            [
+                {
+                    "type": "open_action",
+                    "xml_id": self._STABLE_ACTION_XMLID,
+                    "domain": [("code", "bogus_op", "draft")],
+                }
+            ]
+        )
+        self.assertEqual(len(actions), 1)
+        self.assertNotIn("domain", actions[0])
+
+    def test_sanitize_open_action_filters_unsafe_context(self):
+        actions = self.Assistant._sanitize_ai_chat_actions(
+            [
+                {
+                    "type": "open_action",
+                    "xml_id": self._STABLE_ACTION_XMLID,
+                    "context": {
+                        "search_default_draft": 1,
+                        "uid": 1,
+                        "api_token": "secret",
+                        "bad-key": 1,
+                        "obj": object(),
+                    },
+                }
+            ]
+        )
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(actions[0]["context"], {"search_default_draft": 1})
+        self.assertEqual(actions[0]["action"]["context"].get("search_default_draft"), 1)
+        self.assertNotIn("uid", actions[0]["action"]["context"])
+        self.assertNotIn("api_token", actions[0]["action"]["context"])
+
     def test_sanitize_open_action_merges_string_base_context(self):
-        xml_id = "purchase.purchase_rfq"
+        xml_id = self._STABLE_ACTION_XMLID
         action = dict(self.env["ir.actions.actions"]._for_xml_id(xml_id))
         action["context"] = "{'lang': 'en_US'}"
         with mock.patch.object(
@@ -620,7 +670,10 @@ class TestAiAssistantSanitize(TransactionCase):
                 "body": "<p>ok</p>",
                 "body_is_html": True,
                 "actions": [
-                    {"type": "open_action", "xml_id": "purchase.purchase_rfq"},
+                    {
+                        "type": "open_action",
+                        "xml_id": self._STABLE_ACTION_XMLID,
+                    },
                     {"type": "delete_everything"},
                 ],
             }
@@ -644,6 +697,45 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertTrue(result["body_is_html"])
         self.assertEqual(len(result["actions"]), 1)
         self.assertEqual(result["actions"][0]["type"], "open_action")
+
+    def test_action_ai_chat_sanitizes_html_body(self):
+        def _fake_bridge(**kwargs):
+            return {
+                "body": (
+                    "<p>Hello</p><script>alert(1)</script>"
+                    '<img src=x onerror="alert(1)">'
+                ),
+                "body_is_html": True,
+                "actions": [],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="hi")
+        body = result["body"]
+        self.assertIn("Hello", body)
+        self.assertNotIn("<script", body.lower())
+        self.assertNotIn("onerror", body.lower())
+
+    def test_action_ai_chat_escapes_plain_body(self):
+        def _fake_bridge(**kwargs):
+            return {
+                "body": "<b>plain</b>",
+                "body_is_html": False,
+                "actions": [],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="hi")
+        self.assertFalse(result["body_is_html"])
+        self.assertEqual(result["body"], "&lt;b&gt;plain&lt;/b&gt;")
 
     def test_run_assistant_bridge_not_configured(self):
         with mock.patch.object(

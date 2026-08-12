@@ -48,7 +48,7 @@
                         class="text-muted small"
                     >
                         Ask about ERP data, open screens, or prepare a draft
-                        purchase order for review.
+                        RFQ, opportunity, ticket, quotation or timesheet.
                     </div>
                     <t t-foreach="state.messages" t-as="message" t-key="message.id">
                         <div

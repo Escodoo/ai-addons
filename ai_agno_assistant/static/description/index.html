@@ -377,10 +377,14 @@ panel to:</p>
 <li>ask questions about ERP data (read-only tools, ACL of the current
 user)</li>
 <li>open menus, window actions and records from typed client actions</li>
-<li>prepare draft purchase orders (RFQs) that open in the form for human
-review</li>
+<li>prepare draft business records for human review when the matching apps
+are installed (purchase RFQ, CRM opportunity, helpdesk ticket, sales
+quotation, timesheet). There is no hard dependency on those apps; each
+helper returns a structured <tt class="docutils literal">*_unavailable</tt> error when the model is
+missing.</li>
 </ul>
-<p>The Discuss ERP bot shares the same write helper and deep-link guidance.</p>
+<p>The Discuss ERP bot shares the same write helpers and deep-link
+guidance.</p>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
@@ -417,10 +421,16 @@ example:<ul>
 <li>“Open the purchase RFQ list”</li>
 <li>“Create a purchase order for product Desk, 10 units, vendor Azure
 Interior”</li>
+<li>“Create an opportunity for Acme about renewal”</li>
+<li>“Open a helpdesk ticket: printer offline”</li>
+<li>“Prepare a quotation for customer Acme, 2 units of Desk”</li>
+<li>“Log 1.5 hours on project Website Redesign”</li>
 </ul>
 </li>
-<li>When a draft purchase order is prepared, the form opens so you can
-review and confirm it in Odoo.</li>
+<li>When a draft record is prepared (RFQ, opportunity, ticket, quotation
+or timesheet), the form opens so you can review and confirm it in
+Odoo. Draft helpers only work when the matching business app is
+installed.</li>
 <li>Optionally chat with the Discuss ERP bot for longer conversations;
 answers may include <tt class="docutils literal">/web#…</tt> links to open records.</li>
 </ol>

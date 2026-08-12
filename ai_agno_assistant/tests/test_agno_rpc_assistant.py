@@ -24,18 +24,21 @@ class TestAgnoRpcAssistant(HttpCase):
         cls.env["ir.config_parameter"].sudo().set_param(
             "ai_agno_connector.service_token", cls.service_token
         )
+        cls.has_purchase = "purchase.order" in cls.env and "product.product" in cls.env
         cls.vendor = cls.env["res.partner"].create(
             {"name": "RPC AI Vendor", "supplier_rank": 1}
         )
-        cls.product = cls.env["product.product"].create(
-            {
-                "name": "RPC AI Product",
-                "default_code": "RPC-AI-PROD",
-                "type": "consu",
-                "purchase_ok": True,
-                "standard_price": 2.0,
-            }
-        )
+        cls.product = None
+        if cls.has_purchase:
+            cls.product = cls.env["product.product"].create(
+                {
+                    "name": "RPC AI Product",
+                    "default_code": "RPC-AI-PROD",
+                    "type": "consu",
+                    "purchase_ok": True,
+                    "standard_price": 2.0,
+                }
+            )
 
     def _headers(self):
         return {
@@ -63,6 +66,8 @@ class TestAgnoRpcAssistant(HttpCase):
         return self.opener.post(url, json=payload, headers=self._headers(), timeout=30)
 
     def test_prepare_purchase_order_allowed(self):
+        if not self.has_purchase:
+            self.skipTest("Purchase/Product apps are not installed")
         resp = self._rpc(
             self._signed_payload(
                 vendor_ref=self.vendor.id,
@@ -74,6 +79,22 @@ class TestAgnoRpcAssistant(HttpCase):
         self.assertIn("result", data)
         self.assertNotIn("error", data["result"])
         self.assertEqual(data["result"]["state"], "draft")
+
+    def test_prepare_opportunity_allowed(self):
+        if "crm.lead" not in self.env:
+            self.skipTest("CRM app is not installed")
+        resp = self._rpc(
+            self._signed_payload(
+                method="prepare_opportunity",
+                name="RPC AI Opportunity",
+                partner_ref=self.vendor.id,
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertNotIn("error", data["result"])
+        self.assertEqual(data["result"]["open_record"]["model"], "crm.lead")
 
     def test_find_navigation_allowed(self):
         resp = self._rpc(

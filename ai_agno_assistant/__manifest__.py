@@ -4,7 +4,7 @@
 {
     "name": "Agno System AI Assistant",
     "summary": "Global systray AI assistant to query data, open screens and "
-    "prepare draft purchase orders",
+    "prepare optional draft business records",
     "version": "18.0.1.0.0",
     "development_status": "Beta",
     "category": "Technical",
@@ -14,7 +14,6 @@
     "license": "AGPL-3",
     "depends": [
         "mail",
-        "purchase",
         "web",
         "ai_oca_bridge",
         "ai_oca_bridge_provider",

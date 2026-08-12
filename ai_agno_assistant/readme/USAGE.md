@@ -3,7 +3,12 @@
    - "How many open RFQs do we have?"
    - "Open the purchase RFQ list"
    - "Create a purchase order for product Desk, 10 units, vendor Azure Interior"
-3. When a draft purchase order is prepared, the form opens so you can review
-   and confirm it in Odoo.
+   - "Create an opportunity for Acme about renewal"
+   - "Open a helpdesk ticket: printer offline"
+   - "Prepare a quotation for customer Acme, 2 units of Desk"
+   - "Log 1.5 hours on project Website Redesign"
+3. When a draft record is prepared (RFQ, opportunity, ticket, quotation or
+   timesheet), the form opens so you can review and confirm it in Odoo.
+   Draft helpers only work when the matching business app is installed.
 4. Optionally chat with the Discuss ERP bot for longer conversations; answers
    may include `/web#…` links to open records.

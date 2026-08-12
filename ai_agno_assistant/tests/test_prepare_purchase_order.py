@@ -1,7 +1,7 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from unittest import mock
+from unittest import SkipTest, mock
 
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
@@ -14,6 +14,9 @@ class TestPreparePurchaseOrder(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        if "purchase.order" not in cls.env or "product.product" not in cls.env:
+            # Soft dependency: skip when Purchase/Product are not installed.
+            raise SkipTest("Purchase/Product apps are not installed")
         cls.Assistant = cls.env["ai.assistant"]
         cls.ai_group = cls.env.ref("ai_agno_assistant.group_system_ai_user")
         cls.env.user.groups_id = [(4, cls.ai_group.id)]

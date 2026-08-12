@@ -10,8 +10,9 @@
         <field name="category_id" ref="module_category_system_ai" />
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
         <field name="comment">
-            Allow using the global AI assistant to query data, open screens
-            and prepare draft purchase orders.
+            Allow using the global AI assistant to query ERP data, open
+            screens/menus, and prepare draft business records for review
+            (RFQ, opportunity, helpdesk ticket, quotation, timesheet).
         </field>
     </record>
 </odoo>
