@@ -61,3 +61,73 @@ class TestAiAssistantBridges(TransactionCase):
         )
         self.assertTrue(execution.name)
         self.assertIn(bridge.name, execution.name)
+
+    def test_execution_name_with_concrete_model(self):
+        """Concrete model + res_id must fall through to the upstream compute."""
+        bridge = self.env.ref("ai_agno_assistant.ai_bridge_assistant_chat")
+        partner = self.env["res.partner"].create({"name": "AI Bridge Name Partner"})
+        model = self.env["ir.model"]._get("res.partner")
+        execution = (
+            self.env["ai.bridge.execution"]
+            .sudo()
+            .create(
+                {
+                    "ai_bridge_id": bridge.id,
+                    "model_id": model.id,
+                    "res_id": partner.id,
+                }
+            )
+        )
+        self.assertTrue(execution.name)
+        # Recompute on a mixed batch: abstract path + concrete super() path.
+        abstract_model = self.env["ir.model"]._get("ai.assistant")
+        abstract_exec = (
+            self.env["ai.bridge.execution"]
+            .sudo()
+            .create(
+                {
+                    "ai_bridge_id": bridge.id,
+                    "model_id": abstract_model.id,
+                    "res_id": 0,
+                }
+            )
+        )
+        batch = execution | abstract_exec
+        batch._compute_name()
+        self.assertTrue(execution.name)
+        self.assertIn(bridge.name, abstract_exec.name)
+
+    def test_process_response_assistant(self):
+        bridge = self.env.ref("ai_agno_assistant.ai_bridge_assistant_chat")
+        model = self.env["ir.model"]._get("ai.assistant")
+        execution = (
+            self.env["ai.bridge.execution"]
+            .sudo()
+            .create(
+                {
+                    "ai_bridge_id": bridge.id,
+                    "model_id": model.id,
+                    "res_id": 0,
+                }
+            )
+        )
+        empty = execution._process_response_assistant("not-a-dict")
+        self.assertEqual(empty["body"], "")
+        self.assertTrue(empty["body_is_html"])
+        self.assertEqual(empty["actions"], [])
+
+        payload = execution._process_response_assistant(
+            {
+                "body": "<p>hello</p>",
+                "body_is_html": False,
+                "actions": [{"type": "open_record", "res_id": 1}],
+            }
+        )
+        self.assertEqual(payload["body"], "<p>hello</p>")
+        self.assertFalse(payload["body_is_html"])
+        self.assertEqual(len(payload["actions"]), 1)
+
+        defaults = execution._process_response_assistant({})
+        self.assertEqual(defaults["body"], "")
+        self.assertTrue(defaults["body_is_html"])
+        self.assertEqual(defaults["actions"], [])

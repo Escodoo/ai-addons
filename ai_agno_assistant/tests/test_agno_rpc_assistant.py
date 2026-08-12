@@ -75,6 +75,20 @@ class TestAgnoRpcAssistant(HttpCase):
         self.assertNotIn("error", data["result"])
         self.assertEqual(data["result"]["state"], "draft")
 
+    def test_find_navigation_allowed(self):
+        resp = self._rpc(
+            self._signed_payload(
+                method="find_navigation",
+                query="purchase",
+                limit=5,
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertNotIn("error", data["result"])
+        self.assertTrue(data["result"].get("results"))
+
     def test_generic_create_still_blocked(self):
         resp = self._rpc(
             self._signed_payload(
