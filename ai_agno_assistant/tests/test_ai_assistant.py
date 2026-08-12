@@ -168,6 +168,8 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertFalse(safe({"nested": {"too": {"deep": {"x": 1}}}}))
         self.assertFalse(safe(object()))
         self.assertFalse(safe({"ok": object()}))
+        self.assertTrue(safe({"ok": 1, "nested": {"flag": True}}))
+        self.assertFalse(safe({1: "x"}))
 
     def test_sanitize_action_context_limits_and_types(self):
         self.assertFalse(self.Assistant._sanitize_action_context("nope"))
@@ -175,6 +177,16 @@ class TestAiAssistantSanitize(TransactionCase):
         large = {f"key_{i}": i for i in range(50)}
         cleaned = self.Assistant._sanitize_action_context(large)
         self.assertEqual(len(cleaned), 40)
+        cleaned = self.Assistant._sanitize_action_context(
+            {
+                1: "skip-non-str-key",
+                "ok_flag": True,
+                "password": "secret",
+                "user_secret": 1,
+                "unsafe": object(),
+            }
+        )
+        self.assertEqual(cleaned, {"ok_flag": True})
 
     def test_navigation_search_terms_aliases(self):
         terms = self.Assistant._navigation_search_terms("purchase")
@@ -327,23 +339,17 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertFalse(
             self.Assistant._sanitize_open_record({"model": "res.partner", "res_id": -3})
         )
-        # Allowed model name that may be missing from the registry.
-        missing_model = next(
-            (
-                name
-                for name in (
-                    "helpdesk.ticket",
-                    "project.task",
-                    "project.project",
-                )
-                if name not in self.env
-            ),
-            None,
-        )
-        if missing_model:
+        original_contains = type(self.env).__contains__
+
+        def fake_contains(env, key):
+            if key == "purchase.order":
+                return False
+            return original_contains(env, key)
+
+        with mock.patch.object(type(self.env), "__contains__", fake_contains):
             self.assertFalse(
                 self.Assistant._sanitize_open_record(
-                    {"model": missing_model, "res_id": 1}
+                    {"model": "purchase.order", "res_id": 1}
                 )
             )
 
