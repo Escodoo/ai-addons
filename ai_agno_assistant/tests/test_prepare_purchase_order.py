@@ -6,6 +6,7 @@ from unittest import mock
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -313,10 +314,13 @@ class TestPreparePurchaseOrder(TransactionCase):
             )
         self.assertEqual(result.get("error"), "validation_error")
 
-        with mock.patch.object(
-            PurchaseOrder,
-            "create",
-            side_effect=RuntimeError("unexpected"),
+        with (
+            mock.patch.object(
+                PurchaseOrder,
+                "create",
+                side_effect=RuntimeError("unexpected"),
+            ),
+            mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant"),
         ):
             result = self.Assistant.prepare_purchase_order(
                 vendor_ref=self.vendor.id,

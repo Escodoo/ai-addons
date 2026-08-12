@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
+from odoo.tools import mute_logger
 
 from odoo.addons.ai_agno_assistant.models import ai_assistant as ai_assistant_mod
 
@@ -676,10 +677,13 @@ class TestAiAssistantSanitize(TransactionCase):
 
         fake_execution.state = "error"
         fake_execution.error = "boom"
-        with mock.patch.object(
-            type(self.env["ai.bridge.execution"]),
-            "sudo",
-            return_value=sudo_rs,
+        with (
+            mock.patch.object(
+                type(self.env["ai.bridge.execution"]),
+                "sudo",
+                return_value=sudo_rs,
+            ),
+            mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant"),
         ):
             with self.assertRaises(UserError):
                 self.Assistant._run_assistant_bridge(message="hi")
