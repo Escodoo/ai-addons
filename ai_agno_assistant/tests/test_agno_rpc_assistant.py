@@ -24,18 +24,27 @@ class TestAgnoRpcAssistant(HttpCase):
         cls.env["ir.config_parameter"].sudo().set_param(
             "ai_agno_connector.service_token", cls.service_token
         )
-        cls.vendor = cls.env["res.partner"].create(
-            {"name": "RPC AI Vendor", "supplier_rank": 1}
-        )
-        cls.product = cls.env["product.product"].create(
-            {
-                "name": "RPC AI Product",
-                "default_code": "RPC-AI-PROD",
-                "type": "consu",
-                "purchase_ok": True,
-                "standard_price": 2.0,
-            }
-        )
+        cls.has_purchase = "purchase.order" in cls.env and "product.product" in cls.env
+        vendor_vals = {"name": "RPC AI Vendor"}
+        if "supplier_rank" in cls.env["res.partner"]._fields:
+            vendor_vals["supplier_rank"] = 1
+        cls.vendor = cls.env["res.partner"].create(vendor_vals)
+        cls.product = None
+        if cls.has_purchase:
+            cls.product = cls.env["product.product"].create(
+                {
+                    "name": "RPC AI Product",
+                    "default_code": "RPC-AI-PROD",
+                    "type": "consu",
+                    "purchase_ok": True,
+                    "standard_price": 2.0,
+                }
+            )
+
+    def _require_models(self, *models, reason):
+        """Skip when optional apps are missing (local runs without soft deps)."""
+        if any(model not in self.env for model in models):  # pragma: no cover
+            self.skipTest(reason)
 
     def _headers(self):
         return {
@@ -63,6 +72,11 @@ class TestAgnoRpcAssistant(HttpCase):
         return self.opener.post(url, json=payload, headers=self._headers(), timeout=30)
 
     def test_prepare_purchase_order_allowed(self):
+        self._require_models(
+            "purchase.order",
+            "product.product",
+            reason="Purchase/Product apps are not installed",
+        )
         resp = self._rpc(
             self._signed_payload(
                 vendor_ref=self.vendor.id,
@@ -75,11 +89,27 @@ class TestAgnoRpcAssistant(HttpCase):
         self.assertNotIn("error", data["result"])
         self.assertEqual(data["result"]["state"], "draft")
 
+    def test_prepare_opportunity_allowed(self):
+        self._require_models("crm.lead", reason="CRM app is not installed")
+        resp = self._rpc(
+            self._signed_payload(
+                method="prepare_opportunity",
+                name="RPC AI Opportunity",
+                partner_ref=self.vendor.id,
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertNotIn("error", data["result"])
+        self.assertEqual(data["result"]["open_record"]["model"], "crm.lead")
+
     def test_find_navigation_allowed(self):
+        # Use a base Settings query — Purchase menus are absent on minimal CI DBs.
         resp = self._rpc(
             self._signed_payload(
                 method="find_navigation",
-                query="purchase",
+                query="settings",
                 limit=5,
             )
         )

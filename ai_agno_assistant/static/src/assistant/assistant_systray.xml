@@ -26,6 +26,14 @@
                     <h6 class="mb-0 text-truncate flex-grow-1">System assistant</h6>
                     <button
                         class="btn btn-sm btn-light"
+                        title="Clear conversation"
+                        t-att-disabled="!canClearChat"
+                        t-on-click="clearChat"
+                    >
+                        <i class="fa fa-trash-o" role="img" aria-label="Clear" />
+                    </button>
+                    <button
+                        class="btn btn-sm btn-light"
                         title="Copy to clipboard"
                         t-att-disabled="!canCopyBody"
                         t-on-click="copyBody"
@@ -48,7 +56,7 @@
                         class="text-muted small"
                     >
                         Ask about ERP data, open screens, or prepare a draft
-                        purchase order for review.
+                        RFQ, opportunity, ticket, quotation or timesheet.
                     </div>
                     <t t-foreach="state.messages" t-as="message" t-key="message.id">
                         <div

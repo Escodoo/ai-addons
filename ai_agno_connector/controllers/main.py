@@ -21,8 +21,19 @@ ALLOWED_METHODS = {"search_read", "search_count", "fields_get"}
 
 # High-level write helpers allowed only on dedicated assistant models.
 # Never expose generic create/write/unlink through the gateway.
+# Keep in sync with ai_agno_assistant helpers + Agno AssistantTools
+# (see readme/USAGE.md — "Typed model allowlist").
 ALLOWED_MODEL_METHODS = {
-    "ai.assistant": frozenset({"prepare_purchase_order", "find_navigation"}),
+    "ai.assistant": frozenset(
+        {
+            "prepare_purchase_order",
+            "prepare_opportunity",
+            "prepare_helpdesk_ticket",
+            "prepare_sale_order",
+            "prepare_timesheet",
+            "find_navigation",
+        }
+    ),
 }
 
 # Technical / credential models that must never be exposed to agents,
@@ -226,6 +237,34 @@ class AgnoRpcController(http.Controller):
                 vendor_ref=params.get("vendor_ref"),
                 lines=params.get("lines") or [],
                 notes=params.get("notes"),
+            )
+        if method == "prepare_opportunity":
+            return records.prepare_opportunity(
+                name=params.get("name"),
+                partner_ref=params.get("partner_ref"),
+                description=params.get("description"),
+                expected_revenue=params.get("expected_revenue"),
+            )
+        if method == "prepare_helpdesk_ticket":
+            return records.prepare_helpdesk_ticket(
+                name=params.get("name"),
+                description=params.get("description"),
+                partner_ref=params.get("partner_ref"),
+                team_ref=params.get("team_ref"),
+            )
+        if method == "prepare_sale_order":
+            return records.prepare_sale_order(
+                partner_ref=params.get("partner_ref"),
+                lines=params.get("lines") or [],
+                notes=params.get("notes"),
+            )
+        if method == "prepare_timesheet":
+            return records.prepare_timesheet(
+                project_ref=params.get("project_ref"),
+                task_ref=params.get("task_ref"),
+                unit_amount=params.get("unit_amount"),
+                name=params.get("name"),
+                date=params.get("date"),
             )
         if method == "find_navigation":
             return records.find_navigation(

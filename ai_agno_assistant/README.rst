@@ -30,10 +30,16 @@ panel to:
 - ask questions about ERP data (read-only tools, ACL of the current
   user)
 - open menus, window actions and records from typed client actions
-- prepare draft purchase orders (RFQs) that open in the form for human
-  review
+- prepare draft business records for human review when the matching apps
+  are installed (purchase RFQ, CRM opportunity, helpdesk ticket, sales
+  quotation, timesheet). There is no hard dependency on those apps; each
+  helper returns a structured ``*_unavailable`` error when the model is
+  missing.
+- keep a short per-user chat history in the browser across panel
+  close/reopen
 
-The Discuss ERP bot shares the same write helper and deep-link guidance.
+The Discuss ERP bot shares the same write helpers and deep-link
+guidance.
 
 **Table of contents**
 
@@ -62,11 +68,28 @@ Usage
    - "Open the purchase RFQ list"
    - "Create a purchase order for product Desk, 10 units, vendor Azure
      Interior"
+   - "Create an opportunity for Acme about renewal"
+   - "Open a helpdesk ticket: printer offline"
+   - "Prepare a quotation for customer Acme, 2 units of Desk"
+   - "Log 1.5 hours on project Website Redesign"
 
-3. When a draft purchase order is prepared, the form opens so you can
-   review and confirm it in Odoo.
-4. Optionally chat with the Discuss ERP bot for longer conversations;
+3. When a draft record is prepared (RFQ, opportunity, ticket, quotation
+   or timesheet), the form opens so you can review and confirm it in
+   Odoo. Draft helpers only work when the matching business app is
+   installed.
+4. Closing the panel keeps the last messages in the browser (per user).
+   Use the trash icon to clear the conversation.
+5. Optionally chat with the Discuss ERP bot for longer conversations;
    answers may include ``/web#…`` links to open records.
+
+Extending draft helpers
+-----------------------
+
+New ``prepare_*`` / navigation helpers on ``ai.assistant`` are **not**
+reachable from Agno until they are also allowlisted and dispatched in
+``ai_agno_connector`` (``ALLOWED_MODEL_METHODS`` + ``_dispatch``) and
+registered as tools in the Agno ``AssistantTools`` toolkit. See the
+Usage section of ``ai_agno_connector`` for the full checklist.
 
 Bug Tracker
 ===========

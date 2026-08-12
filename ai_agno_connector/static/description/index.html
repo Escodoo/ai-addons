@@ -380,11 +380,15 @@ impersonating the user, so a compromised agent (or any bridge-token
 holder) cannot forge an arbitrary <tt class="docutils literal">user_id</tt>.</p>
 <p>Only a small allowlist of read-only ORM methods is exposed
 (<tt class="docutils literal">search_read</tt>, <tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>). In addition, typed
-helpers on dedicated models (for example
-<tt class="docutils literal">ai.assistant.prepare_purchase_order</tt>) may be allowlisted — never
-generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> / <tt class="docutils literal">unlink</tt>. Sensitive models and
-credential field names are blocked regardless of the caller’s own
-rights.</p>
+helpers on dedicated models may be allowlisted (for example
+<tt class="docutils literal">ai.assistant</tt> methods <tt class="docutils literal">find_navigation</tt>,
+<tt class="docutils literal">prepare_purchase_order</tt>, <tt class="docutils literal">prepare_opportunity</tt>,
+<tt class="docutils literal">prepare_helpdesk_ticket</tt>, <tt class="docutils literal">prepare_sale_order</tt>,
+<tt class="docutils literal">prepare_timesheet</tt>) — never generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> /
+<tt class="docutils literal">unlink</tt>. Sensitive models and credential field names are blocked
+regardless of the caller’s own rights.</p>
+<p>When adding a new assistant helper, update this allowlist together with
+the Agno <tt class="docutils literal">AssistantTools</tt> toolkit (see Usage).</p>
 <p>This bridge targets the companion <strong>Agno service</strong>
 (<a class="reference external" href="https://github.com/Escodoo/agno-odoo">Escodoo/agno-odoo</a>), which
 exposes the AgentOS endpoints and the <tt class="docutils literal">/agno/rpc</tt> gateway consumed
@@ -400,12 +404,18 @@ here.</p>
 <li><a class="reference internal" href="#hmac-identity-window" id="toc-entry-6">HMAC identity window</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#usage" id="toc-entry-7">Usage</a></li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-8">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-9">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-10">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-11">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-12">Maintainers</a></li>
+<li><a class="reference internal" href="#usage" id="toc-entry-7">Usage</a><ul>
+<li><a class="reference internal" href="#typed-model-allowlist-allowed-model-methods" id="toc-entry-8">Typed model allowlist (<tt class="docutils literal">ALLOWED_MODEL_METHODS</tt>)</a><ul>
+<li><a class="reference internal" href="#checklist-when-adding-a-new-prepare-or-similar-helper" id="toc-entry-9">Checklist when adding a new <tt class="docutils literal">prepare_*</tt> (or similar) helper</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-10">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-11">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-12">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-13">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-14">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -539,16 +549,85 @@ for slow LLM-backed endpoints.</li>
 <tt class="docutils literal">fields</tt>, <tt class="docutils literal">limit</tt>, …)</li>
 </ul>
 </li>
-<li>Allowed methods: <tt class="docutils literal">search_read</tt>, <tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>.</li>
+<li>Allowed read methods on any non-blocked model: <tt class="docutils literal">search_read</tt>,
+<tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>.</li>
 </ol>
 <p>Responses are formatted for LLM context (datetimes in the user timezone,
 monetary values with currency, HTML as plain text, long strings
 truncated). Blocked models (for example <tt class="docutils literal">res.users</tt>,
 <tt class="docutils literal">ir.config_parameter</tt>) and fields whose names contain <tt class="docutils literal">password</tt>,
 <tt class="docutils literal">token</tt>, <tt class="docutils literal">secret</tt>, or <tt class="docutils literal">api_key</tt> are never returned.</p>
+<div class="section" id="typed-model-allowlist-allowed-model-methods">
+<h2><a class="toc-backref" href="#toc-entry-8">Typed model allowlist (<tt class="docutils literal">ALLOWED_MODEL_METHODS</tt>)</a></h2>
+<p><tt class="docutils literal">/agno/rpc</tt> never exposes generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> / <tt class="docutils literal">unlink</tt>.
+Extra write helpers must be listed explicitly in <tt class="docutils literal">controllers/main.py</tt>
+→ <tt class="docutils literal">ALLOWED_MODEL_METHODS</tt> <strong>and</strong> dispatched with an explicit argument
+map in <tt class="docutils literal">_dispatch</tt>.</p>
+<p>Current assistant surface (<tt class="docutils literal">model=ai.assistant</tt>):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="59%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Method</th>
+<th class="head">Role</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal">find_navigation</tt></td>
+<td>Resolve menus/actions the user can open</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_purchase_order</tt></td>
+<td>Draft RFQ</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_opportunity</tt></td>
+<td>Draft CRM opportunity</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_helpdesk_ticket</tt></td>
+<td>Draft OCA helpdesk ticket</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_sale_order</tt></td>
+<td>Draft sales quotation</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_timesheet</tt></td>
+<td>Draft timesheet line</td>
+</tr>
+</tbody>
+</table>
+<p>These methods are implemented in <tt class="docutils literal">ai_agno_assistant</tt> and called by the
+Agno service toolkit <tt class="docutils literal">AssistantTools</tt>
+(<tt class="docutils literal">app/tools/assistant_tools.py</tt> in
+<a class="reference external" href="https://github.com/Escodoo/agno-odoo">Escodoo/agno-odoo</a>).</p>
+<div class="section" id="checklist-when-adding-a-new-prepare-or-similar-helper">
+<h3><a class="toc-backref" href="#toc-entry-9">Checklist when adding a new <tt class="docutils literal">prepare_*</tt> (or similar) helper</a></h3>
+<p>Keep all layers in sync in the same change set (separate commits per
+addon / repo):</p>
+<ol class="arabic simple">
+<li><strong>Odoo ``ai_agno_assistant``</strong> — implement <tt class="docutils literal">&#64;api.model</tt> helper on
+<tt class="docutils literal">ai.assistant</tt> (draft-only, ACL-aware, return a JSON-serializable
+dict with a stable <tt class="docutils literal">*_unavailable</tt> / <tt class="docutils literal">*_ambiguous</tt> error shape
+when needed).</li>
+<li><strong>This module (``ai_agno_connector``)</strong> — add the method name to
+<tt class="docutils literal"><span class="pre">ALLOWED_MODEL_METHODS[&quot;ai.assistant&quot;]</span></tt> and a dedicated branch in
+<tt class="docutils literal">_dispatch</tt> that passes only known kwargs (do not forward the raw
+JSON body).</li>
+<li><strong>Agno service</strong> — register a tool on <tt class="docutils literal">AssistantTools</tt>, call
+<tt class="docutils literal"><span class="pre">_rpc_sync(&quot;&lt;method&gt;&quot;,</span> …)</tt>, and document the tool in
+<tt class="docutils literal">app/prompts/assistant.py</tt> (systray) and <tt class="docutils literal">app/prompts/chatter.py</tt>
+(<tt class="docutils literal">erp</tt> persona) when the agent should use it.</li>
+<li><strong>Tests</strong> — cover the allowlist/dispatch path in
+<tt class="docutils literal">ai_agno_connector</tt> / <tt class="docutils literal">ai_agno_assistant</tt>, and the tool RPC
+wiring in Agno.</li>
+</ol>
+<p>If any of those layers is missing, the agent either gets
+<tt class="docutils literal">method_not_allowed</tt> from Odoo or invents unsafe workarounds in the
+prompt.</p>
+</div>
+</div>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-8">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-10">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/Escodoo/ai-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -556,15 +635,15 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-9">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-11">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-10">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-12">Authors</a></h2>
 <ul class="simple">
 <li>Escodoo</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-11">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-13">Contributors</a></h2>
 <ul class="simple">
 <li><a class="reference external" href="https://www.escodoo.com.br">Escodoo</a><ul>
 <li><a class="reference external" href="https://github.com/marcelsavegnago">Marcel Savegnago</a></li>
@@ -573,7 +652,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-12">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-14">Maintainers</a></h2>
 <p>Current maintainer:</p>
 <p><a class="reference external image-reference" href="https://github.com/marcelsavegnago"><img alt="marcelsavegnago" src="https://github.com/marcelsavegnago.png?size=40px" /></a></p>
 <p>This module is part of the <a class="reference external" href="https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_connector">Escodoo/ai-addons</a> project on GitHub.</p>

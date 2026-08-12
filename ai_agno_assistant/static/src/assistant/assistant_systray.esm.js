@@ -5,14 +5,106 @@ import {Component, markup, useState} from "@odoo/owl";
 import {_t} from "@web/core/l10n/translation";
 import {browser} from "@web/core/browser/browser";
 import {registry} from "@web/core/registry";
-import {user} from "@web/core/user";
 import {useService} from "@web/core/utils/hooks";
+import {user} from "@web/core/user";
 
 let assistantMessageSeq = 0;
+
+const HISTORY_LIMIT = 10;
+const STORAGE_KEY_PREFIX = "ai_agno_assistant.chat";
 
 function nextAssistantMessageId() {
     assistantMessageSeq += 1;
     return `assistant-msg-${assistantMessageSeq}`;
+}
+
+function storageKey() {
+    return `${STORAGE_KEY_PREFIX}.${user.userId || "anonymous"}`;
+}
+
+/**
+ * Lightweight HTML cleanup for messages restored from localStorage.
+ * Server responses are already sanitized; this covers tampered storage.
+ */
+function sanitizeStoredHtml(html) {
+    const container = document.createElement("div");
+    container.innerHTML = html || "";
+    container
+        .querySelectorAll("script,style,iframe,object,embed,link,meta")
+        .forEach((el) => el.remove());
+    for (const el of container.querySelectorAll("*")) {
+        for (const attr of [...el.attributes]) {
+            const name = attr.name.toLowerCase();
+            if (
+                name.startsWith("on") ||
+                ((name === "href" || name === "src" || name === "xlink:href") &&
+                    /^\s*javascript:/i.test(attr.value))
+            ) {
+                el.removeAttribute(attr.name);
+            }
+        }
+    }
+    return container.innerHTML;
+}
+
+function loadStoredMessages() {
+    try {
+        const raw = browser.localStorage.getItem(storageKey());
+        if (!raw) {
+            return [];
+        }
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+        const messages = [];
+        for (const entry of parsed.slice(-HISTORY_LIMIT)) {
+            if (!entry || typeof entry !== "object") {
+                continue;
+            }
+            const role = entry.role;
+            const text = typeof entry.text === "string" ? entry.text.trim() : "";
+            if ((role !== "user" && role !== "assistant") || !text) {
+                continue;
+            }
+            const isHtml = Boolean(entry.isHtml) && role === "assistant";
+            const safeText = isHtml ? sanitizeStoredHtml(text) : text;
+            if (!safeText) {
+                continue;
+            }
+            messages.push({
+                id: nextAssistantMessageId(),
+                role,
+                text: safeText,
+                html: isHtml ? markup(safeText) : markup(""),
+                isHtml,
+            });
+        }
+        return messages;
+    } catch {
+        return [];
+    }
+}
+
+function persistMessages(messages) {
+    try {
+        const payload = (messages || []).slice(-HISTORY_LIMIT).map((message) => ({
+            role: message.role,
+            text: message.text,
+            isHtml: Boolean(message.isHtml),
+        }));
+        browser.localStorage.setItem(storageKey(), JSON.stringify(payload));
+    } catch {
+        // Quota / private mode: keep the in-memory conversation only.
+    }
+}
+
+function clearStoredMessages() {
+    try {
+        browser.localStorage.removeItem(storageKey());
+    } catch {
+        // Ignore storage failures.
+    }
 }
 
 export class AiAssistantSystray extends Component {
@@ -26,7 +118,7 @@ export class AiAssistantSystray extends Component {
         this.state = useState({
             panelOpen: false,
             loading: false,
-            messages: [],
+            messages: loadStoredMessages(),
             draft: "",
         });
     }
@@ -36,6 +128,10 @@ export class AiAssistantSystray extends Component {
     }
 
     get canCopyBody() {
+        return Boolean(!this.state.loading && this.state.messages.length);
+    }
+
+    get canClearChat() {
         return Boolean(!this.state.loading && this.state.messages.length);
     }
 
@@ -55,12 +151,13 @@ export class AiAssistantSystray extends Component {
             html: html ? markup(text) : markup(""),
             isHtml: Boolean(html),
         };
-        this.state.messages = [...this.state.messages, message];
+        this.state.messages = [...this.state.messages, message].slice(-HISTORY_LIMIT);
+        persistMessages(this.state.messages);
         return message;
     }
 
     _buildHistoryPayload() {
-        return this.state.messages.slice(-10).map((message) => ({
+        return this.state.messages.slice(-HISTORY_LIMIT).map((message) => ({
             role: message.role,
             content: message.isHtml
                 ? this._htmlToPlainText(message.text)
@@ -87,8 +184,17 @@ export class AiAssistantSystray extends Component {
     closePanel() {
         this.state.panelOpen = false;
         this.state.loading = false;
+        this.state.draft = "";
+        // Keep messages so reopening restores the conversation.
+    }
+
+    clearChat() {
+        if (!this.canClearChat) {
+            return;
+        }
         this.state.messages = [];
         this.state.draft = "";
+        clearStoredMessages();
     }
 
     onDraftKeydown(ev) {
