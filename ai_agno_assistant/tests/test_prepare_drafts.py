@@ -3,8 +3,10 @@
 
 from unittest import mock
 
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -332,3 +334,225 @@ class TestPrepareDrafts(TransactionCase):
         ):
             result = self.Assistant._resolve_product("X")
         self.assertEqual(result.get("error"), "product_unavailable")
+
+    def test_safe_create_error_paths(self):
+        Partner = type(self.env["res.partner"])
+        with mock.patch.object(Partner, "create", side_effect=AccessError("nope")):
+            record, error = self.Assistant._safe_create(
+                "res.partner", {"name": "X"}, "partner"
+            )
+        self.assertFalse(record)
+        self.assertEqual(error.get("error"), "access_denied")
+
+        with mock.patch.object(Partner, "create", side_effect=UserError("bad")):
+            record, error = self.Assistant._safe_create(
+                "res.partner", {"name": "X"}, "partner"
+            )
+        self.assertEqual(error.get("error"), "validation_error")
+
+        with (
+            mock.patch.object(Partner, "create", side_effect=RuntimeError("boom")),
+            mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant_drafts"),
+        ):
+            record, error = self.Assistant._safe_create(
+                "res.partner", {"name": "X"}, "partner"
+            )
+        self.assertEqual(error.get("error"), "create_failed")
+
+    def test_prepare_opportunity_create_error(self):
+        if "crm.lead" not in self.env:
+            self.skipTest("CRM app is not installed")
+        Lead = type(self.env["crm.lead"])
+        with mock.patch.object(Lead, "create", side_effect=AccessError("nope")):
+            result = self.Assistant.prepare_opportunity(name="Blocked")
+        self.assertEqual(result.get("error"), "access_denied")
+
+    def test_prepare_helpdesk_ticket_team_by_name(self):
+        if "helpdesk.ticket" not in self.env:
+            self.skipTest("Helpdesk app is not installed")
+        if "helpdesk.ticket.team" not in self.env:
+            self.skipTest("Helpdesk teams are not available")
+        team = self.env["helpdesk.ticket.team"].create(
+            {"name": "AI Draft Team By Name Unique XYZ"}
+        )
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="Ticket by team name",
+            team_ref="AI Draft Team By Name Unique XYZ",
+        )
+        self.assertNotIn("error", result)
+        ticket = self.env["helpdesk.ticket"].browse(result["ticket_id"])
+        self.assertEqual(ticket.team_id, team)
+
+        self.env["helpdesk.ticket.team"].create(
+            {"name": "AI Ambiguous Team Alpha Unique"}
+        )
+        self.env["helpdesk.ticket.team"].create(
+            {"name": "AI Ambiguous Team Beta Unique"}
+        )
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="Ambiguous team",
+            team_ref="AI Ambiguous Team",
+        )
+        self.assertEqual(result.get("error"), "team_ambiguous")
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="Missing team name",
+            team_ref="Definitely Missing Team ZZZ999",
+        )
+        self.assertEqual(result.get("error"), "team_not_found")
+
+    def test_prepare_helpdesk_ticket_team_model_missing(self):
+        if "helpdesk.ticket" not in self.env:
+            self.skipTest("Helpdesk app is not installed")
+        with mock.patch.object(
+            type(self.env),
+            "__contains__",
+            new=lambda _env, model: model != "helpdesk.ticket.team",
+        ):
+            result = self.Assistant.prepare_helpdesk_ticket(
+                name="No team model",
+                team_ref="Support",
+            )
+        self.assertEqual(result.get("error"), "team_not_found")
+
+    def test_prepare_sale_order_skips_non_dict_lines(self):
+        if "sale.order" not in self.env or "product.product" not in self.env:
+            self.skipTest("Sales/Product apps are not installed")
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=self.partner.id,
+            lines=["skip-me"],
+        )
+        self.assertEqual(result.get("error"), "missing_lines")
+        product = self.env["product.product"].create(
+            {
+                "name": "AI SO Neg Price Unique XYZ",
+                "type": "consu",
+                "sale_ok": True,
+            }
+        )
+        result = self.Assistant.prepare_sale_order(
+            partner_ref=self.partner.id,
+            lines=[{"product_id": product.id, "qty": 1, "price_unit": -1}],
+        )
+        self.assertEqual(result.get("error"), "invalid_price")
+
+    def test_prepare_timesheet_missing_employee(self):
+        if "account.analytic.line" not in self.env or "project.project" not in self.env:
+            self.skipTest("Timesheet/Project apps are not installed")
+        if "employee_id" not in self.env["account.analytic.line"]._fields:
+            self.skipTest("Timesheet employee_id is not available")
+        project = self.env["project.project"].create(
+            {"name": "AI Timesheet Missing Employee Unique XYZ"}
+        )
+        with mock.patch.object(
+            type(self.env.user),
+            "employee_id",
+            new_callable=mock.PropertyMock,
+            return_value=False,
+        ):
+            result = self.Assistant.prepare_timesheet(
+                project_ref=project.id,
+                unit_amount=1,
+            )
+        self.assertEqual(result.get("error"), "missing_employee")
+
+    def test_prepare_timesheet_invalid_hours_non_numeric(self):
+        if "account.analytic.line" not in self.env or "project.project" not in self.env:
+            self.skipTest("Timesheet/Project apps are not installed")
+        project = self.env["project.project"].create(
+            {"name": "AI Timesheet Bad Hours Unique XYZ"}
+        )
+        result = self.Assistant.prepare_timesheet(
+            project_ref=project.id,
+            unit_amount="abc",
+        )
+        self.assertEqual(result.get("error"), "invalid_unit_amount")
+
+    def test_prepare_timesheet_task_unavailable(self):
+        if "account.analytic.line" not in self.env or "project.project" not in self.env:
+            self.skipTest("Timesheet/Project apps are not installed")
+        original = type(self.env).__contains__
+
+        def _contains(_env, model):
+            if model == "project.task":
+                return False
+            return original(_env, model)
+
+        with mock.patch.object(type(self.env), "__contains__", new=_contains):
+            result = self.Assistant.prepare_timesheet(
+                task_ref=1,
+                unit_amount=1,
+            )
+        self.assertEqual(result.get("error"), "timesheet_unavailable")
+
+    def test_resolve_project_and_task_by_name(self):
+        if "project.project" not in self.env or "project.task" not in self.env:
+            self.skipTest("Project app is not installed")
+        project = self.env["project.project"].create(
+            {"name": "AI Resolve Project Unique XYZ"}
+        )
+        found = self.Assistant._resolve_project("AI Resolve Project Unique XYZ")
+        self.assertEqual(found, project)
+        self.assertEqual(
+            self.Assistant._resolve_project("Missing Project ZZZ999").get("error"),
+            "project_not_found",
+        )
+        self.env["project.project"].create({"name": "AI Ambiguous Project Alpha"})
+        self.env["project.project"].create({"name": "AI Ambiguous Project Beta"})
+        self.assertEqual(
+            self.Assistant._resolve_project("AI Ambiguous Project").get("error"),
+            "project_ambiguous",
+        )
+        task = self.env["project.task"].create(
+            {
+                "name": "AI Resolve Task Unique XYZ",
+                "project_id": project.id,
+            }
+        )
+        found_task = self.Assistant._resolve_project_task("AI Resolve Task Unique XYZ")
+        self.assertEqual(found_task, task)
+        self.assertEqual(
+            self.Assistant._resolve_project_task("Missing Task ZZZ999").get("error"),
+            "task_not_found",
+        )
+        self.assertEqual(
+            self.Assistant._resolve_project_task(999999999).get("error"),
+            "task_not_found",
+        )
+        self.env["project.task"].create(
+            {
+                "name": "AI Ambiguous Task Alpha",
+                "project_id": project.id,
+            }
+        )
+        self.env["project.task"].create(
+            {
+                "name": "AI Ambiguous Task Beta",
+                "project_id": project.id,
+            }
+        )
+        self.assertEqual(
+            self.Assistant._resolve_project_task("AI Ambiguous Task").get("error"),
+            "task_ambiguous",
+        )
+
+    def test_resolve_partner_by_name_and_fallback(self):
+        company = self.env["res.partner"].create(
+            {"name": "AI Resolve Company Unique XYZ", "is_company": True}
+        )
+        found = self.Assistant._resolve_partner(
+            "AI Resolve Company Unique XYZ", as_supplier=False, role="partner"
+        )
+        self.assertEqual(found, company)
+        contact = self.env["res.partner"].create(
+            {"name": "AI Resolve Contact Display Unique", "is_company": False}
+        )
+        found = self.Assistant._resolve_partner(
+            "AI Resolve Contact Display Unique", as_supplier=False, role="partner"
+        )
+        self.assertEqual(found, contact)
+        self.assertEqual(
+            self.Assistant._resolve_partner(
+                "Missing Partner ZZZ999", as_supplier=False, role="partner"
+            ).get("error"),
+            "partner_not_found",
+        )
