@@ -14,3 +14,11 @@
    the trash icon to clear the conversation.
 5. Optionally chat with the Discuss ERP bot for longer conversations; answers
    may include `/web#…` links to open records.
+
+## Extending draft helpers
+
+New `prepare_*` / navigation helpers on `ai.assistant` are **not** reachable
+from Agno until they are also allowlisted and dispatched in
+`ai_agno_connector` (`ALLOWED_MODEL_METHODS` + `_dispatch`) and registered as
+tools in the Agno `AssistantTools` toolkit. See the Usage section of
+`ai_agno_connector` for the full checklist.

@@ -391,12 +391,15 @@ guidance.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><a class="reference internal" href="#configuration" id="toc-entry-1">Configuration</a></li>
-<li><a class="reference internal" href="#usage" id="toc-entry-2">Usage</a></li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-3">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-4">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-5">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-6">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-7">Maintainers</a></li>
+<li><a class="reference internal" href="#usage" id="toc-entry-2">Usage</a><ul>
+<li><a class="reference internal" href="#extending-draft-helpers" id="toc-entry-3">Extending draft helpers</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-4">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-5">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-6">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-7">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-8">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -438,9 +441,17 @@ Use the trash icon to clear the conversation.</li>
 <li>Optionally chat with the Discuss ERP bot for longer conversations;
 answers may include <tt class="docutils literal">/web#…</tt> links to open records.</li>
 </ol>
+<div class="section" id="extending-draft-helpers">
+<h2><a class="toc-backref" href="#toc-entry-3">Extending draft helpers</a></h2>
+<p>New <tt class="docutils literal">prepare_*</tt> / navigation helpers on <tt class="docutils literal">ai.assistant</tt> are <strong>not</strong>
+reachable from Agno until they are also allowlisted and dispatched in
+<tt class="docutils literal">ai_agno_connector</tt> (<tt class="docutils literal">ALLOWED_MODEL_METHODS</tt> + <tt class="docutils literal">_dispatch</tt>) and
+registered as tools in the Agno <tt class="docutils literal">AssistantTools</tt> toolkit. See the
+Usage section of <tt class="docutils literal">ai_agno_connector</tt> for the full checklist.</p>
+</div>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-3">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-4">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/Escodoo/ai-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -448,15 +459,15 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-4">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-5">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-5">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-6">Authors</a></h2>
 <ul class="simple">
 <li>Escodoo</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-6">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-7">Contributors</a></h2>
 <ul class="simple">
 <li><a class="reference external" href="https://www.escodoo.com.br">Escodoo</a><ul>
 <li><a class="reference external" href="https://github.com/marcelsavegnago">Marcel Savegnago</a></li>
@@ -465,7 +476,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-7">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-8">Maintainers</a></h2>
 <p>Current maintainer:</p>
 <p><a class="reference external image-reference" href="https://github.com/marcelsavegnago"><img alt="marcelsavegnago" src="https://github.com/marcelsavegnago.png?size=40px" /></a></p>
 <p>This module is part of the <a class="reference external" href="https://github.com/Escodoo/ai-addons/tree/18.0/ai_agno_assistant">Escodoo/ai-addons</a> project on GitHub.</p>

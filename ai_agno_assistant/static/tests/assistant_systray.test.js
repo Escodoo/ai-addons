@@ -1,14 +1,16 @@
+import {animationFrame, tick} from "@odoo/hoot-mock";
+import {click, edit, press} from "@odoo/hoot-dom";
 import {describe, expect, test} from "@odoo/hoot";
-import {click, edit} from "@odoo/hoot-dom";
 import {
     mockService,
     mountWithCleanup,
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
-import {AiAssistantSystray} from "@ai_agno_assistant/assistant/assistant_systray";
-import {animationFrame} from "@odoo/hoot-mock";
+import {AiAssistantSystray} from "@ai_agno_assistant/assistant/assistant_systray.esm";
 import {browser} from "@web/core/browser/browser";
+import {defineMailModels} from "@mail/../tests/mail_test_helpers";
 
+defineMailModels();
 describe.current.tags("desktop");
 
 function mockLocalStorage() {
@@ -31,10 +33,10 @@ function mockLocalStorage() {
     return store;
 }
 
-function mockAssistantServices() {
+function mockAssistantServices(body = "<p>Hello</p>") {
     mockService("orm", {
         call: async () => ({
-            body: "<p>Hello</p>",
+            body,
             body_is_html: true,
             actions: [],
         }),
@@ -52,8 +54,9 @@ async function openPanelAndAsk(question) {
     await click(".o_ai_assistant_systray a");
     await animationFrame();
     await click(".o_ai_assistant_input");
-    await edit(question);
-    await click("button[title='Send']");
+    await edit(question, {confirm: false});
+    await press("Enter");
+    await tick();
     await animationFrame();
 }
 
@@ -83,24 +86,12 @@ test("persists messages across remount and clears storage", async () => {
 
 test("closing the panel keeps the conversation", async () => {
     mockLocalStorage();
-    mockService("orm", {
-        call: async () => ({
-            body: "<p>Kept</p>",
-            body_is_html: true,
-            actions: [],
-        }),
-    });
-    mockService("action", {
-        doAction: async () => true,
-        currentController: null,
-    });
-    mockService("notification", {
-        add: () => true,
-    });
+    mockAssistantServices("<p>Kept</p>");
 
     await mountWithCleanup(AiAssistantSystray);
     await openPanelAndAsk("Keep me");
     expect(".o_ai_assistant_panel").toHaveCount(1);
+    expect(".o_ai_assistant_message").toHaveCount(2);
 
     await click("button[title='Close']");
     await animationFrame();

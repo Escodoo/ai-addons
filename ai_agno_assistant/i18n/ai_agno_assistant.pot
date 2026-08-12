@@ -17,14 +17,9 @@ msgstr ""
 #: model:res.groups,comment:ai_agno_assistant.group_system_ai_user
 msgid ""
 "\n"
-<<<<<<< HEAD
-"            Allow using the global AI assistant to query data, open screens\n"
-"            and prepare draft purchase orders.\n"
-=======
 "            Allow using the global AI assistant to query ERP data, open\n"
 "            screens/menus, and prepare draft business records for review\n"
 "            (RFQ, opportunity, helpdesk ticket, quotation, timesheet).\n"
->>>>>>> 24e7217 ([IMP] ai_agno_assistant: add pt_BR and stabilize sanitize tests)
 "        "
 msgstr ""
 
@@ -35,15 +30,12 @@ msgid "%s is not active."
 msgstr ""
 
 #. module: ai_agno_assistant
-<<<<<<< HEAD
-=======
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant_drafts.py:0
 msgid "%s's opportunity"
 msgstr ""
 
 #. module: ai_agno_assistant
->>>>>>> 24e7217 ([IMP] ai_agno_assistant: add pt_BR and stabilize sanitize tests)
 #: model_terms:ai.bridge,description:ai_agno_assistant.ai_bridge_assistant_chat
 msgid ""
 ". Returns HTML body plus typed\n"
@@ -88,11 +80,7 @@ msgstr ""
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
 msgid ""
 "Ask about ERP data, open screens, or prepare a draft\n"
-<<<<<<< HEAD
-"                        purchase order for review."
-=======
 "                        RFQ, opportunity, ticket, quotation or timesheet."
->>>>>>> 24e7217 ([IMP] ai_agno_assistant: add pt_BR and stabilize sanitize tests)
 msgstr ""
 
 #. module: ai_agno_assistant

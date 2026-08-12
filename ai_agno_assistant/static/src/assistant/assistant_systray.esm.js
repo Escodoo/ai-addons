@@ -2,11 +2,11 @@
 // License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import {Component, markup, useState} from "@odoo/owl";
-import {browser} from "@web/core/browser/browser";
 import {_t} from "@web/core/l10n/translation";
+import {browser} from "@web/core/browser/browser";
 import {registry} from "@web/core/registry";
-import {user} from "@web/core/user";
 import {useService} from "@web/core/utils/hooks";
+import {user} from "@web/core/user";
 
 let assistantMessageSeq = 0;
 
