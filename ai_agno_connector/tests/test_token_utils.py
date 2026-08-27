@@ -104,3 +104,112 @@ class TestAgnoTokenUtils(TransactionCase):
             "ai_agno_connector.base_url", ""
         )
         self.assertEqual(get_agno_base_url(self.env), DEFAULT_AGNO_BASE_URL)
+
+    def test_ensure_bridge_token_falls_back_to_odoo_config(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        icp.set_param("ai_agno_connector.bridge_auth_token", "")
+        with patch(
+            "odoo.addons.ai_agno_connector.token_utils.odoo_config.get",
+            return_value="conf-token",
+        ):
+            self.assertEqual(ensure_bridge_token(self.env), "conf-token")
+
+    def test_apply_auth_token_skips_when_empty_or_already_set(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        icp.set_param("ai_agno_connector.bridge_auth_token", "")
+        with patch(
+            "odoo.addons.ai_agno_connector.token_utils.odoo_config.get",
+            return_value="",
+        ):
+            apply_auth_token(self.env, ["ai_agno_connector.missing"])
+        bridge = self.env["ai.bridge"].create(
+            {
+                "name": "Already Tokened Bridge",
+                "model_id": self.env.ref("base.model_res_partner").id,
+                "url": "https://example.com/bridge",
+                "auth_type": "token",
+                "auth_token": "keep",
+                "usage": "none",
+                "result_kind": "immediate",
+                "result_type": "none",
+            }
+        )
+        xmlid = "ai_agno_connector.test_keep_token_bridge"
+        self.env["ir.model.data"].create(
+            {
+                "name": "test_keep_token_bridge",
+                "module": "ai_agno_connector",
+                "model": "ai.bridge",
+                "res_id": bridge.id,
+            }
+        )
+        icp.set_param("ai_agno_connector.bridge_auth_token", "new-token")
+        apply_auth_token(self.env, [xmlid, "ai_agno_connector.does_not_exist"])
+        self.assertEqual(bridge.auth_token, "keep")
+
+    def test_get_agno_base_url_from_odoo_config(self):
+        self.env["ir.config_parameter"].sudo().set_param(
+            "ai_agno_connector.base_url", ""
+        )
+        with patch(
+            "odoo.addons.ai_agno_connector.token_utils.odoo_config.get",
+            return_value="https://agno.conf/",
+        ):
+            self.assertEqual(get_agno_base_url(self.env), "https://agno.conf")
+
+    def test_apply_bridge_base_url_skips_default_and_unrelated(self):
+        self.env["ir.config_parameter"].sudo().set_param(
+            "ai_agno_connector.base_url", ""
+        )
+        with patch(
+            "odoo.addons.ai_agno_connector.token_utils.odoo_config.get",
+            return_value="",
+        ):
+            apply_bridge_base_url(self.env, ["ai_agno_connector.missing"])
+        bridge = self.env["ai.bridge"].create(
+            {
+                "name": "Custom Host Bridge",
+                "model_id": self.env.ref("base.model_res_partner").id,
+                "url": "https://other.example/bridge",
+                "auth_type": "none",
+                "usage": "none",
+                "result_kind": "immediate",
+                "result_type": "none",
+            }
+        )
+        xmlid = "ai_agno_connector.test_custom_host_bridge"
+        self.env["ir.model.data"].create(
+            {
+                "name": "test_custom_host_bridge",
+                "module": "ai_agno_connector",
+                "model": "ai.bridge",
+                "res_id": bridge.id,
+            }
+        )
+        self.env["ir.config_parameter"].sudo().set_param(
+            "ai_agno_connector.base_url", "https://agno.example"
+        )
+        apply_bridge_base_url(self.env, [xmlid, "ai_agno_connector.does_not_exist"])
+        self.assertEqual(bridge.url, "https://other.example/bridge")
+        empty = self.env["ai.bridge"].create(
+            {
+                "name": "Empty URL Bridge",
+                "model_id": self.env.ref("base.model_res_partner").id,
+                "url": False,
+                "auth_type": "none",
+                "usage": "none",
+                "result_kind": "immediate",
+                "result_type": "none",
+            }
+        )
+        empty_xmlid = "ai_agno_connector.test_empty_url_bridge"
+        self.env["ir.model.data"].create(
+            {
+                "name": "test_empty_url_bridge",
+                "module": "ai_agno_connector",
+                "model": "ai.bridge",
+                "res_id": empty.id,
+            }
+        )
+        apply_bridge_base_url(self.env, [empty_xmlid])
+        self.assertFalse(empty.url)

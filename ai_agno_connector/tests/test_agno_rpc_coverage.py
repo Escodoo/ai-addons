@@ -254,6 +254,45 @@ class TestAgnoRpcCoverage(HttpCase):
         self.assertEqual(empty_resp.status_code, 200)
         self.assertEqual(empty_resp.json()["result"], [])
 
+    def test_nested_and_invalid_domain_rpc(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="search_count",
+            domain=["|", ("id", "=", 1), [("name", "=", "A")]],
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        payload = self._signed_payload(
+            self.rpc_user, method="search_count", domain=[("name", "=")]
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_domain")
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="search_count",
+            domain=[("name.login", "=", "admin")],
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_domain")
+
+    def test_hmac_max_age_invalid_param_keeps_default(self):
+        self._set_icp({"ai_agno_connector.hmac_max_age": "0"})
+        try:
+            payload = self._signed_payload(self.rpc_user)
+            payload["user_hmac_ts"] = int(time.time()) - 10
+            payload["user_hmac"] = odoo_hmac(
+                self.env(su=True),
+                HMAC_SCOPE,
+                (self.rpc_user.id, payload["user_hmac_ts"]),
+            )
+            resp = self._rpc(payload)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("result", resp.json())
+        finally:
+            self._set_icp({"ai_agno_connector.hmac_max_age": ""})
+
 
 @tagged("post_install", "-at_install")
 class TestAgnoRpcFormatters(HttpCase):
@@ -465,3 +504,74 @@ class TestAgnoRpcFormatters(HttpCase):
             {"query": "crm", "limit": 3},
         )
         records.find_navigation.assert_called_with(query="crm", limit=3)
+
+    def test_dispatch_uses_tool_registry(self):
+        from ..tool_registry import AGNO_TOOLS
+
+        controller = AgnoRpcController()
+        records = mock.MagicMock()
+        records._name = "agno.test.model"
+        records.ping.return_value = {"ok": True}
+        AGNO_TOOLS.setdefault("agno.test.model", {})["ping"] = {
+            "method": "ping",
+            "args": ["query"],
+            "description": "Ping",
+        }
+        try:
+            result = controller._dispatch(records, "ping", {"query": "hi"})
+        finally:
+            AGNO_TOOLS.pop("agno.test.model", None)
+        records.ping.assert_called_once_with(query="hi")
+        self.assertEqual(result, {"ok": True})
+
+    def test_domain_helpers_edge_cases(self):
+        controller = AgnoRpcController()
+        partner = self.env["res.partner"]
+        self.assertFalse(controller._is_blocked_model("", self.env))
+        self.assertEqual(
+            list(
+                controller._iter_domain_leaves(
+                    ["&", ("name", "=", "A"), [("email", "=", "x")]]
+                )
+            ),
+            ["name", "email"],
+        )
+        with self.assertRaises(ValueError):
+            list(controller._iter_domain_leaves([("name", "=")]))
+        self.assertEqual(controller._domain_leaf_blocked(partner, ""), "invalid_domain")
+        self.assertEqual(
+            controller._domain_leaf_blocked(partner, False), "invalid_domain"
+        )
+        self.assertIsNone(controller._domain_leaf_blocked(partner, "not_a_real_field"))
+        self.assertEqual(
+            controller._domain_leaf_blocked(partner, "name.login"),
+            "invalid_domain",
+        )
+        self.assertEqual(
+            controller._domain_leaf_blocked(partner, "missing.child"),
+            "invalid_domain",
+        )
+        missing_comodel = mock.Mock()
+        missing_comodel.type = "many2one"
+        missing_comodel.comodel_name = "agno.missing.comodel"
+        records = mock.MagicMock()
+        records._fields = {"rel": missing_comodel}
+        records.env = self.env
+        self.assertEqual(
+            controller._domain_leaf_blocked(records, "rel.child"),
+            "invalid_domain",
+        )
+        field = mock.Mock(comodel_name="res.partner")
+        self.assertEqual(controller._x2many_name_map(self.env, field, []), {})
+        self.assertEqual(
+            controller._format_x2many_from_map([1, 2], None),
+            {"count": 2},
+        )
+
+    def test_extra_blocked_models_ignores_empty_tokens(self):
+        self._set_icp({"ai_agno_connector.extra_blocked_models": " , , "})
+        try:
+            models = AgnoRpcController()._get_blocked_models(self.env)
+            self.assertNotIn("", models)
+        finally:
+            self._set_icp({"ai_agno_connector.extra_blocked_models": ""})
