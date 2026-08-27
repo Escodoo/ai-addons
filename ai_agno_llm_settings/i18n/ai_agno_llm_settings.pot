@@ -57,7 +57,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
 msgid ""
-"Business knowledge bases were reindexed (support, legal, processes, "
+"Business knowledge bases were reindexed (support, legal, processes, hr, "
 "commercial, public). The architect KB was not modified."
 msgstr ""
 
@@ -254,7 +254,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
 msgid ""
 "This deletes and rebuilds the business knowledge bases (support, legal, "
-"processes, commercial, public) with the current embedder, then re-syncs "
+"processes, hr, commercial, public) with the current embedder, then re-syncs "
 "tagged document.page records. The architect KB is not modified. Continue?"
 msgstr ""
 
