@@ -8,6 +8,7 @@ import time
 from odoo import fields, http, tools
 from odoo.exceptions import AccessError
 from odoo.http import request
+from odoo.osv import expression
 from odoo.tools.mail import html_to_inner_content
 
 from ..models.ai_bridge_execution import HMAC_SCOPE
@@ -288,7 +289,8 @@ class AgnoRpcController(http.Controller):
         """Reject domains that probe blocked fields or traverse blocked models."""
         try:
             leaves = list(self._iter_domain_leaves(domain))
-        except ValueError as exc:
+            expression.normalize_domain(domain)
+        except (ValueError, AssertionError) as exc:
             return self._json_error("invalid_domain", str(exc), status=400)
         for field_path in leaves:
             reason = self._domain_leaf_blocked(records, field_path)
@@ -318,12 +320,13 @@ class AgnoRpcController(http.Controller):
         for item in domain:
             if item in ("&", "|", "!"):
                 continue
-            if isinstance(item, list | tuple) and len(item) == 3:
-                yield item[0]
-            elif isinstance(item, list):
-                yield from self._iter_domain_leaves(item)
-            else:
+            # Odoo only treats 3-tuples as leaves. Nested lists are not
+            # subdomains except as the value of an any/not any operator.
+            if not (isinstance(item, list | tuple) and len(item) == 3):
                 raise ValueError("Invalid domain leaf.")
+            yield item[0]
+            if item[1] in ("any", "not any") and isinstance(item[2], list):
+                yield from self._iter_domain_leaves(item[2])
 
     def _domain_leaf_blocked(self, records, field_path):
         if not isinstance(field_path, str) or not field_path:

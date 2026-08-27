@@ -261,6 +261,14 @@ class TestAgnoRpcCoverage(HttpCase):
             domain=["|", ("id", "=", 1), [("name", "=", "A")]],
         )
         resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_domain")
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="search_count",
+            domain=["|", ("id", "=", 1), ("name", "=", "A")],
+        )
+        resp = self._rpc(payload)
         self.assertEqual(resp.status_code, 200)
         payload = self._signed_payload(
             self.rpc_user, method="search_count", domain=[("name", "=")]
@@ -531,11 +539,25 @@ class TestAgnoRpcFormatters(HttpCase):
         self.assertEqual(
             list(
                 controller._iter_domain_leaves(
-                    ["&", ("name", "=", "A"), [("email", "=", "x")]]
+                    ["&", ("name", "=", "A"), ("email", "=", "x")]
                 )
             ),
             ["name", "email"],
         )
+        self.assertEqual(
+            list(
+                controller._iter_domain_leaves(
+                    [("child_ids", "any", [("name", "=", "A")])]
+                )
+            ),
+            ["child_ids", "name"],
+        )
+        with self.assertRaises(ValueError):
+            list(
+                controller._iter_domain_leaves(
+                    ["|", ("id", "=", 1), [("name", "=", "A")]]
+                )
+            )
         with self.assertRaises(ValueError):
             list(controller._iter_domain_leaves([("name", "=")]))
         self.assertEqual(controller._domain_leaf_blocked(partner, ""), "invalid_domain")
