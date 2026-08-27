@@ -1,7 +1,7 @@
 // Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 // License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-import {Component, markup, useState} from "@odoo/owl";
+import {Component, markup, useEffect, useRef, useState} from "@odoo/owl";
 import {_t} from "@web/core/l10n/translation";
 import {browser} from "@web/core/browser/browser";
 import {registry} from "@web/core/registry";
@@ -121,6 +121,26 @@ export class AiAssistantSystray extends Component {
             messages: loadStoredMessages(),
             draft: "",
         });
+        this.panelBodyRef = useRef("panelBody");
+        this.draftInputRef = useRef("draftInput");
+        useEffect(
+            () => {
+                const body = this.panelBodyRef.el;
+                if (body) {
+                    body.scrollTop = body.scrollHeight;
+                }
+            },
+            () => [this.state.panelOpen, this.state.messages.length, this.state.loading]
+        );
+        useEffect(
+            () => {
+                const input = this.draftInputRef.el;
+                if (this.state.panelOpen && input && !this.state.loading) {
+                    input.focus();
+                }
+            },
+            () => [this.state.panelOpen]
+        );
     }
 
     get canSend() {
