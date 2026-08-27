@@ -32,7 +32,14 @@ Default bridge URLs (reachable from the Odoo container in a Doodba stack):
 | `public`     | `http://agno:8000/bridge/kb/public/upsert`     | `http://agno:8000/bridge/kb/public/delete`     |
 
 Adjust the host or path if your Agno service is exposed differently. Keep the
-bridge domains filtered to content pages with the matching tag.
+bridge domains filtered to content pages with the matching tag. When
+`ai_agno_connector.base_url` (or `agno_base_url` in odoo.conf) is set, the
+post-init hook rewrites leftover `http://agno:8000` URLs.
+
+Install / write syncs run through `queue_job` on channel `root.agno_kb` when
+that module is available (inline HTTP otherwise). On Doodba, add
+`root.agno_kb:1` to `[queue_job] channels` so KB jobs do not starve other
+workers.
 
 Discuss / livechat bots are configured separately (one `ai.bridge` chatter URL
 per agent: `/bridge/chatter/ops`, `/hr`, `/finance`, `/support`, `/sales`,

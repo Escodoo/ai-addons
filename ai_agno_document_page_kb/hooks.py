@@ -18,8 +18,8 @@ hook runs; the post-init sync reindexes them once bridges are configured.
 import logging
 
 from odoo.addons.ai_agno_connector.token_utils import (
-    CONFIG_BRIDGE_AUTH_TOKEN,
-    ensure_token,
+    apply_auth_token,
+    apply_bridge_base_url,
 )
 
 _logger = logging.getLogger(__name__)
@@ -85,13 +85,8 @@ _BRIDGE_XMLIDS = tuple(
 
 def _apply_auth_token(env):
     """Copy token (ICP or odoo.conf) onto KB bridges with empty auth_token."""
-    token = ensure_token(env, _ICP_KEY, CONFIG_BRIDGE_AUTH_TOKEN)
-    if not token:
-        return
-    for xmlid in _BRIDGE_XMLIDS:
-        bridge = env.ref(xmlid, raise_if_not_found=False)
-        if bridge and not bridge.auth_token:
-            bridge.auth_token = token
+    apply_auth_token(env, _BRIDGE_XMLIDS, _ICP_KEY)
+    apply_bridge_base_url(env, _BRIDGE_XMLIDS)
 
 
 def configure_kb_bridges(env):
@@ -145,6 +140,20 @@ def sync_kb_pages(env):
                 )
 
 
+def schedule_kb_sync(env):
+    """Enqueue the KB upsert, or run inline when queue_job is missing."""
+    Page = env["document.page"]
+    if "queue.job" in env and hasattr(Page, "with_delay"):
+        Page.sudo().with_delay(
+            channel="root.agno_kb",
+            description="Agno KB reindex",
+        )._agno_sync_all_kb_pages()
+        _logger.info("Queued document.page knowledge-base sync via queue_job.")
+        return "queued"
+    sync_kb_pages(env)
+    return "sync"
+
+
 def post_init_hook(env):
     configure_kb_bridges(env)
-    sync_kb_pages(env)
+    schedule_kb_sync(env)

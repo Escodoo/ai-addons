@@ -36,8 +36,11 @@ agents (``ops``, ``hr``, ``finance``, ``support``, ``sales``,
 
 A post-install hook applies the bridge auth token (ICP override or
 odoo.conf ``agno_bridge_auth_token`` from ``conf.d``) to bridges with an
-empty token, rewrites each bridge domain / field list, then upserts all
-matching content pages (demo and pre-existing) into Agno.
+empty token, rewrites each bridge domain / field list, then schedules an
+upsert of matching content pages (demo and pre-existing) into Agno. The
+upsert runs through ``queue_job`` when that module is installed, so
+module installation does not wait on HTTP. Writes on tagged pages use
+the same queue when available.
 
 This bridge targets the companion **Agno service**
 (`Escodoo/agno-odoo <https://github.com/Escodoo/agno-odoo>`__), which
@@ -98,6 +101,13 @@ stack):
 
 Adjust the host or path if your Agno service is exposed differently.
 Keep the bridge domains filtered to content pages with the matching tag.
+When ``ai_agno_connector.base_url`` (or ``agno_base_url`` in odoo.conf)
+is set, the post-init hook rewrites leftover ``http://agno:8000`` URLs.
+
+Install / write syncs run through ``queue_job`` on channel
+``root.agno_kb`` when that module is available (inline HTTP otherwise).
+On Doodba, add ``root.agno_kb:1`` to ``[queue_job] channels`` so KB jobs
+do not starve other workers.
 
 Discuss / livechat bots are configured separately (one ``ai.bridge``
 chatter URL per agent: ``/bridge/chatter/ops``, ``/hr``, ``/finance``,

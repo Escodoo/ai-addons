@@ -381,8 +381,11 @@ agents (<tt class="docutils literal">ops</tt>, <tt class="docutils literal">hr</
 <tt class="docutils literal">marketing</tt>, <tt class="docutils literal">web</tt>) choose which bases to search.</p>
 <p>A post-install hook applies the bridge auth token (ICP override or
 odoo.conf <tt class="docutils literal">agno_bridge_auth_token</tt> from <tt class="docutils literal">conf.d</tt>) to bridges with an
-empty token, rewrites each bridge domain / field list, then upserts all
-matching content pages (demo and pre-existing) into Agno.</p>
+empty token, rewrites each bridge domain / field list, then schedules an
+upsert of matching content pages (demo and pre-existing) into Agno. The
+upsert runs through <tt class="docutils literal">queue_job</tt> when that module is installed, so
+module installation does not wait on HTTP. Writes on tagged pages use
+the same queue when available.</p>
 <p>This bridge targets the companion <strong>Agno service</strong>
 (<a class="reference external" href="https://github.com/Escodoo/agno-odoo">Escodoo/agno-odoo</a>), which
 exposes the AgentOS endpoints and the <tt class="docutils literal">/agno/rpc</tt> gateway consumed
@@ -465,7 +468,13 @@ stack):</p>
 </tbody>
 </table>
 <p>Adjust the host or path if your Agno service is exposed differently.
-Keep the bridge domains filtered to content pages with the matching tag.</p>
+Keep the bridge domains filtered to content pages with the matching tag.
+When <tt class="docutils literal">ai_agno_connector.base_url</tt> (or <tt class="docutils literal">agno_base_url</tt> in odoo.conf)
+is set, the post-init hook rewrites leftover <tt class="docutils literal"><span class="pre">http://agno:8000</span></tt> URLs.</p>
+<p>Install / write syncs run through <tt class="docutils literal">queue_job</tt> on channel
+<tt class="docutils literal">root.agno_kb</tt> when that module is available (inline HTTP otherwise).
+On Doodba, add <tt class="docutils literal">root.agno_kb:1</tt> to <tt class="docutils literal">[queue_job] channels</tt> so KB jobs
+do not starve other workers.</p>
 <p>Discuss / livechat bots are configured separately (one <tt class="docutils literal">ai.bridge</tt>
 chatter URL per agent: <tt class="docutils literal">/bridge/chatter/ops</tt>, <tt class="docutils literal">/hr</tt>, <tt class="docutils literal">/finance</tt>,
 <tt class="docutils literal">/support</tt>, <tt class="docutils literal">/sales</tt>, <tt class="docutils literal">/marketing</tt>, <tt class="docutils literal">/web</tt>). Website livechat
