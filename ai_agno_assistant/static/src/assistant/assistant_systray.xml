@@ -19,6 +19,8 @@
             <div
                 t-if="state.panelOpen"
                 class="o_ai_assistant_panel border bg-view d-flex flex-column shadow"
+                role="complementary"
+                aria-label="System assistant"
             >
                 <div
                     class="o_ai_assistant_panel_header d-flex align-items-center gap-2 px-3 py-2 border-bottom"
@@ -50,6 +52,7 @@
                 </div>
                 <div
                     class="o_ai_assistant_panel_body flex-grow-1 overflow-auto p-3 d-flex flex-column gap-2"
+                    t-ref="panelBody"
                 >
                     <div
                         t-if="!state.messages.length and !state.loading"
@@ -114,6 +117,7 @@
                             placeholder="Ask the system assistant…"
                             t-att-disabled="state.loading"
                             t-model="state.draft"
+                            t-ref="draftInput"
                             t-on-keydown="onDraftKeydown"
                         />
                         <button

@@ -119,6 +119,39 @@ test("closing the panel keeps the conversation", async () => {
     expect(".o_ai_assistant_message").toHaveCount(2);
 });
 
+test("opening the panel focuses the composer", async () => {
+    mockLocalStorage();
+    mockAssistantServices();
+
+    const assistant = await mountWithCleanup(AiAssistantSystray);
+    expect(".o_ai_assistant_panel").toHaveCount(0);
+
+    await click(".o_ai_assistant_systray a");
+    await animationFrame();
+    expect(".o_ai_assistant_panel").toHaveCount(1);
+    expect(".o_ai_assistant_panel").toHaveAttribute("aria-label", "System assistant");
+    expect(document.activeElement).toBe(assistant.draftInputRef.el);
+});
+
+test("the chat body auto-scrolls to the latest message", async () => {
+    mockLocalStorage();
+    mockAssistantServices();
+
+    const assistant = await mountWithCleanup(AiAssistantSystray);
+    assistant.openPanel();
+    await animationFrame();
+
+    const body = assistant.panelBodyRef.el;
+    body.style.maxHeight = "96px";
+    for (let index = 0; index < 12; index++) {
+        assistant._appendMessage("assistant", `Answer ${index}`);
+    }
+    await animationFrame();
+
+    expect(body.scrollTop).toBeGreaterThan(0);
+    expect(body.scrollHeight - body.clientHeight - body.scrollTop).toBeLessThan(2);
+});
+
 test("renders plain text when body_is_html is false", async () => {
     mockLocalStorage();
     mockAssistantServices({
