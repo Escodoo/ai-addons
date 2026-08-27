@@ -10,7 +10,7 @@ import {user} from "@web/core/user";
 
 let assistantMessageSeq = 0;
 
-const HISTORY_LIMIT = 10;
+const HISTORY_LIMIT = 20;
 const STORAGE_KEY_PREFIX = "ai_agno_assistant.chat";
 
 function nextAssistantMessageId() {
@@ -283,7 +283,7 @@ export class AiAssistantSystray extends Component {
             this._appendMessage(
                 "assistant",
                 result?.body || _t("No response was returned."),
-                {html: true}
+                {html: Boolean(result?.body_is_html)}
             );
         } catch (error) {
             this.notification.add(

@@ -119,6 +119,81 @@ class TestAgnoRpcAssistant(HttpCase):
         self.assertNotIn("error", data["result"])
         self.assertTrue(data["result"].get("results"))
 
+    def test_prepare_sale_order_allowed(self):
+        self._require_models(
+            "sale.order",
+            "product.product",
+            reason="Sales/Product apps are not installed",
+        )
+        product = self.product or self.env["product.product"].create(
+            {
+                "name": "RPC AI Sale Product",
+                "default_code": "RPC-AI-SO",
+                "type": "consu",
+                "sale_ok": True,
+            }
+        )
+        resp = self._rpc(
+            self._signed_payload(
+                method="prepare_sale_order",
+                partner_ref=self.vendor.id,
+                lines=[{"product_id": product.id, "qty": 1}],
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertNotIn("error", data["result"])
+        self.assertEqual(data["result"]["open_record"]["model"], "sale.order")
+
+    def test_prepare_helpdesk_ticket_allowed(self):
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        resp = self._rpc(
+            self._signed_payload(
+                method="prepare_helpdesk_ticket",
+                name="RPC AI Ticket",
+                description="Need help",
+                partner_ref=self.vendor.id,
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertNotIn("error", data["result"])
+        self.assertEqual(data["result"]["open_record"]["model"], "helpdesk.ticket")
+
+    def test_prepare_timesheet_allowed(self):
+        self._require_models(
+            "account.analytic.line",
+            "project.project",
+            reason="Timesheet / Project apps are not installed",
+        )
+        project = self.env["project.project"].create({"name": "RPC AI Project"})
+        AnalyticLine = self.env["account.analytic.line"]
+        if "employee_id" in AnalyticLine._fields and "hr.employee" in self.env:
+            if not getattr(self.rpc_user, "employee_id", False):
+                self.env["hr.employee"].create(
+                    {
+                        "name": "RPC AI Employee",
+                        "user_id": self.rpc_user.id,
+                    }
+                )
+        resp = self._rpc(
+            self._signed_payload(
+                method="prepare_timesheet",
+                project_ref=project.id,
+                unit_amount=1.5,
+                name="RPC AI timesheet",
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertNotIn("error", data["result"])
+        self.assertEqual(
+            data["result"]["open_record"]["model"], "account.analytic.line"
+        )
+
     def test_generic_create_still_blocked(self):
         resp = self._rpc(
             self._signed_payload(

@@ -94,6 +94,17 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(ticket.partner_id, self.partner)
         self.assertEqual(result["open_record"]["model"], "helpdesk.ticket")
 
+    def test_prepare_helpdesk_ticket_sanitizes_html(self):
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="<img src=x onerror=alert(1)>Ticket",
+            description="<script>alert(1)</script><p>Safe</p>",
+        )
+        self.assertNotIn("error", result)
+        ticket = self.env["helpdesk.ticket"].browse(result["ticket_id"])
+        self.assertNotIn("script", (ticket.description or "").lower())
+        self.assertNotIn("onerror", (ticket.description or "").lower())
+
     def test_prepare_helpdesk_ticket_missing_name(self):
         self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
         result = self.Assistant.prepare_helpdesk_ticket(description="x")

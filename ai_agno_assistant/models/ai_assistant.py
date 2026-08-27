@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 AI_USER_GROUP = "ai_agno_assistant.group_system_ai_user"
 _BRIDGE_CHAT = "ai_agno_assistant.ai_bridge_assistant_chat"
 
-_AI_CHAT_HISTORY_LIMIT = 10
+_AI_CHAT_HISTORY_LIMIT = 20
 _AI_CHAT_MESSAGE_MAX_LEN = 2000
 _AI_CHAT_ACTIONS_LIMIT = 5
 
@@ -61,7 +61,7 @@ class AiAssistant(models.AbstractModel):
             history=self._normalize_ai_chat_history(history),
             ui_context=self._normalize_ui_context(ui_context),
         )
-        body_is_html = bool(result.get("body_is_html", True))
+        body_is_html = bool(result.get("body_is_html", False))
         actions = self._sanitize_ai_chat_actions(result.get("actions"))
         return {
             "body": self._sanitize_assistant_body(

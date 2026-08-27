@@ -1,11 +1,15 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+import html
 import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.osv import expression
+from odoo.tools import html_sanitize
+
+from odoo.addons.ai_agno_connector.tool_registry import agno_tool
 
 _logger = logging.getLogger(__name__)
 
@@ -29,6 +33,86 @@ class AiAssistantDrafts(models.AbstractModel):
             return None, {"error": "create_failed", "detail": str(exc)}
         return record, None
 
+    @api.model
+    def _sanitize_draft_html(self, value, limit, fallback=""):
+        """Sanitize LLM-provided HTML before writing it on a business record."""
+        text = value.strip() if isinstance(value, str) else ""
+        text = text or fallback
+        if not text:
+            return ""
+        return html_sanitize(
+            text,
+            sanitize_attributes=True,
+            strip_style=True,
+            strip_classes=True,
+        )[:limit]
+
+    @api.model
+    def _resolve_by_id_or_name(
+        self,
+        Model,
+        ref,
+        *,
+        role,
+        label=None,
+        name_domain=None,
+        fallback_domain=None,
+        pick_unique=None,
+        candidate_extra=None,
+        missing_detail=None,
+    ):
+        """Resolve a record by integer id or name search (limit 5)."""
+        label = label or role.replace("_", " ")
+        if ref in (None, False, ""):
+            return {
+                "error": f"missing_{role}",
+                "detail": missing_detail or f"Provide a {label} name, reference or id.",
+            }
+        if isinstance(ref, int) or (isinstance(ref, str) and str(ref).isdigit()):
+            record = Model.browse(int(ref)).exists()
+            if not record:
+                return {
+                    "error": f"{role}_not_found",
+                    "detail": f"No {label} with id {ref}.",
+                }
+            return record
+        name = str(ref).strip()
+        domain = (
+            name_domain(name)
+            if callable(name_domain)
+            else (name_domain or [("name", "ilike", name)])
+        )
+        records = Model.search(domain, limit=5)
+        if not records and callable(fallback_domain):
+            records = Model.search(fallback_domain(name), limit=5)
+        if not records:
+            return {
+                "error": f"{role}_not_found",
+                "detail": f"No {label} matching {name!r}.",
+            }
+        if len(records) > 1 and callable(pick_unique):
+            chosen = pick_unique(records, name)
+            if chosen:
+                return chosen
+        if len(records) > 1:
+            candidates = []
+            for rec in records:
+                item = {"id": rec.id, "name": rec.display_name}
+                if callable(candidate_extra):
+                    item.update(candidate_extra(rec))
+                candidates.append(item)
+            return {
+                "error": f"{role}_ambiguous",
+                "detail": f"Multiple {label}s matched; ask the user to clarify.",
+                "candidates": candidates,
+            }
+        return records
+
+    @agno_tool(
+        "ai.assistant",
+        args=("vendor_ref", "lines", "notes"),
+        description="Create a draft RFQ for human review.",
+    )
     @api.model
     def prepare_purchase_order(self, vendor_ref=None, lines=None, notes=None):
         """Create a draft RFQ for the requesting user and return a summary.
@@ -87,6 +171,11 @@ class AiAssistantDrafts(models.AbstractModel):
             },
         }
 
+    @agno_tool(
+        "ai.assistant",
+        args=("name", "partner_ref", "description", "expected_revenue"),
+        description="Create a CRM opportunity draft for human review.",
+    )
     @api.model
     def prepare_opportunity(
         self,
@@ -122,7 +211,7 @@ class AiAssistantDrafts(models.AbstractModel):
         if partner:
             values["partner_id"] = partner.id
         if description and isinstance(description, str):
-            values["description"] = description.strip()[:4000]
+            values["description"] = self._sanitize_draft_html(description, 4000)
         if expected_revenue not in (None, False, ""):
             try:
                 values["expected_revenue"] = float(expected_revenue)
@@ -148,6 +237,11 @@ class AiAssistantDrafts(models.AbstractModel):
             },
         }
 
+    @agno_tool(
+        "ai.assistant",
+        args=("name", "description", "partner_ref", "team_ref"),
+        description="Create an OCA helpdesk ticket for human review.",
+    )
     @api.model
     def prepare_helpdesk_ticket(
         self,
@@ -170,8 +264,11 @@ class AiAssistantDrafts(models.AbstractModel):
                 "detail": "Provide a ticket subject/name.",
             }
         body = description if isinstance(description, str) else ""
-        body = body.strip() or f"<p>{title}</p>"
-        values = {"name": title[:128], "description": body[:8000]}
+        body = body.strip() or f"<p>{html.escape(title)}</p>"
+        values = {
+            "name": title[:128],
+            "description": self._sanitize_draft_html(body, 8000),
+        }
         if partner_ref not in (None, False, ""):
             partner = self._resolve_partner(
                 partner_ref, as_supplier=False, role="partner"
@@ -215,6 +312,11 @@ class AiAssistantDrafts(models.AbstractModel):
             },
         }
 
+    @agno_tool(
+        "ai.assistant",
+        args=("partner_ref", "lines", "notes"),
+        description="Create a draft sales quotation for human review.",
+    )
     @api.model
     def prepare_sale_order(self, partner_ref=None, lines=None, notes=None):
         """Create a draft sales quotation for human review."""
@@ -261,6 +363,11 @@ class AiAssistantDrafts(models.AbstractModel):
             },
         }
 
+    @agno_tool(
+        "ai.assistant",
+        args=("project_ref", "task_ref", "unit_amount", "name", "date"),
+        description="Create a draft timesheet line for human review.",
+    )
     @api.model
     def prepare_timesheet(
         self,
@@ -360,151 +467,87 @@ class AiAssistantDrafts(models.AbstractModel):
         return self._resolve_partner(vendor_ref, as_supplier=True, role="vendor")
 
     @api.model
-    def _resolve_partner(self, partner_ref, *, as_supplier=False, role="partner"):
-        Partner = self.env["res.partner"]
-        label = role.replace("_", " ")
-        if partner_ref in (None, False, ""):
-            return {
-                "error": f"missing_{role}",
-                "detail": f"Provide a {label} name, reference or id.",
-            }
-        if isinstance(partner_ref, int) or (
-            isinstance(partner_ref, str) and partner_ref.isdigit()
-        ):
-            partner = Partner.browse(int(partner_ref)).exists()
-            if not partner:
-                return {
-                    "error": f"{role}_not_found",
-                    "detail": f"No partner with id {partner_ref}.",
-                }
-            return partner
-        name = str(partner_ref).strip()
-        # supplier_rank / customer_rank come from account; keep working without it.
-        partner_fields = Partner._fields
+    def _partner_rank_domain(self, as_supplier=False):
+        partner_fields = self.env["res.partner"]._fields
         if as_supplier and "supplier_rank" in partner_fields:
-            rank_domain = ["|", ("supplier_rank", ">", 0), ("is_company", "=", True)]
-        elif (
+            return ["|", ("supplier_rank", ">", 0), ("is_company", "=", True)]
+        if (
             not as_supplier
             and "customer_rank" in partner_fields
             and "supplier_rank" in partner_fields
         ):
-            rank_domain = [
+            return [
                 "|",
                 "|",
                 ("customer_rank", ">", 0),
                 ("supplier_rank", ">", 0),
                 ("is_company", "=", True),
             ]
-        else:
-            rank_domain = [("is_company", "=", True)]
-        domain = expression.AND(
-            [
-                rank_domain,
-                ["|", ("name", "ilike", name), ("ref", "=ilike", name)],
-            ]
+        return [("is_company", "=", True)]
+
+    @api.model
+    def _resolve_partner(self, partner_ref, *, as_supplier=False, role="partner"):
+        Partner = self.env["res.partner"]
+        rank_domain = self._partner_rank_domain(as_supplier=as_supplier)
+        return self._resolve_by_id_or_name(
+            Partner,
+            partner_ref,
+            role=role,
+            name_domain=lambda name: expression.AND(
+                [
+                    rank_domain,
+                    ["|", ("name", "ilike", name), ("ref", "=ilike", name)],
+                ]
+            ),
+            fallback_domain=lambda name: [
+                "|",
+                ("name", "ilike", name),
+                ("display_name", "ilike", name),
+            ],
         )
-        partners = Partner.search(domain, limit=5)
-        if not partners:
-            partners = Partner.search(
-                ["|", ("name", "ilike", name), ("display_name", "ilike", name)],
-                limit=5,
-            )
-        if not partners:
-            return {
-                "error": f"{role}_not_found",
-                "detail": f"No {label} matching {name!r}.",
-            }
-        if len(partners) > 1:
-            return {
-                "error": f"{role}_ambiguous",
-                "detail": f"Multiple {label}s matched; ask the user to clarify.",
-                "candidates": [{"id": p.id, "name": p.display_name} for p in partners],
-            }
-        return partners
 
     @api.model
     def _resolve_helpdesk_team(self, team_ref):
-        Team = self.env["helpdesk.ticket.team"]
-        if isinstance(team_ref, int) or (
-            isinstance(team_ref, str) and str(team_ref).isdigit()
-        ):
-            team = Team.browse(int(team_ref)).exists()
-            if not team:
-                return {
-                    "error": "team_not_found",
-                    "detail": f"No helpdesk team with id {team_ref}.",
-                }
-            return team
-        name = str(team_ref).strip()
-        teams = Team.search([("name", "ilike", name)], limit=5)
-        if not teams:
-            return {
-                "error": "team_not_found",
-                "detail": f"No helpdesk team matching {name!r}.",
-            }
-        if len(teams) > 1:
-            return {
-                "error": "team_ambiguous",
-                "detail": "Multiple teams matched; ask the user to clarify.",
-                "candidates": [{"id": t.id, "name": t.display_name} for t in teams],
-            }
-        return teams
+        return self._resolve_by_id_or_name(
+            self.env["helpdesk.ticket.team"],
+            team_ref,
+            role="team",
+            label="helpdesk team",
+        )
 
     @api.model
     def _resolve_project(self, project_ref):
-        Project = self.env["project.project"]
-        if isinstance(project_ref, int) or (
-            isinstance(project_ref, str) and str(project_ref).isdigit()
-        ):
-            project = Project.browse(int(project_ref)).exists()
-            if not project:
-                return {
-                    "error": "project_not_found",
-                    "detail": f"No project with id {project_ref}.",
-                }
-            return project
-        name = str(project_ref).strip()
-        projects = Project.search([("name", "ilike", name)], limit=5)
-        if not projects:
-            return {
-                "error": "project_not_found",
-                "detail": f"No project matching {name!r}.",
-            }
-        if len(projects) > 1:
-            return {
-                "error": "project_ambiguous",
-                "detail": "Multiple projects matched; ask the user to clarify.",
-                "candidates": [{"id": p.id, "name": p.display_name} for p in projects],
-            }
-        return projects
+        return self._resolve_by_id_or_name(
+            self.env["project.project"],
+            project_ref,
+            role="project",
+        )
 
     @api.model
     def _resolve_project_task(self, task_ref):
-        Task = self.env["project.task"]
-        if isinstance(task_ref, int) or (
-            isinstance(task_ref, str) and str(task_ref).isdigit()
-        ):
-            task = Task.browse(int(task_ref)).exists()
-            if not task:
-                return {
-                    "error": "task_not_found",
-                    "detail": f"No task with id {task_ref}.",
-                }
-            return task
-        name = str(task_ref).strip()
-        tasks = Task.search([("name", "ilike", name)], limit=5)
-        if not tasks:
-            return {
-                "error": "task_not_found",
-                "detail": f"No task matching {name!r}.",
+        return self._resolve_by_id_or_name(
+            self.env["project.task"],
+            task_ref,
+            role="task",
+        )
+
+    @api.model
+    def _parse_line_qty(self, entry, product, keys):
+        raw = 0
+        for key in keys:
+            if entry.get(key) not in (None, False, ""):
+                raw = entry.get(key)
+                break
+        try:
+            qty = float(raw or 0)
+        except (TypeError, ValueError):
+            qty = 0.0
+        if qty <= 0:
+            return None, {
+                "error": "invalid_qty",
+                "detail": f"Quantity must be positive for {product.display_name}.",
             }
-        if len(tasks) > 1:
-            return {
-                "error": "task_ambiguous",
-                "detail": "Multiple tasks matched; ask the user to clarify.",
-                "candidates": [{"id": t.id, "name": t.display_name} for t in tasks],
-            }
-        return tasks
+        return qty, None
 
     @api.model
     def _resolve_line_price_unit(self, entry, product, partner, qty, uom):
@@ -554,15 +597,11 @@ class AiAssistantDrafts(models.AbstractModel):
             )
             if isinstance(product, dict):
                 return None, product
-            try:
-                qty = float(entry.get("qty") or entry.get("product_qty") or 0)
-            except (TypeError, ValueError):
-                qty = 0.0
-            if qty <= 0:
-                return None, {
-                    "error": "invalid_qty",
-                    "detail": f"Quantity must be positive for {product.display_name}.",
-                }
+            qty, qty_error = self._parse_line_qty(
+                entry, product, ("qty", "product_qty")
+            )
+            if qty_error:
+                return None, qty_error
             uom = (
                 product.uom_po_id if "uom_po_id" in product._fields else product.uom_id
             )
@@ -603,20 +642,11 @@ class AiAssistantDrafts(models.AbstractModel):
             )
             if isinstance(product, dict):
                 return None, product
-            try:
-                qty = float(
-                    entry.get("qty")
-                    or entry.get("product_uom_qty")
-                    or entry.get("product_qty")
-                    or 0
-                )
-            except (TypeError, ValueError):
-                qty = 0.0
-            if qty <= 0:
-                return None, {
-                    "error": "invalid_qty",
-                    "detail": f"Quantity must be positive for {product.display_name}.",
-                }
+            qty, qty_error = self._parse_line_qty(
+                entry, product, ("qty", "product_uom_qty", "product_qty")
+            )
+            if qty_error:
+                return None, qty_error
             line = {
                 "product_id": product.id,
                 "product_uom_qty": qty,
@@ -650,59 +680,31 @@ class AiAssistantDrafts(models.AbstractModel):
         return prepared, None
 
     @api.model
+    def _pick_exact_default_code(self, products, name):
+        exact = products.filtered(
+            lambda product: (product.default_code or "").lower() == name.lower()
+        )
+        return exact if len(exact) == 1 else None
+
+    @api.model
     def _resolve_product(self, product_ref):
         if "product.product" not in self.env:
             return {
                 "error": "product_unavailable",
                 "detail": "Product app is not available.",
             }
-        Product = self.env["product.product"]
-        if product_ref in (None, False, ""):
-            return {
-                "error": "missing_product",
-                "detail": "Provide a product name, default_code or id.",
-            }
-        if isinstance(product_ref, int) or (
-            isinstance(product_ref, str) and product_ref.isdigit()
-        ):
-            product = Product.browse(int(product_ref)).exists()
-            if not product:
-                return {
-                    "error": "product_not_found",
-                    "detail": f"No product with id {product_ref}.",
-                }
-            return product
-        name = str(product_ref).strip()
-        domain = [
-            "|",
-            ("default_code", "=ilike", name),
-            "|",
-            ("barcode", "=", name),
-            ("name", "ilike", name),
-        ]
-        products = Product.search(domain, limit=5)
-        if not products:
-            return {
-                "error": "product_not_found",
-                "detail": f"No product matching {name!r}.",
-            }
-        if len(products) > 1:
-            # Prefer exact default_code match when present.
-            exact = products.filtered(
-                lambda p: (p.default_code or "").lower() == name.lower()
-            )
-            if len(exact) == 1:
-                return exact
-            return {
-                "error": "product_ambiguous",
-                "detail": "Multiple products matched; ask the user to clarify.",
-                "candidates": [
-                    {
-                        "id": p.id,
-                        "name": p.display_name,
-                        "default_code": p.default_code or False,
-                    }
-                    for p in products
-                ],
-            }
-        return products
+        return self._resolve_by_id_or_name(
+            self.env["product.product"],
+            product_ref,
+            role="product",
+            missing_detail="Provide a product name, default_code or id.",
+            name_domain=lambda name: [
+                "|",
+                ("default_code", "=ilike", name),
+                "|",
+                ("barcode", "=", name),
+                ("name", "ilike", name),
+            ],
+            pick_unique=self._pick_exact_default_code,
+            candidate_extra=lambda rec: {"default_code": rec.default_code or False},
+        )

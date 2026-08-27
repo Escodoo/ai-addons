@@ -855,8 +855,8 @@ class TestAiAssistantSanitize(TransactionCase):
             side_effect=_fake_bridge,
         ):
             result = self.Assistant.action_ai_chat(message="hi")
-        self.assertTrue(result["body_is_html"])
-        self.assertIn("Hi", result["body"])
+        self.assertFalse(result["body_is_html"])
+        self.assertIn("&lt;p&gt;Hi&lt;/p&gt;", result["body"])
 
     def test_run_assistant_bridge_not_configured(self):
         with mock.patch.object(
