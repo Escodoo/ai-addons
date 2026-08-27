@@ -8,9 +8,11 @@ import time
 from odoo import fields, http, tools
 from odoo.exceptions import AccessError
 from odoo.http import request
+from odoo.osv import expression
 from odoo.tools.mail import html_to_inner_content
 
 from ..models.ai_bridge_execution import HMAC_SCOPE
+from ..tool_registry import AGNO_TOOLS, allowed_methods_for, get_tools_catalog
 
 _logger = logging.getLogger(__name__)
 
@@ -43,6 +45,9 @@ BLOCKED_MODELS = {
     "res.users.apikeys",
     "res.users.identitycheck",
     "res.users.log",
+    "res.users.settings",
+    "auth_totp.device",
+    "payment.token",
     "ir.config_parameter",
     "ir.default",
     "ir.mail_server",
@@ -51,6 +56,9 @@ BLOCKED_MODELS = {
     "ir.rule",
     "ir.model.access",
 }
+
+# Prefixes blocked for generic ORM reads (typed helpers stay allowlisted).
+BLOCKED_MODEL_PREFIXES = ("ir.",)
 
 # Field name fragments that are stripped from requests and responses.
 BLOCKED_FIELD_PATTERNS = ("password", "token", "secret", "api_key")
@@ -73,6 +81,15 @@ def _truncate(value, size=TEXT_TRUNCATE_LIMIT):
     if not isinstance(value, str) or len(value) <= size:
         return value
     return value[: size - 3] + "..."
+
+
+def _secure_compare(left, right):
+    """Constant-time compare that never raises on length mismatch."""
+    if not isinstance(left, str) or not isinstance(right, str):
+        return False
+    if len(left) != len(right):
+        return False
+    return hmac.compare_digest(left, right)
 
 
 class AgnoRpcController(http.Controller):
@@ -106,43 +123,56 @@ class AgnoRpcController(http.Controller):
 
         model = params.get("model") or ""
         method = params.get("method") or ""
-        allowed_for_model = ALLOWED_MODEL_METHODS.get(model, frozenset())
+        allowed_for_model = ALLOWED_MODEL_METHODS.get(
+            model, frozenset()
+        ) | allowed_methods_for(model)
         if method not in ALLOWED_METHODS and method not in allowed_for_model:
-            return request.make_json_response(
-                {"error": "method_not_allowed", "detail": f"Method {method!r}."},
-                status=400,
+            return self._json_error(
+                "method_not_allowed", f"Method {method!r}.", status=400
             )
-        if model in BLOCKED_MODELS:
-            return request.make_json_response(
-                {
-                    "error": "model_not_allowed",
-                    "detail": f"Model {model!r} is not available to agents.",
-                },
+        if self._is_blocked_model(model, request.env):
+            return self._json_error(
+                "model_not_allowed",
+                f"Model {model!r} is not available to agents.",
                 status=403,
             )
 
         env = request.env(user=user.id, su=False)
         if model not in env:
-            return request.make_json_response(
-                {"error": "unknown_model", "detail": f"Model {model!r} not found."},
-                status=404,
+            return self._json_error(
+                "unknown_model", f"Model {model!r} not found.", status=404
             )
+
+        if method in {"search_read", "search_count"}:
+            domain_error = self._domain_error(env[model], params.get("domain") or [])
+            if domain_error:
+                return domain_error
 
         try:
             result = self._dispatch(env[model], method, params)
         except AccessError as exc:
-            return request.make_json_response(
-                {"error": "access_denied", "detail": str(exc)}
-            )
+            return self._json_error("access_denied", str(exc), status=403)
         except Exception as exc:  # noqa: BLE001 - log detail, return generic message
             _logger.warning("Agno RPC error on %s.%s: %s", model, method, exc)
-            return request.make_json_response(
-                {
-                    "error": "server_error",
-                    "detail": "Internal error, see server logs.",
-                }
+            return self._json_error(
+                "server_error", "Internal error, see server logs.", status=200
             )
         return request.make_json_response({"result": result})
+
+    @http.route(
+        "/agno/tools",
+        type="http",
+        auth="none",
+        methods=["GET"],
+        csrf=False,
+        readonly=True,
+    )
+    def agno_tools(self, db=None):
+        """Expose the typed helper catalog for the Agno service."""
+        error = self._check_service_token()
+        if error:
+            return error
+        return request.make_json_response({"tools": get_tools_catalog()})
 
     def _check_service_token(self):
         from ..token_utils import (
@@ -164,10 +194,9 @@ class AgnoRpcController(http.Controller):
                 status=503,
             )
         auth_header = request.httprequest.headers.get("Authorization", "")
-        if not hmac.compare_digest(auth_header, f"Bearer {expected}"):
-            return request.make_json_response(
-                {"error": "unauthorized", "detail": "Invalid service token."},
-                status=401,
+        if not _secure_compare(auth_header, f"Bearer {expected}"):
+            return self._json_error(
+                "unauthorized", "Invalid service token.", status=401
             )
         return None
 
@@ -197,12 +226,12 @@ class AgnoRpcController(http.Controller):
         signature = params.get("user_hmac")
         timestamp = params.get("user_hmac_ts")
         if signature and isinstance(timestamp, int):
-            if abs(time.time() - timestamp) > HMAC_MAX_AGE:
+            if abs(time.time() - timestamp) > self._get_hmac_max_age():
                 return False
             expected = tools.hmac(
                 request.env(su=True), HMAC_SCOPE, (user_id, timestamp)
             )
-            return hmac.compare_digest(signature, expected)
+            return _secure_compare(signature, expected)
         return self._allow_unsigned_user(user_id)
 
     def _allow_unsigned_user(self, user_id):
@@ -221,7 +250,114 @@ class AgnoRpcController(http.Controller):
         )
         return True
 
+    def _json_error(self, error, detail, status=400):
+        return request.make_json_response(
+            {"error": error, "detail": detail},
+            status=status,
+        )
+
+    def _get_blocked_models(self, env):
+        models = set(BLOCKED_MODELS)
+        extra = (
+            env["ir.config_parameter"]
+            .sudo()
+            .get_param("ai_agno_connector.extra_blocked_models", "")
+        )
+        for name in extra.replace(",", " ").split():
+            if name:
+                models.add(name.strip())
+        return models
+
+    def _is_blocked_model(self, model, env):
+        if not model:
+            return False
+        if model in self._get_blocked_models(env):
+            return True
+        return any(model.startswith(prefix) for prefix in BLOCKED_MODEL_PREFIXES)
+
+    def _get_hmac_max_age(self):
+        param = (
+            request.env["ir.config_parameter"]
+            .sudo()
+            .get_param("ai_agno_connector.hmac_max_age", "")
+        )
+        if param.isdigit() and int(param) > 0:
+            return int(param)
+        return HMAC_MAX_AGE
+
+    def _domain_error(self, records, domain):
+        """Reject domains that probe blocked fields or traverse blocked models."""
+        try:
+            leaves = list(self._iter_domain_leaves(domain))
+            expression.normalize_domain(domain)
+        except (ValueError, AssertionError) as exc:
+            return self._json_error("invalid_domain", str(exc), status=400)
+        for field_path in leaves:
+            reason = self._domain_leaf_blocked(records, field_path)
+            if reason == "blocked_domain_field":
+                return self._json_error(
+                    "blocked_domain_field",
+                    f"Field {field_path!r} is not available to agents.",
+                    status=403,
+                )
+            if reason == "blocked_domain_model":
+                return self._json_error(
+                    "blocked_domain_model",
+                    f"Domain path {field_path!r} traverses a blocked model.",
+                    status=403,
+                )
+            if reason == "invalid_domain":
+                return self._json_error(
+                    "invalid_domain",
+                    f"Invalid domain field {field_path!r}.",
+                    status=400,
+                )
+        return None
+
+    def _iter_domain_leaves(self, domain):
+        if not isinstance(domain, list):
+            raise ValueError("Domain must be a list.")
+        for item in domain:
+            if item in ("&", "|", "!"):
+                continue
+            # Odoo only treats 3-tuples as leaves. Nested lists are not
+            # subdomains except as the value of an any/not any operator.
+            if not (isinstance(item, list | tuple) and len(item) == 3):
+                raise ValueError("Invalid domain leaf.")
+            yield item[0]
+            if item[1] in ("any", "not any") and isinstance(item[2], list):
+                yield from self._iter_domain_leaves(item[2])
+
+    def _domain_leaf_blocked(self, records, field_path):
+        if not isinstance(field_path, str) or not field_path:
+            return "invalid_domain"
+        parts = field_path.split(".")
+        current = records
+        for index, part in enumerate(parts):
+            if _is_blocked_field(part):
+                return "blocked_domain_field"
+            field = current._fields.get(part)
+            if field is None:
+                if index < len(parts) - 1:
+                    return "invalid_domain"
+                return None
+            if index == len(parts) - 1:
+                return None
+            if field.type not in ("many2one", "one2many", "many2many"):
+                return "invalid_domain"
+            comodel_name = field.comodel_name
+            if self._is_blocked_model(comodel_name, current.env):
+                return "blocked_domain_model"
+            if comodel_name not in current.env:
+                return "invalid_domain"
+            current = current.env[comodel_name]
+        return None
+
     def _dispatch(self, records, method, params):
+        spec = AGNO_TOOLS.get(records._name, {}).get(method)
+        if spec:
+            kwargs = {name: params.get(name) for name in spec["args"]}
+            return getattr(records, method)(**kwargs)
         domain = params.get("domain") or []
         if method == "search_count":
             return records.search_count(domain)
@@ -318,6 +454,19 @@ class AgnoRpcController(http.Controller):
             browsed = records.browse([row["id"] for row in rows])
             records_by_id = {record.id: record for record in browsed}
 
+        x2many_name_maps = {}
+        for name, field in special.items():
+            if field.type not in ("one2many", "many2many"):
+                continue
+            collected = []
+            for row in rows:
+                value = row.get(name)
+                if value and len(value) <= X2MANY_NAMES_LIMIT:
+                    collected.extend(value)
+            x2many_name_maps[name] = self._x2many_name_map(
+                records.env, field, collected
+            )
+
         for row in rows:
             for name, field in special.items():
                 value = row.get(name)
@@ -334,7 +483,9 @@ class AgnoRpcController(http.Controller):
                         records_by_id.get(row["id"]), field, value
                     )
                 elif field.type in ("one2many", "many2many"):
-                    row[name] = self._format_x2many(records.env, field, value)
+                    row[name] = self._format_x2many_from_map(
+                        value, x2many_name_maps.get(name)
+                    )
                 else:  # char / text
                     row[name] = _truncate(value)
         return rows
@@ -350,15 +501,26 @@ class AgnoRpcController(http.Controller):
             return value
         return tools.formatLang(record.env, value, currency_obj=currency)
 
+    def _x2many_name_map(self, env, field, ids):
+        unique_ids = list(dict.fromkeys(ids))
+        if not unique_ids:
+            return {}
+        try:
+            names = env[field.comodel_name].browse(unique_ids).mapped("display_name")
+        except AccessError:
+            return None
+        return {
+            record_id: _truncate(name, 120)
+            for record_id, name in zip(unique_ids, names, strict=True)
+        }
+
+    def _format_x2many_from_map(self, ids, name_map):
+        if len(ids) > X2MANY_NAMES_LIMIT or name_map is None:
+            return {"count": len(ids)}
+        return [[record_id, name_map.get(record_id, "")] for record_id in ids]
+
     def _format_x2many(self, env, field, ids):
         """Replace id lists with ``[id, display_name]`` pairs (capped)."""
         if len(ids) > X2MANY_NAMES_LIMIT:
             return {"count": len(ids)}
-        try:
-            names = env[field.comodel_name].browse(ids).mapped("display_name")
-        except AccessError:
-            return {"count": len(ids)}
-        return [
-            [record_id, _truncate(name, 120)]
-            for record_id, name in zip(ids, names, strict=True)
-        ]
+        return self._format_x2many_from_map(ids, self._x2many_name_map(env, field, ids))

@@ -4,8 +4,10 @@
 """Post-install helpers for the system AI assistant bridge."""
 
 from odoo.addons.ai_agno_connector.token_utils import (
-    CONFIG_BRIDGE_AUTH_TOKEN,
-    ensure_token,
+    apply_auth_token as apply_shared_token,
+)
+from odoo.addons.ai_agno_connector.token_utils import (
+    apply_bridge_base_url,
 )
 
 ICP_KEY = "ai_agno_assistant.bridge_auth_token"
@@ -15,13 +17,9 @@ _BRIDGE_XMLIDS = ("ai_agno_assistant.ai_bridge_assistant_chat",)
 
 def apply_auth_token(env, bridge_xmlids=None):
     """Copy token (ICP or odoo.conf) onto bridges with an empty auth_token."""
-    token = ensure_token(env, ICP_KEY, CONFIG_BRIDGE_AUTH_TOKEN)
-    if not token:
-        return
-    for xmlid in bridge_xmlids or _BRIDGE_XMLIDS:
-        bridge = env.ref(xmlid, raise_if_not_found=False)
-        if bridge and not bridge.auth_token:
-            bridge.auth_token = token
+    xmlids = bridge_xmlids or _BRIDGE_XMLIDS
+    apply_shared_token(env, xmlids, ICP_KEY)
+    apply_bridge_base_url(env, xmlids)
 
 
 def post_init_hook(env):

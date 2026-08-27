@@ -49,12 +49,16 @@ Restart Odoo after changing the file. Do not commit real secrets into git.
 
 System parameters win over `odoo.conf` when set:
 
-| Key                                 | Purpose                                                           |
-| ----------------------------------- | ----------------------------------------------------------------- |
-| `ai_agno_connector.service_token`      | Bearer token expected on `/agno/rpc` (`Authorization: Bearer …`). |
-| `ai_agno_connector.max_records`        | Cap on records returned by `search_read` (default `80`).          |
-| `ai_agno_connector.allow_unsigned_rpc` | Dev only. Set to `True` to allow unsigned requests (see next).    |
-| `ai_agno_connector.unsigned_user_id`   | Dev only. User id accepted when unsigned RPC is enabled.          |
+| Key                                      | Purpose                                                                 |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| `ai_agno_connector.service_token`        | Bearer token expected on `/agno/rpc` (`Authorization: Bearer …`).       |
+| `ai_agno_connector.bridge_auth_token`    | Canonical shared token copied onto `ai.bridge` records.                 |
+| `ai_agno_connector.base_url`             | Agno origin used to rewrite leftover `http://agno:8000` URLs.           |
+| `ai_agno_connector.max_records`          | Cap on records returned by `search_read` (default `80`).                |
+| `ai_agno_connector.hmac_max_age`         | HMAC identity window in seconds (default `600`).                        |
+| `ai_agno_connector.extra_blocked_models` | Extra model names (space/comma separated) never exposed to agents.      |
+| `ai_agno_connector.allow_unsigned_rpc`   | Dev only. Set to `True` to allow unsigned requests (see next).          |
+| `ai_agno_connector.unsigned_user_id`     | Dev only. User id accepted when unsigned RPC is enabled.                |
 
 Secrets are **not** written into ICP from `odoo.conf`. In production leave
 unsigned RPC keys empty. When the unsigned bypass is used, Odoo logs a
@@ -62,8 +66,13 @@ WARNING on every accepted request — treat that as a signal to disable it.
 
 ## HMAC identity window
 
-`user_hmac` / `user_hmac_ts` are valid for **10 minutes** (`HMAC_MAX_AGE`).
-Immediate bridges (chatter, synchronous thread analysis) stay well inside
-that window. If an Agno agent queues `/agno/rpc` and runs it later than
-10 minutes after the bridge payload was built, the gateway rejects the
-call as `invalid_user`.
+`user_hmac` / `user_hmac_ts` are valid for **10 minutes** by default
+(`HMAC_MAX_AGE`). Override with `ai_agno_connector.hmac_max_age` for queued
+agents that call `/agno/rpc` later. Immediate bridges (chatter, synchronous
+thread analysis) stay well inside the default window. Expired signatures are
+rejected as `invalid_user`.
+
+Domains on `search_read` / `search_count` cannot probe credential field names
+or traverse blocked models (for example `create_uid.login`). `ir.*` models are
+blocked for generic reads; extend the list with
+`ai_agno_connector.extra_blocked_models`.

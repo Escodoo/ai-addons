@@ -39,8 +39,10 @@ helpers on dedicated models may be allowlisted (for example
 ``prepare_purchase_order``, ``prepare_opportunity``,
 ``prepare_helpdesk_ticket``, ``prepare_sale_order``,
 ``prepare_timesheet``) — never generic ``create`` / ``write`` /
-``unlink``. Sensitive models and credential field names are blocked
-regardless of the caller's own rights.
+``unlink``. Sensitive models (``ir.*`` plus a credential allowlist),
+credential field names, and domain paths that traverse those models are
+blocked regardless of the caller's own rights. Extra models can be
+blocked via ICP.
 
 When adding a new assistant helper, update this allowlist together with
 the Agno ``AssistantTools`` toolkit (see Usage).
@@ -122,24 +124,38 @@ Optional ICP override
 
 System parameters win over ``odoo.conf`` when set:
 
-+------------------------------------------+----------------------------------+
-| Key                                      | Purpose                          |
-+==========================================+==================================+
-| ``ai_agno_connector.service_token``      | Bearer token expected on         |
-|                                          | ``/agno/rpc``                    |
-|                                          | (``Authorization: Bearer …``).   |
-+------------------------------------------+----------------------------------+
-| ``ai_agno_connector.max_records``        | Cap on records returned by       |
-|                                          | ``search_read`` (default         |
-|                                          | ``80``).                         |
-+------------------------------------------+----------------------------------+
-| ``ai_agno_connector.allow_unsigned_rpc`` | Dev only. Set to ``True`` to     |
-|                                          | allow unsigned requests (see     |
-|                                          | next).                           |
-+------------------------------------------+----------------------------------+
-| ``ai_agno_connector.unsigned_user_id``   | Dev only. User id accepted when  |
-|                                          | unsigned RPC is enabled.         |
-+------------------------------------------+----------------------------------+
++--------------------------------------------+----------------------------------+
+| Key                                        | Purpose                          |
++============================================+==================================+
+| ``ai_agno_connector.service_token``        | Bearer token expected on         |
+|                                            | ``/agno/rpc``                    |
+|                                            | (``Authorization: Bearer …``).   |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.bridge_auth_token``    | Canonical shared token copied    |
+|                                            | onto ``ai.bridge`` records.      |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.base_url``             | Agno origin used to rewrite      |
+|                                            | leftover ``http://agno:8000``    |
+|                                            | URLs.                            |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.max_records``          | Cap on records returned by       |
+|                                            | ``search_read`` (default         |
+|                                            | ``80``).                         |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.hmac_max_age``         | HMAC identity window in seconds  |
+|                                            | (default ``600``).               |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.extra_blocked_models`` | Extra model names (space/comma   |
+|                                            | separated) never exposed to      |
+|                                            | agents.                          |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.allow_unsigned_rpc``   | Dev only. Set to ``True`` to     |
+|                                            | allow unsigned requests (see     |
+|                                            | next).                           |
++--------------------------------------------+----------------------------------+
+| ``ai_agno_connector.unsigned_user_id``     | Dev only. User id accepted when  |
+|                                            | unsigned RPC is enabled.         |
++--------------------------------------------+----------------------------------+
 
 Secrets are **not** written into ICP from ``odoo.conf``. In production
 leave unsigned RPC keys empty. When the unsigned bypass is used, Odoo
@@ -149,11 +165,16 @@ disable it.
 HMAC identity window
 --------------------
 
-``user_hmac`` / ``user_hmac_ts`` are valid for **10 minutes**
-(``HMAC_MAX_AGE``). Immediate bridges (chatter, synchronous thread
-analysis) stay well inside that window. If an Agno agent queues
-``/agno/rpc`` and runs it later than 10 minutes after the bridge payload
-was built, the gateway rejects the call as ``invalid_user``.
+``user_hmac`` / ``user_hmac_ts`` are valid for **10 minutes** by default
+(``HMAC_MAX_AGE``). Override with ``ai_agno_connector.hmac_max_age`` for
+queued agents that call ``/agno/rpc`` later. Immediate bridges (chatter,
+synchronous thread analysis) stay well inside the default window.
+Expired signatures are rejected as ``invalid_user``.
+
+Domains on ``search_read`` / ``search_count`` cannot probe credential
+field names or traverse blocked models (for example
+``create_uid.login``). ``ir.*`` models are blocked for generic reads;
+extend the list with ``ai_agno_connector.extra_blocked_models``.
 
 Usage
 =====
@@ -188,9 +209,14 @@ Typed model allowlist (``ALLOWED_MODEL_METHODS``)
 -------------------------------------------------
 
 ``/agno/rpc`` never exposes generic ``create`` / ``write`` / ``unlink``.
-Extra write helpers must be listed explicitly in ``controllers/main.py``
-→ ``ALLOWED_MODEL_METHODS`` **and** dispatched with an explicit argument
-map in ``_dispatch``.
+Extra write helpers must be listed explicitly: decorate the
+``ai.assistant`` method with ``@agno_tool`` (name, allowed kwargs,
+description). ``_dispatch`` then forwards only those kwargs. A static
+fallback allowlist remains for the generic read methods.
+
+``GET /agno/tools`` (same bearer token as ``/agno/rpc``) returns the
+catalog. The Agno service consumes it on boot so ``AssistantTools`` and
+prompt fragments stay in sync without a matching edit in four places.
 
 Current assistant surface (``model=ai.assistant``):
 
@@ -213,28 +239,19 @@ Agno service toolkit ``AssistantTools``
 Checklist when adding a new ``prepare_*`` (or similar) helper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Keep all layers in sync in the same change set (separate commits per
-addon / repo):
-
 1. **Odoo ``ai_agno_assistant``** — implement ``@api.model`` helper on
-   ``ai.assistant`` (draft-only, ACL-aware, return a JSON-serializable
-   dict with a stable ``*_unavailable`` / ``*_ambiguous`` error shape
-   when needed).
-2. **This module (``ai_agno_connector``)** — add the method name to
-   ``ALLOWED_MODEL_METHODS["ai.assistant"]`` and a dedicated branch in
-   ``_dispatch`` that passes only known kwargs (do not forward the raw
-   JSON body).
-3. **Agno service** — register a tool on ``AssistantTools``, call
-   ``_rpc_sync("<method>", …)``, and document the tool in
-   ``app/prompts/assistant.py`` (systray) and ``app/prompts/chatter.py``
-   (``erp`` persona) when the agent should use it.
-4. **Tests** — cover the allowlist/dispatch path in
+   ``ai.assistant`` with ``@agno_tool`` (draft-only, ACL-aware,
+   JSON-serializable dict with a stable ``*_unavailable`` /
+   ``*_ambiguous`` error shape).
+2. **Agno service** — add a thin wrapper on ``AssistantTools`` if the
+   method needs extra validation; the catalog + prompt fragment are
+   loaded from ``GET /agno/tools`` on boot.
+3. **Tests** — cover the allowlist/dispatch path in
    ``ai_agno_connector`` / ``ai_agno_assistant``, and the tool RPC
    wiring in Agno.
 
-If any of those layers is missing, the agent either gets
-``method_not_allowed`` from Odoo or invents unsafe workarounds in the
-prompt.
+If the decorator is missing, the agent gets ``method_not_allowed`` from
+Odoo.
 
 Bug Tracker
 ===========

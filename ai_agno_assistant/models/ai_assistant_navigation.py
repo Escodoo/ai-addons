@@ -8,6 +8,8 @@ from odoo import api, models
 from odoo.exceptions import AccessError
 from odoo.osv import expression
 
+from odoo.addons.ai_agno_connector.tool_registry import agno_tool
+
 _logger = logging.getLogger(__name__)
 
 # Models the assistant may open via open_record (navigation / draft review).
@@ -336,21 +338,47 @@ class AiAssistantNavigation(models.AbstractModel):
         return domain or [("id", "=", False)]
 
     @api.model
-    def _navigation_menu_result(self, menu, visible_ids):
+    def _prefetch_external_ids(self, recordsets):
+        """Batch xml ids for one or more recordsets into ``{(model, id): xmlid}``."""
+        cache = {}
+        for records in recordsets:
+            if not records:
+                continue
+            for rec_id, xmlid in records.get_external_id().items():
+                cache[(records._name, rec_id)] = xmlid or False
+        return cache
+
+    @api.model
+    def _xmlid_from_cache(self, cache, model_name, rec_id, record=None):
+        """Return a cached xmlid, or look it up once on cache miss."""
+        if not model_name or not rec_id:
+            return False
+        key = (model_name, rec_id)
+        if key in cache:
+            return cache[key] or False
+        if record is None:
+            return False
+        xmlid = record.get_external_id().get(rec_id) or False
+        cache[key] = xmlid
+        return xmlid
+
+    @api.model
+    def _navigation_menu_result(self, menu, visible_ids, xmlid_cache=None):
         """Build one navigation hit from a visible menu, or False if unusable."""
         if menu.id not in visible_ids:
             return False
         action_dict = self._resolve_menu_to_action(menu, visible_ids)
         if not action_dict:
             return False
-        menu_xml = menu.get_external_id().get(menu.id) or False
+        xmlid_cache = xmlid_cache or {}
+        menu_xml = self._xmlid_from_cache(xmlid_cache, menu._name, menu.id, record=menu)
         action_xml = False
         action_type = action_dict.get("type")
         action_id = action_dict.get("id")
         if action_type and action_id and action_type in self.env:
-            action_xml = (
-                self.env[action_type].browse(action_id).get_external_id().get(action_id)
-                or False
+            action_record = self.env[action_type].browse(action_id)
+            action_xml = self._xmlid_from_cache(
+                xmlid_cache, action_type, action_id, record=action_record
             )
         suggested = False
         if menu_xml:
@@ -374,11 +402,15 @@ class AiAssistantNavigation(models.AbstractModel):
         }
 
     @api.model
-    def _append_menu_navigation_results(self, menus, visible_ids, results, seen, limit):
+    def _append_menu_navigation_results(
+        self, menus, visible_ids, results, seen, limit, xmlid_cache=None
+    ):
         for menu in menus:
             if len(results) >= limit:
                 break
-            entry = self._navigation_menu_result(menu, visible_ids)
+            entry = self._navigation_menu_result(
+                menu, visible_ids, xmlid_cache=xmlid_cache
+            )
             if not entry:
                 continue
             key = entry.pop("_dedupe_key")
@@ -393,10 +425,11 @@ class AiAssistantNavigation(models.AbstractModel):
             return
         action_domain = self._menu_domain_for_terms(terms)
         windows = self.env["ir.actions.act_window"].search(action_domain, limit=limit)
+        window_xmlids = windows.get_external_id()
         for act in windows:
             if len(results) >= limit:
                 break
-            xml = act.get_external_id().get(act.id)
+            xml = window_xmlids.get(act.id)
             if not xml or xml in seen:
                 continue
             try:
@@ -417,6 +450,11 @@ class AiAssistantNavigation(models.AbstractModel):
                 }
             )
 
+    @agno_tool(
+        "ai.assistant",
+        args=("query", "limit"),
+        description="Find menus/actions the user can open.",
+    )
     @api.model
     def find_navigation(self, query=None, limit=8):
         """Search menus/actions the current user can open.
@@ -444,9 +482,23 @@ class AiAssistantNavigation(models.AbstractModel):
         for lang in {self.env.user.lang or "en_US", "en_US"}:
             menus |= Menu.with_context(lang=lang).search(domain, limit=limit * 4)
 
+        action_ids_by_model = {}
+        for menu in menus:
+            action = menu.action
+            if action:
+                action_ids_by_model.setdefault(action._name, set()).add(action.id)
+        action_sets = [
+            self.env[model_name].browse(list(ids))
+            for model_name, ids in action_ids_by_model.items()
+            if model_name in self.env
+        ]
+        xmlid_cache = self._prefetch_external_ids([menus, *action_sets])
+
         results = []
         seen = set()
-        self._append_menu_navigation_results(menus, visible_ids, results, seen, limit)
+        self._append_menu_navigation_results(
+            menus, visible_ids, results, seen, limit, xmlid_cache=xmlid_cache
+        )
         self._append_window_navigation_results(terms, results, seen, limit)
 
         if not results:

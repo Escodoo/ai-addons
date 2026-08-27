@@ -29,9 +29,9 @@ class AiBridgeExecution(models.Model):
         """Return the Agno payload to the systray OWL caller."""
         self.ensure_one()
         if not isinstance(response, dict):
-            return {"body": "", "body_is_html": True, "actions": []}
+            return {"body": "", "body_is_html": False, "actions": []}
         return {
             "body": response.get("body") or "",
-            "body_is_html": bool(response.get("body_is_html", True)),
+            "body_is_html": bool(response.get("body_is_html", False)),
             "actions": response.get("actions") or [],
         }

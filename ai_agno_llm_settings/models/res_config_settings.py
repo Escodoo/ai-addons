@@ -9,8 +9,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.ai_agno_connector.token_utils import (
-    CONFIG_BRIDGE_AUTH_TOKEN,
-    ensure_token,
+    ensure_bridge_token,
+    get_agno_base_url,
 )
 
 _logger = logging.getLogger(__name__)
@@ -282,11 +282,13 @@ class ResConfigSettings(models.TransientModel):
         return super().set_values()
 
     def _get_agno_base_url(self):
-        """Return Agno base URL from ICP, or the Docker Compose default."""
+        """Return Agno base URL from module ICP, shared ICP, or Docker default."""
         configured = (
             self.env["ir.config_parameter"].sudo().get_param(ICP_AGNO_BASE_URL) or ""
         ).strip()
-        return configured or DEFAULT_AGNO_BASE_URL
+        if configured:
+            return configured.rstrip("/")
+        return get_agno_base_url(self.env)
 
     def action_reindex_agno_knowledge(self):
         """Call Agno to wipe/rebuild business KBs, then sync document.pages.
@@ -297,7 +299,7 @@ class ResConfigSettings(models.TransientModel):
         # Persist current form values (including embedder BYOK) before Agno runs.
         self.set_values()
 
-        token = ensure_token(self.env, ICP_BRIDGE_AUTH_TOKEN, CONFIG_BRIDGE_AUTH_TOKEN)
+        token = ensure_bridge_token(self.env, ICP_BRIDGE_AUTH_TOKEN)
         if not token:
             raise UserError(
                 _(
@@ -309,7 +311,7 @@ class ResConfigSettings(models.TransientModel):
 
         execution = self.env["ai.bridge.execution"].new({})
         embedder = execution._get_agno_embedder_settings()
-        payload = {"_odoo": {}}
+        payload = {"_odoo": {"user_id": self.env.user.id}}
         if embedder:
             payload["_odoo"]["embedder"] = embedder
 
@@ -371,7 +373,7 @@ class ResConfigSettings(models.TransientModel):
 
         message = _(
             "Business knowledge bases were reindexed "
-            "(support, legal, processes, commercial, public). "
+            "(support, legal, processes, hr, commercial, public). "
             "The architect KB was not modified."
         )
         if synced_pages:

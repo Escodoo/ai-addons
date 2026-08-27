@@ -113,7 +113,7 @@ class TestAiAssistantBridges(TransactionCase):
         )
         empty = execution._process_response_assistant("not-a-dict")
         self.assertEqual(empty["body"], "")
-        self.assertTrue(empty["body_is_html"])
+        self.assertFalse(empty["body_is_html"])
         self.assertEqual(empty["actions"], [])
 
         payload = execution._process_response_assistant(
@@ -129,5 +129,5 @@ class TestAiAssistantBridges(TransactionCase):
 
         defaults = execution._process_response_assistant({})
         self.assertEqual(defaults["body"], "")
-        self.assertTrue(defaults["body_is_html"])
+        self.assertFalse(defaults["body_is_html"])
         self.assertEqual(defaults["actions"], [])

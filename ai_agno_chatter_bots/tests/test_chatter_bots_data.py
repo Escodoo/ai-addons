@@ -12,20 +12,20 @@ class TestAgnoChatterBotsData(TransactionCase):
         expected = (
             ("ai_bridge_chatter_erp", "user_bot_erp", "bot.erp", "erp"),
             ("ai_bridge_chatter_ops", "user_bot_ops", "bot.ops", "ops"),
-            ("ai_bridge_chatter_hr", "user_bot_hr", "bot.rh", "hr"),
+            ("ai_bridge_chatter_hr", "user_bot_hr", "bot.hr", "hr"),
             (
                 "ai_bridge_chatter_finance",
                 "user_bot_finance",
-                "bot.financeiro",
+                "bot.finance",
                 "finance",
             ),
             (
                 "ai_bridge_chatter_support",
                 "user_bot_support",
-                "bot.suporte",
+                "bot.support",
                 "support",
             ),
-            ("ai_bridge_chatter_sales", "user_bot_sales", "bot.comercial", "sales"),
+            ("ai_bridge_chatter_sales", "user_bot_sales", "bot.sales", "sales"),
             (
                 "ai_bridge_chatter_marketing",
                 "user_bot_marketing",
@@ -95,3 +95,13 @@ class TestAgnoChatterBotsData(TransactionCase):
         )
         post_init_hook(self.env)
         self.assertEqual(bridge.auth_token, "keep-me")
+
+    def test_rename_legacy_bot_identities(self):
+        from ..hooks import rename_legacy_bot_identities
+
+        user = self.env.ref("ai_agno_chatter_bots.user_bot_hr")
+        user.login = "bot.rh"
+        user.name = "Bot RH"
+        rename_legacy_bot_identities(self.env)
+        self.assertEqual(user.login, "bot.hr")
+        self.assertEqual(user.name, "Bot HR")

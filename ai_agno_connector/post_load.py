@@ -25,7 +25,7 @@ def post_load():
         session, dbname = _get_session_and_dbname_orig(self)
         if (
             not dbname
-            and self.httprequest.path == "/agno/rpc"
+            and self.httprequest.path in ("/agno/rpc", "/agno/tools")
             and self.httprequest.args.get("db")
         ):
             dbname = self.httprequest.args["db"]

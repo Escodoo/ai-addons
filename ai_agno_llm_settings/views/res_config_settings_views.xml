@@ -153,7 +153,7 @@
                                         type="object"
                                         string="Reindex knowledge bases"
                                         class="btn-secondary"
-                                        confirm="This deletes and rebuilds the business knowledge bases (support, legal, processes, commercial, public) with the current embedder, then re-syncs tagged document.page records. The architect KB is not modified. Continue?"
+                                        confirm="This deletes and rebuilds the business knowledge bases (support, legal, processes, hr, commercial, public) with the current embedder, then re-syncs tagged document.page records. The architect KB is not modified. Continue?"
                                     />
                                     <div class="text-muted mt8">
                                         Use after changing embedder model, provider,

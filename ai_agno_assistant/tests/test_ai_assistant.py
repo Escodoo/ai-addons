@@ -652,6 +652,41 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(entry["suggested_action"]["type"], "open_action_ref")
         self.assertEqual(entry["suggested_action"]["action_id"], action.id)
 
+    def test_xmlid_cache_helpers(self):
+        empty = self.Assistant._prefetch_external_ids([self.env["ir.ui.menu"].browse()])
+        self.assertEqual(empty, {})
+        self.assertFalse(self.Assistant._xmlid_from_cache({}, "", 1))
+        self.assertFalse(self.Assistant._xmlid_from_cache({}, "ir.ui.menu", 0))
+        self.assertFalse(self.Assistant._xmlid_from_cache({}, "ir.ui.menu", 1))
+        cache = {("ir.ui.menu", self.stable_menu.id): False}
+        self.assertFalse(
+            self.Assistant._xmlid_from_cache(cache, "ir.ui.menu", self.stable_menu.id)
+        )
+        cache = {}
+        xmlid = self.Assistant._xmlid_from_cache(
+            cache, self.stable_menu._name, self.stable_menu.id, record=self.stable_menu
+        )
+        self.assertEqual(xmlid, self._STABLE_MENU_XMLID)
+        self.assertEqual(
+            cache[(self.stable_menu._name, self.stable_menu.id)],
+            self._STABLE_MENU_XMLID,
+        )
+
+    def test_navigation_menu_result_unknown_action_type(self):
+        menu = self.stable_menu
+        with (
+            mock.patch.object(
+                type(self.Assistant),
+                "_resolve_menu_to_action",
+                return_value={"type": "ir.actions.missing", "id": 99},
+            ),
+            mock.patch.object(type(menu), "get_external_id", return_value={}),
+        ):
+            entry = self.Assistant._navigation_menu_result(menu, {menu.id})
+        self.assertFalse(entry["action_xml_id"])
+        self.assertEqual(entry["suggested_action"]["type"], "open_action_ref")
+        self.assertEqual(entry["suggested_action"]["action_type"], "ir.actions.missing")
+
     def test_append_menu_navigation_dedupe_and_skip(self):
         menu = self.stable_menu
         results = []
@@ -855,8 +890,8 @@ class TestAiAssistantSanitize(TransactionCase):
             side_effect=_fake_bridge,
         ):
             result = self.Assistant.action_ai_chat(message="hi")
-        self.assertTrue(result["body_is_html"])
-        self.assertIn("Hi", result["body"])
+        self.assertFalse(result["body_is_html"])
+        self.assertIn("&lt;p&gt;Hi&lt;/p&gt;", result["body"])
 
     def test_run_assistant_bridge_not_configured(self):
         with mock.patch.object(

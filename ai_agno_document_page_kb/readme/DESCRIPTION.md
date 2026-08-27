@@ -12,8 +12,10 @@ bases to search.
 
 A post-install hook applies the bridge auth token (ICP override or odoo.conf
 `agno_bridge_auth_token` from `conf.d`) to bridges with an empty token,
-rewrites each bridge domain / field list, then upserts all matching content
-pages (demo and pre-existing) into Agno.
+rewrites each bridge domain / field list, then schedules an upsert of matching content pages (demo and pre-existing)
+into Agno. The upsert runs through ``queue_job`` when that module is
+installed, so module installation does not wait on HTTP. Writes on tagged
+pages use the same queue when available.
 
 This bridge targets the companion **Agno service**
 ([Escodoo/agno-odoo](https://github.com/Escodoo/agno-odoo)), which exposes the

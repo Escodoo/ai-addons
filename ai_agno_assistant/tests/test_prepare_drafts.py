@@ -94,6 +94,17 @@ class TestPrepareDrafts(TransactionCase):
         self.assertEqual(ticket.partner_id, self.partner)
         self.assertEqual(result["open_record"]["model"], "helpdesk.ticket")
 
+    def test_prepare_helpdesk_ticket_sanitizes_html(self):
+        self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
+        result = self.Assistant.prepare_helpdesk_ticket(
+            name="<img src=x onerror=alert(1)>Ticket",
+            description="<script>alert(1)</script><p>Safe</p>",
+        )
+        self.assertNotIn("error", result)
+        ticket = self.env["helpdesk.ticket"].browse(result["ticket_id"])
+        self.assertNotIn("script", (ticket.description or "").lower())
+        self.assertNotIn("onerror", (ticket.description or "").lower())
+
     def test_prepare_helpdesk_ticket_missing_name(self):
         self._require_models("helpdesk.ticket", reason="Helpdesk app is not installed")
         result = self.Assistant.prepare_helpdesk_ticket(description="x")
@@ -699,3 +710,39 @@ class TestPrepareDrafts(TransactionCase):
                 unit_amount=1,
             )
         self.assertEqual(result.get("error"), "access_denied")
+
+    def test_sanitize_draft_html_empty_and_fallback(self):
+        sanitize = self.Assistant._sanitize_draft_html
+        self.assertEqual(sanitize(None, 100), "")
+        self.assertEqual(sanitize("   ", 100), "")
+        self.assertEqual(sanitize(42, 100), "")
+        html_value = sanitize("<p>ok</p><script>alert(1)</script>", 4000)
+        self.assertIn("ok", html_value)
+        self.assertNotIn("<script", html_value.lower())
+        fallback = sanitize(None, 100, fallback="<p>fallback</p>")
+        self.assertIn("fallback", fallback)
+
+    def test_resolve_by_id_or_name_pick_unique_and_candidate_extra(self):
+        Partner = self.env["res.partner"]
+        alpha = Partner.create({"name": "AI Twin Resolver Alpha"})
+        Partner.create({"name": "AI Twin Resolver Beta"})
+        chosen = self.Assistant._resolve_by_id_or_name(
+            Partner,
+            "AI Twin Resolver",
+            role="partner",
+            pick_unique=lambda recs, _name: recs.filtered(
+                lambda rec: rec.name.endswith("Alpha")
+            ),
+        )
+        self.assertEqual(chosen, alpha)
+
+        result = self.Assistant._resolve_by_id_or_name(
+            Partner,
+            "AI Twin Resolver",
+            role="partner",
+            pick_unique=lambda _recs, _name: None,
+            candidate_extra=lambda rec: {"ref": rec.ref or False},
+        )
+        self.assertEqual(result.get("error"), "partner_ambiguous")
+        self.assertGreaterEqual(len(result.get("candidates") or []), 2)
+        self.assertTrue(all("ref" in item for item in result["candidates"]))

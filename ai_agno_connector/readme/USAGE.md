@@ -22,9 +22,14 @@ returned.
 ## Typed model allowlist (`ALLOWED_MODEL_METHODS`)
 
 `/agno/rpc` never exposes generic `create` / `write` / `unlink`. Extra write
-helpers must be listed explicitly in
-`controllers/main.py` → `ALLOWED_MODEL_METHODS` **and** dispatched with an
-explicit argument map in `_dispatch`.
+helpers must be listed explicitly: decorate the `ai.assistant` method with
+`@agno_tool` (name, allowed kwargs, description). `_dispatch` then forwards
+only those kwargs. A static fallback allowlist remains for the generic
+read methods.
+
+`GET /agno/tools` (same bearer token as `/agno/rpc`) returns the catalog.
+The Agno service consumes it on boot so `AssistantTools` and prompt
+fragments stay in sync without a matching edit in four places.
 
 Current assistant surface (`model=ai.assistant`):
 
@@ -43,22 +48,13 @@ service toolkit `AssistantTools` (`app/tools/assistant_tools.py` in
 
 ### Checklist when adding a new `prepare_*` (or similar) helper
 
-Keep all layers in sync in the same change set (separate commits per addon /
-repo):
-
 1. **Odoo `ai_agno_assistant`** — implement `@api.model` helper on
-   `ai.assistant` (draft-only, ACL-aware, return a JSON-serializable dict with
-   a stable `*_unavailable` / `*_ambiguous` error shape when needed).
-2. **This module (`ai_agno_connector`)** — add the method name to
-   `ALLOWED_MODEL_METHODS["ai.assistant"]` and a dedicated branch in
-   `_dispatch` that passes only known kwargs (do not forward the raw JSON
-   body).
-3. **Agno service** — register a tool on `AssistantTools`, call
-   `_rpc_sync("<method>", …)`, and document the tool in
-   `app/prompts/assistant.py` (systray) and `app/prompts/chatter.py` (`erp`
-   persona) when the agent should use it.
-4. **Tests** — cover the allowlist/dispatch path in
-   `ai_agno_connector` / `ai_agno_assistant`, and the tool RPC wiring in Agno.
+   `ai.assistant` with `@agno_tool` (draft-only, ACL-aware, JSON-serializable
+   dict with a stable `*_unavailable` / `*_ambiguous` error shape).
+2. **Agno service** — add a thin wrapper on `AssistantTools` if the method
+   needs extra validation; the catalog + prompt fragment are loaded from
+   `GET /agno/tools` on boot.
+3. **Tests** — cover the allowlist/dispatch path in `ai_agno_connector` /
+   `ai_agno_assistant`, and the tool RPC wiring in Agno.
 
-If any of those layers is missing, the agent either gets `method_not_allowed`
-from Odoo or invents unsafe workarounds in the prompt.
+If the decorator is missing, the agent gets `method_not_allowed` from Odoo.

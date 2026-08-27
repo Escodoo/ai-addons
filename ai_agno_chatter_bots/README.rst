@@ -80,16 +80,16 @@ Default URLs (reachable from the Odoo container):
 | Bot Ops              | Agno Chatter Ops     | ``http://agno:8000/bridge/chatter/ops``       |
 | (``bot.ops``)        |                      |                                               |
 +----------------------+----------------------+-----------------------------------------------+
-| Bot RH (``bot.rh``)  | Agno Chatter HR      | ``http://agno:8000/bridge/chatter/hr``        |
+| Bot HR (``bot.hr``)  | Agno Chatter HR      | ``http://agno:8000/bridge/chatter/hr``        |
 +----------------------+----------------------+-----------------------------------------------+
-| Bot Financeiro       | Agno Chatter Finance | ``http://agno:8000/bridge/chatter/finance``   |
-| (``bot.financeiro``) |                      |                                               |
+| Bot Finance          | Agno Chatter Finance | ``http://agno:8000/bridge/chatter/finance``   |
+| (``bot.finance``)    |                      |                                               |
 +----------------------+----------------------+-----------------------------------------------+
-| Bot Suporte          | Agno Chatter Support | ``http://agno:8000/bridge/chatter/support``   |
-| (``bot.suporte``)    |                      |                                               |
+| Bot Support          | Agno Chatter Support | ``http://agno:8000/bridge/chatter/support``   |
+| (``bot.support``)    |                      |                                               |
 +----------------------+----------------------+-----------------------------------------------+
-| Bot Comercial        | Agno Chatter Sales   | ``http://agno:8000/bridge/chatter/sales``     |
-| (``bot.comercial``)  |                      |                                               |
+| Bot Sales            | Agno Chatter Sales   | ``http://agno:8000/bridge/chatter/sales``     |
+| (``bot.sales``)      |                      |                                               |
 +----------------------+----------------------+-----------------------------------------------+
 | Bot Marketing        | Agno Chatter         | ``http://agno:8000/bridge/chatter/marketing`` |
 | (``bot.marketing``)  | Marketing            |                                               |
