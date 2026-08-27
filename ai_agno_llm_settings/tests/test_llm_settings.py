@@ -497,6 +497,7 @@ class TestAgnoLlmSettings(TransactionCase):
             self.assertEqual(
                 kwargs["json"]["_odoo"]["embedder"]["model"], "qwen3-embedding:0.6b"
             )
+            self.assertEqual(kwargs["json"]["_odoo"]["user_id"], self.env.user.id)
             self.assertNotIn("architect", kwargs["json"])
         self.assertEqual(result["type"], "ir.actions.client")
         self.assertEqual(result["tag"], "display_notification")
@@ -538,7 +539,7 @@ class TestAgnoLlmSettings(TransactionCase):
         self.icp.set_param(ICP_BRIDGE_AUTH_TOKEN, "")
         settings = self.env["res.config.settings"].create({})
         with mock.patch(
-            "odoo.addons.ai_agno_llm_settings.models.res_config_settings.ensure_token",
+            "odoo.addons.ai_agno_llm_settings.models.res_config_settings.ensure_bridge_token",
             return_value="",
         ):
             with self.assertRaises(UserError):
