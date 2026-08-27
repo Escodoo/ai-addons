@@ -13,6 +13,7 @@ from odoo.addons.ai_agno_connector.controllers.main import (
     TEXT_TRUNCATE_LIMIT,
     X2MANY_NAMES_LIMIT,
     AgnoRpcController,
+    _secure_compare,
     _truncate,
 )
 from odoo.addons.ai_agno_connector.models.ai_bridge_execution import HMAC_SCOPE
@@ -156,7 +157,7 @@ class TestAgnoRpcCoverage(HttpCase):
             AgnoRpcController, "_dispatch", side_effect=AccessError("denied")
         ):
             resp = self._rpc(payload)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.json().get("error"), "access_denied")
 
     @mute_logger("odoo.addons.ai_agno_connector.controllers.main")
@@ -278,6 +279,36 @@ class TestAgnoRpcFormatters(HttpCase):
         truncated = _truncate(long_value)
         self.assertTrue(truncated.endswith("..."))
         self.assertEqual(len(truncated), TEXT_TRUNCATE_LIMIT)
+
+    def test_secure_compare(self):
+        self.assertTrue(_secure_compare("abc", "abc"))
+        self.assertFalse(_secure_compare("abc", "ab"))
+        self.assertFalse(_secure_compare("abc", "abd"))
+        self.assertFalse(_secure_compare(None, "abc"))
+
+    def test_domain_leaf_helpers(self):
+        controller = AgnoRpcController()
+        partner = self.env["res.partner"]
+        self.assertEqual(
+            list(
+                controller._iter_domain_leaves(
+                    ["|", ("name", "=", "A"), ("id", "=", 1)]
+                )
+            ),
+            ["name", "id"],
+        )
+        self.assertEqual(
+            controller._domain_leaf_blocked(partner, "signup_token"),
+            "blocked_domain_field",
+        )
+        self.assertEqual(
+            controller._domain_leaf_blocked(partner, "create_uid.login"),
+            "blocked_domain_model",
+        )
+        self.assertIsNone(controller._domain_leaf_blocked(partner, "create_uid"))
+        self.assertIsNone(controller._domain_leaf_blocked(partner, "name"))
+        with self.assertRaises(ValueError):
+            list(controller._iter_domain_leaves("name"))
 
     def test_format_monetary_with_and_without_currency(self):
         controller = AgnoRpcController()

@@ -171,3 +171,87 @@ class TestAgnoRpc(HttpCase):
         for row in data["result"]:
             self.assertNotIn("password", row)
             self.assertNotIn("signup_token", row)
+
+    def test_blocked_domain_field(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="search_count",
+            domain=[("signup_token", "!=", False)],
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.json().get("error"), "blocked_domain_field")
+
+    def test_blocked_domain_traversal(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="search_count",
+            domain=[("create_uid.login", "=", "admin")],
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.json().get("error"), "blocked_domain_model")
+
+    def test_relational_id_filter_on_blocked_comodel_allowed(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="search_count",
+            domain=[("create_uid", "=", self.rpc_user.id)],
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("result", resp.json())
+
+    def test_invalid_domain_rejected(self):
+        payload = self._signed_payload(
+            self.rpc_user, method="search_count", domain="name"
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_domain")
+
+    def test_ir_prefix_blocked(self):
+        payload = self._signed_payload(
+            self.rpc_user, model="ir.ui.menu", method="search_count", domain=[]
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.json().get("error"), "model_not_allowed")
+
+    def test_extra_blocked_models_icp(self):
+        self._set_icp({"ai_agno_connector.extra_blocked_models": "res.partner"})
+        try:
+            payload = self._signed_payload(self.rpc_user)
+            resp = self._rpc(payload)
+            self.assertEqual(resp.status_code, 403)
+            self.assertEqual(resp.json().get("error"), "model_not_allowed")
+        finally:
+            self._set_icp({"ai_agno_connector.extra_blocked_models": ""})
+
+    def test_tools_catalog_requires_token(self):
+        url = f"{self.base_url()}/agno/tools?db={self.env.cr.dbname}"
+        resp = self.opener.get(url, timeout=30)
+        self.assertEqual(resp.status_code, 401)
+
+    def test_tools_catalog_ok(self):
+        url = f"{self.base_url()}/agno/tools?db={self.env.cr.dbname}"
+        resp = self.opener.get(url, headers=self._headers(), timeout=30)
+        self.assertEqual(resp.status_code, 200)
+        tools = resp.json().get("tools")
+        self.assertIsInstance(tools, list)
+
+    def test_hmac_max_age_icp(self):
+        self._set_icp({"ai_agno_connector.hmac_max_age": "5"})
+        try:
+            payload = self._signed_payload(self.rpc_user)
+            payload["user_hmac_ts"] = int(time.time()) - 10
+            payload["user_hmac"] = odoo_hmac(
+                self.env(su=True),
+                HMAC_SCOPE,
+                (self.rpc_user.id, payload["user_hmac_ts"]),
+            )
+            resp = self._rpc(payload)
+            self.assertEqual(resp.status_code, 403)
+            self.assertEqual(resp.json().get("error"), "invalid_user")
+        finally:
+            self._set_icp({"ai_agno_connector.hmac_max_age": ""})

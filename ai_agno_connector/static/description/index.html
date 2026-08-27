@@ -385,8 +385,10 @@ helpers on dedicated models may be allowlisted (for example
 <tt class="docutils literal">prepare_purchase_order</tt>, <tt class="docutils literal">prepare_opportunity</tt>,
 <tt class="docutils literal">prepare_helpdesk_ticket</tt>, <tt class="docutils literal">prepare_sale_order</tt>,
 <tt class="docutils literal">prepare_timesheet</tt>) — never generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> /
-<tt class="docutils literal">unlink</tt>. Sensitive models and credential field names are blocked
-regardless of the caller’s own rights.</p>
+<tt class="docutils literal">unlink</tt>. Sensitive models (<tt class="docutils literal">ir.*</tt> plus a credential allowlist),
+credential field names, and domain paths that traverse those models are
+blocked regardless of the caller’s own rights. Extra models can be
+blocked via ICP.</p>
 <p>When adding a new assistant helper, update this allowlist together with
 the Agno <tt class="docutils literal">AssistantTools</tt> toolkit (see Usage).</p>
 <p>This bridge targets the companion <strong>Agno service</strong>
@@ -487,8 +489,8 @@ commit real secrets into git.</p>
 <p>System parameters win over <tt class="docutils literal">odoo.conf</tt> when set:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="55%" />
-<col width="45%" />
+<col width="56%" />
+<col width="44%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head">Key</th>
@@ -501,10 +503,28 @@ commit real secrets into git.</p>
 <tt class="docutils literal">/agno/rpc</tt>
 (<tt class="docutils literal">Authorization: Bearer …</tt>).</td>
 </tr>
+<tr><td><tt class="docutils literal">ai_agno_connector.bridge_auth_token</tt></td>
+<td>Canonical shared token copied
+onto <tt class="docutils literal">ai.bridge</tt> records.</td>
+</tr>
+<tr><td><tt class="docutils literal">ai_agno_connector.base_url</tt></td>
+<td>Agno origin used to rewrite
+leftover <tt class="docutils literal"><span class="pre">http://agno:8000</span></tt>
+URLs.</td>
+</tr>
 <tr><td><tt class="docutils literal">ai_agno_connector.max_records</tt></td>
 <td>Cap on records returned by
 <tt class="docutils literal">search_read</tt> (default
 <tt class="docutils literal">80</tt>).</td>
+</tr>
+<tr><td><tt class="docutils literal">ai_agno_connector.hmac_max_age</tt></td>
+<td>HMAC identity window in seconds
+(default <tt class="docutils literal">600</tt>).</td>
+</tr>
+<tr><td><tt class="docutils literal">ai_agno_connector.extra_blocked_models</tt></td>
+<td>Extra model names (space/comma
+separated) never exposed to
+agents.</td>
 </tr>
 <tr><td><tt class="docutils literal">ai_agno_connector.allow_unsigned_rpc</tt></td>
 <td>Dev only. Set to <tt class="docutils literal">True</tt> to
@@ -524,11 +544,15 @@ disable it.</p>
 </div>
 <div class="section" id="hmac-identity-window">
 <h2><a class="toc-backref" href="#toc-entry-6">HMAC identity window</a></h2>
-<p><tt class="docutils literal">user_hmac</tt> / <tt class="docutils literal">user_hmac_ts</tt> are valid for <strong>10 minutes</strong>
-(<tt class="docutils literal">HMAC_MAX_AGE</tt>). Immediate bridges (chatter, synchronous thread
-analysis) stay well inside that window. If an Agno agent queues
-<tt class="docutils literal">/agno/rpc</tt> and runs it later than 10 minutes after the bridge payload
-was built, the gateway rejects the call as <tt class="docutils literal">invalid_user</tt>.</p>
+<p><tt class="docutils literal">user_hmac</tt> / <tt class="docutils literal">user_hmac_ts</tt> are valid for <strong>10 minutes</strong> by default
+(<tt class="docutils literal">HMAC_MAX_AGE</tt>). Override with <tt class="docutils literal">ai_agno_connector.hmac_max_age</tt> for
+queued agents that call <tt class="docutils literal">/agno/rpc</tt> later. Immediate bridges (chatter,
+synchronous thread analysis) stay well inside the default window.
+Expired signatures are rejected as <tt class="docutils literal">invalid_user</tt>.</p>
+<p>Domains on <tt class="docutils literal">search_read</tt> / <tt class="docutils literal">search_count</tt> cannot probe credential
+field names or traverse blocked models (for example
+<tt class="docutils literal">create_uid.login</tt>). <tt class="docutils literal">ir.*</tt> models are blocked for generic reads;
+extend the list with <tt class="docutils literal">ai_agno_connector.extra_blocked_models</tt>.</p>
 </div>
 </div>
 <div class="section" id="usage">
@@ -560,9 +584,13 @@ truncated). Blocked models (for example <tt class="docutils literal">res.users</
 <div class="section" id="typed-model-allowlist-allowed-model-methods">
 <h2><a class="toc-backref" href="#toc-entry-8">Typed model allowlist (<tt class="docutils literal">ALLOWED_MODEL_METHODS</tt>)</a></h2>
 <p><tt class="docutils literal">/agno/rpc</tt> never exposes generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> / <tt class="docutils literal">unlink</tt>.
-Extra write helpers must be listed explicitly in <tt class="docutils literal">controllers/main.py</tt>
-→ <tt class="docutils literal">ALLOWED_MODEL_METHODS</tt> <strong>and</strong> dispatched with an explicit argument
-map in <tt class="docutils literal">_dispatch</tt>.</p>
+Extra write helpers must be listed explicitly: decorate the
+<tt class="docutils literal">ai.assistant</tt> method with <tt class="docutils literal">&#64;agno_tool</tt> (name, allowed kwargs,
+description). <tt class="docutils literal">_dispatch</tt> then forwards only those kwargs. A static
+fallback allowlist remains for the generic read methods.</p>
+<p><tt class="docutils literal">GET /agno/tools</tt> (same bearer token as <tt class="docutils literal">/agno/rpc</tt>) returns the
+catalog. The Agno service consumes it on boot so <tt class="docutils literal">AssistantTools</tt> and
+prompt fragments stay in sync without a matching edit in four places.</p>
 <p>Current assistant surface (<tt class="docutils literal">model=ai.assistant</tt>):</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -601,28 +629,20 @@ Agno service toolkit <tt class="docutils literal">AssistantTools</tt>
 <a class="reference external" href="https://github.com/Escodoo/agno-odoo">Escodoo/agno-odoo</a>).</p>
 <div class="section" id="checklist-when-adding-a-new-prepare-or-similar-helper">
 <h3><a class="toc-backref" href="#toc-entry-9">Checklist when adding a new <tt class="docutils literal">prepare_*</tt> (or similar) helper</a></h3>
-<p>Keep all layers in sync in the same change set (separate commits per
-addon / repo):</p>
 <ol class="arabic simple">
 <li><strong>Odoo ``ai_agno_assistant``</strong> — implement <tt class="docutils literal">&#64;api.model</tt> helper on
-<tt class="docutils literal">ai.assistant</tt> (draft-only, ACL-aware, return a JSON-serializable
-dict with a stable <tt class="docutils literal">*_unavailable</tt> / <tt class="docutils literal">*_ambiguous</tt> error shape
-when needed).</li>
-<li><strong>This module (``ai_agno_connector``)</strong> — add the method name to
-<tt class="docutils literal"><span class="pre">ALLOWED_MODEL_METHODS[&quot;ai.assistant&quot;]</span></tt> and a dedicated branch in
-<tt class="docutils literal">_dispatch</tt> that passes only known kwargs (do not forward the raw
-JSON body).</li>
-<li><strong>Agno service</strong> — register a tool on <tt class="docutils literal">AssistantTools</tt>, call
-<tt class="docutils literal"><span class="pre">_rpc_sync(&quot;&lt;method&gt;&quot;,</span> …)</tt>, and document the tool in
-<tt class="docutils literal">app/prompts/assistant.py</tt> (systray) and <tt class="docutils literal">app/prompts/chatter.py</tt>
-(<tt class="docutils literal">erp</tt> persona) when the agent should use it.</li>
+<tt class="docutils literal">ai.assistant</tt> with <tt class="docutils literal">&#64;agno_tool</tt> (draft-only, ACL-aware,
+JSON-serializable dict with a stable <tt class="docutils literal">*_unavailable</tt> /
+<tt class="docutils literal">*_ambiguous</tt> error shape).</li>
+<li><strong>Agno service</strong> — add a thin wrapper on <tt class="docutils literal">AssistantTools</tt> if the
+method needs extra validation; the catalog + prompt fragment are
+loaded from <tt class="docutils literal">GET /agno/tools</tt> on boot.</li>
 <li><strong>Tests</strong> — cover the allowlist/dispatch path in
 <tt class="docutils literal">ai_agno_connector</tt> / <tt class="docutils literal">ai_agno_assistant</tt>, and the tool RPC
 wiring in Agno.</li>
 </ol>
-<p>If any of those layers is missing, the agent either gets
-<tt class="docutils literal">method_not_allowed</tt> from Odoo or invents unsafe workarounds in the
-prompt.</p>
+<p>If the decorator is missing, the agent gets <tt class="docutils literal">method_not_allowed</tt> from
+Odoo.</p>
 </div>
 </div>
 </div>
