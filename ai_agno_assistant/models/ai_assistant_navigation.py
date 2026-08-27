@@ -349,10 +349,18 @@ class AiAssistantNavigation(models.AbstractModel):
         return cache
 
     @api.model
-    def _xmlid_from_cache(self, cache, model_name, rec_id):
+    def _xmlid_from_cache(self, cache, model_name, rec_id, record=None):
+        """Return a cached xmlid, or look it up once on cache miss."""
         if not model_name or not rec_id:
             return False
-        return cache.get((model_name, rec_id)) or False
+        key = (model_name, rec_id)
+        if key in cache:
+            return cache[key] or False
+        if record is None:
+            return False
+        xmlid = record.get_external_id().get(rec_id) or False
+        cache[key] = xmlid
+        return xmlid
 
     @api.model
     def _navigation_menu_result(self, menu, visible_ids, xmlid_cache=None):
@@ -363,12 +371,15 @@ class AiAssistantNavigation(models.AbstractModel):
         if not action_dict:
             return False
         xmlid_cache = xmlid_cache or {}
-        menu_xml = self._xmlid_from_cache(xmlid_cache, menu._name, menu.id)
+        menu_xml = self._xmlid_from_cache(xmlid_cache, menu._name, menu.id, record=menu)
         action_xml = False
         action_type = action_dict.get("type")
         action_id = action_dict.get("id")
-        if action_type and action_id:
-            action_xml = self._xmlid_from_cache(xmlid_cache, action_type, action_id)
+        if action_type and action_id and action_type in self.env:
+            action_record = self.env[action_type].browse(action_id)
+            action_xml = self._xmlid_from_cache(
+                xmlid_cache, action_type, action_id, record=action_record
+            )
         suggested = False
         if menu_xml:
             suggested = {"type": "open_menu", "menu_xml_id": menu_xml}
