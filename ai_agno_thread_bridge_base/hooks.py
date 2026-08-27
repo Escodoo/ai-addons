@@ -9,8 +9,10 @@ when ``model_id`` is set. Child modules reuse ``apply_auth_token`` /
 """
 
 from odoo.addons.ai_agno_connector.token_utils import (
-    CONFIG_BRIDGE_AUTH_TOKEN,
-    ensure_token,
+    apply_auth_token as apply_shared_token,
+)
+from odoo.addons.ai_agno_connector.token_utils import (
+    apply_bridge_base_url,
 )
 
 ICP_KEY = "ai_agno_thread_bridge_base.bridge_auth_token"
@@ -32,13 +34,8 @@ _PARTNER_FIELD_NAMES = (
 
 def apply_auth_token(env, bridge_xmlids):
     """Copy token (ICP or odoo.conf) onto bridges with an empty auth_token."""
-    token = ensure_token(env, ICP_KEY, CONFIG_BRIDGE_AUTH_TOKEN)
-    if not token:
-        return
-    for xmlid in bridge_xmlids:
-        bridge = env.ref(xmlid, raise_if_not_found=False)
-        if bridge and not bridge.auth_token:
-            bridge.auth_token = token
+    apply_shared_token(env, bridge_xmlids, ICP_KEY)
+    apply_bridge_base_url(env, bridge_xmlids)
 
 
 def set_bridge_fields(env, bridge_xmlid, model_name, field_names, domain="[]"):
