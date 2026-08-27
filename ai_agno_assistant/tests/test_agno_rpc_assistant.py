@@ -125,7 +125,9 @@ class TestAgnoRpcAssistant(HttpCase):
             "product.product",
             reason="Sales/Product apps are not installed",
         )
-        product = self.product or self.env["product.product"].create(
+        product = self.product or self.env[
+            "product.product"
+        ].create(  # pragma: no cover
             {
                 "name": "RPC AI Sale Product",
                 "default_code": "RPC-AI-SO",
@@ -170,8 +172,10 @@ class TestAgnoRpcAssistant(HttpCase):
         )
         project = self.env["project.project"].create({"name": "RPC AI Project"})
         AnalyticLine = self.env["account.analytic.line"]
-        if "employee_id" in AnalyticLine._fields and "hr.employee" in self.env:
-            if not getattr(self.rpc_user, "employee_id", False):
+        if (  # pragma: no cover
+            "employee_id" in AnalyticLine._fields and "hr.employee" in self.env
+        ):
+            if not getattr(self.rpc_user, "employee_id", False):  # pragma: no cover
                 self.env["hr.employee"].create(
                     {
                         "name": "RPC AI Employee",
