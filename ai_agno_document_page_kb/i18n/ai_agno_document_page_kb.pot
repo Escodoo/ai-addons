@@ -14,6 +14,16 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: ai_agno_document_page_kb
+#: model:ir.model,name:ai_agno_document_page_kb.model_ai_bridge
+msgid "Ai Bridge Configuration"
+msgstr ""
+
+#. module: ai_agno_document_page_kb
+#: model:ir.model,name:ai_agno_document_page_kb.model_document_page
+msgid "Document Page"
+msgstr ""
+
+#. module: ai_agno_document_page_kb
 #: model:ai.bridge,name:ai_agno_document_page_kb.ai_bridge_commercial_create
 msgid "Document Page → Commercial KB (Create)"
 msgstr ""
