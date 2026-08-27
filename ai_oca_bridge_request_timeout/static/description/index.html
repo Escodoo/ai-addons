@@ -374,6 +374,11 @@ ul.auto-toc {
 <p>The upstream bridge hardcodes a 30s HTTP timeout, which LLM-backed
 endpoints routinely exceed. This module lets each bridge configure its
 own timeout, leaving bridges without a value on the default behaviour.</p>
+<p>The field is injected through <tt class="docutils literal">_execute_kwargs</tt>. A local <tt class="docutils literal">_execute</tt>
+replica remains until OCA <tt class="docutils literal">ai_oca_bridge</tt> pops <tt class="docutils literal">timeout</tt> from those
+kwargs instead of hardcoding <tt class="docutils literal">timeout=30</tt> (which would raise
+<tt class="docutils literal">TypeError</tt>). After that upstream change lands (OCA/ai#107), the
+replica can be deleted.</p>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">

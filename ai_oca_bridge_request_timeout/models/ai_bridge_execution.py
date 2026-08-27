@@ -12,20 +12,20 @@ from odoo import models
 class AiBridgeExecution(models.Model):
     _inherit = "ai.bridge.execution"
 
+    def _execute_kwargs(self, timeout=False, **kwargs):
+        result = super()._execute_kwargs(timeout=timeout, **kwargs)
+        if not result.get("timeout") and self.ai_bridge_id.request_timeout:
+            result["timeout"] = self.ai_bridge_id.request_timeout
+        return result
+
     def _execute(self, **kwargs):
         """Honor the per-bridge ``request_timeout`` field.
 
         Bridges without ``request_timeout`` keep the upstream behaviour.
-        Upstream hardcodes ``timeout=30`` in the ``requests.post`` call and
-        passing ``timeout`` through ``_execute_kwargs`` would raise
-        ``TypeError`` there (duplicate keyword), so the method body is
-        replicated for bridges with a configured timeout. An explicit
-        ``timeout`` kwarg still wins over the field. Keep this replica in
-        sync with ``ai_oca_bridge``.
-
-        Follow-up: propose an upstream change in ``ai_oca_bridge`` so
-        ``timeout`` can be passed via ``_execute_kwargs`` and this replica
-        can be removed.
+        Current ``ai_oca_bridge`` hardcodes ``timeout=30`` and then unpacks
+        ``_execute_kwargs``, which raises ``TypeError`` when timeout is also
+        injected there. This replica stays until OCA/ai#107 is merged; after
+        that only ``_execute_kwargs`` is needed.
         """
         self.ensure_one()
         if not self.ai_bridge_id.request_timeout:
