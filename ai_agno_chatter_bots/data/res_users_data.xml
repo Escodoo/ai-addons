@@ -22,8 +22,8 @@
     </record>
 
     <record id="user_bot_hr" model="res.users" context="{'no_reset_password': True}">
-        <field name="name">Bot RH</field>
-        <field name="login">bot.rh</field>
+        <field name="name">Bot HR</field>
+        <field name="login">bot.hr</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_hr" />
     </record>
@@ -33,8 +33,8 @@
         model="res.users"
         context="{'no_reset_password': True}"
     >
-        <field name="name">Bot Financeiro</field>
-        <field name="login">bot.financeiro</field>
+        <field name="name">Bot Finance</field>
+        <field name="login">bot.finance</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_finance" />
     </record>
@@ -44,15 +44,15 @@
         model="res.users"
         context="{'no_reset_password': True}"
     >
-        <field name="name">Bot Suporte</field>
-        <field name="login">bot.suporte</field>
+        <field name="name">Bot Support</field>
+        <field name="login">bot.support</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_support" />
     </record>
 
     <record id="user_bot_sales" model="res.users" context="{'no_reset_password': True}">
-        <field name="name">Bot Comercial</field>
-        <field name="login">bot.comercial</field>
+        <field name="name">Bot Sales</field>
+        <field name="login">bot.sales</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]" />
         <field name="ai_bridge_id" ref="ai_bridge_chatter_sales" />
     </record>
