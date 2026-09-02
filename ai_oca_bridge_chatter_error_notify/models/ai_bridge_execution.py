@@ -93,4 +93,5 @@ class AiBridgeExecution(models.Model):
             body=body,
             author_id=self.chatter_user_id.partner_id.id,
             message_type="comment",
+            subtype_xmlid="mail.mt_comment",
         )

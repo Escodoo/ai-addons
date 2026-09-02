@@ -73,6 +73,8 @@ class TestChatterErrorNotify(TransactionCase):
         self.assertEqual(len(bot_messages), 1)
         self.assertIn("AI error", bot_messages.body)
         self.assertIn(error_detail, bot_messages.body)
+        self.assertEqual(bot_messages.message_type, "comment")
+        self.assertEqual(bot_messages.subtype_id, self.env.ref("mail.mt_comment"))
 
         execution = self.env["ai.bridge.execution"].search(
             [("ai_bridge_id", "=", self.bridge.id)],
