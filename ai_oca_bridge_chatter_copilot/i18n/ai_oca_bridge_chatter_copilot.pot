@@ -1,0 +1,67 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_oca_bridge_chatter_copilot
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_oca_bridge_chatter_copilot
+#. odoo-python
+#: code:addons/ai_oca_bridge_chatter_copilot/models/discuss_channel.py:0
+msgid "%(user)s gave the conversation back to the AI assistant."
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#. odoo-python
+#: code:addons/ai_oca_bridge_chatter_copilot/models/discuss_channel.py:0
+msgid "%(user)s paused the AI assistant."
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#. odoo-python
+#: code:addons/ai_oca_bridge_chatter_copilot/models/discuss_channel.py:0
+msgid "%(user)s took over the conversation. AI assistant paused."
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#: model:ir.model.fields,field_description:ai_oca_bridge_chatter_copilot.field_discuss_channel__ai_bridge_paused
+msgid "AI Assistant Paused"
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#: model:ir.model,name:ai_oca_bridge_chatter_copilot.model_discuss_channel
+msgid "Discussion Channel"
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#. odoo-python
+#: code:addons/ai_oca_bridge_chatter_copilot/models/discuss_channel.py:0
+msgid "Only internal users can pause or resume the AI assistant."
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#. odoo-javascript
+#: code:addons/ai_oca_bridge_chatter_copilot/static/src/core/common/thread_actions.esm.js:0
+msgid "Pause AI"
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#. odoo-javascript
+#: code:addons/ai_oca_bridge_chatter_copilot/static/src/core/common/thread_actions.esm.js:0
+msgid "Resume AI"
+msgstr ""
+
+#. module: ai_oca_bridge_chatter_copilot
+#: model:ir.model.fields,help:ai_oca_bridge_chatter_copilot.field_discuss_channel__ai_bridge_paused
+msgid ""
+"When enabled, the AI bridges of this conversation stop answering so a human "
+"can take over."
+msgstr ""
