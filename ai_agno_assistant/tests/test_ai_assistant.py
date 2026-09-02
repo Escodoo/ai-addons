@@ -959,6 +959,32 @@ class TestAiAssistantSanitize(TransactionCase):
             result = self.Assistant.action_ai_chat(message="open ticket 53")
         self.assertEqual(result["actions"], [])
         self.assertIn("could not open that record", result["body"].lower())
+        self.assertIn("<p>", result["body"])
+
+    def test_action_ai_chat_notes_dropped_open_record_plain_body(self):
+        def _fake_bridge(**kwargs):
+            return {
+                "body": "Opening ticket 53",
+                "body_is_html": False,
+                "actions": [
+                    {
+                        "type": "open_record",
+                        "model": "helpdesk.ticket",
+                        "res_id": 999999999,
+                    }
+                ],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="open ticket 53")
+        self.assertEqual(result["actions"], [])
+        self.assertIn("Opening ticket 53", result["body"])
+        self.assertIn("could not open that record", result["body"].lower())
+        self.assertNotIn("<p>", result["body"])
 
     def test_action_ai_chat_keeps_open_record_without_html_link(self):
         partner = self.env["res.partner"].create({"name": "AI Button Partner"})
