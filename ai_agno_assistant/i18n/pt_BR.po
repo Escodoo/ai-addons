@@ -160,6 +160,14 @@ msgid "No response was returned."
 msgstr "Nenhuma resposta foi retornada."
 
 #. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+msgid "I could not open that record. It may not exist, or you may lack access."
+msgstr ""
+"Não foi possível abrir esse registro. Ele pode não existir, ou você pode "
+"não ter acesso."
+
+#. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "Opening the requested screen…"
@@ -169,6 +177,11 @@ msgstr "Abrindo a tela solicitada…"
 #: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_bridge__payload_type
 msgid "Payload Type"
 msgstr "Tipo de payload"
+
+#. module: ai_agno_assistant
+#: model:ir.model,name:ai_agno_assistant.model_ai_assistant_recent_draft
+msgid "Recent AI assistant draft"
+msgstr "Rascunho recente do assistente de IA"
 
 #. module: ai_agno_assistant
 #. odoo-python

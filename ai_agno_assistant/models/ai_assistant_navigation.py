@@ -262,10 +262,14 @@ class AiAssistantNavigation(models.AbstractModel):
             record.check_access("read")
         except AccessError:
             return False
+        display_name = record.display_name or ""
+        if not isinstance(display_name, str):
+            display_name = str(display_name)
         return {
             "type": "open_record",
             "model": model,
             "res_id": res_id,
+            "name": display_name[:200],
             "action": {
                 "type": "ir.actions.act_window",
                 "res_model": model,

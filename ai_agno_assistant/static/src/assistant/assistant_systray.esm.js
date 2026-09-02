@@ -44,43 +44,56 @@ function sanitizeStoredHtml(html) {
             }
         }
     }
+    // The assistant offers to open the record instead, and these links
+    // often point at the previous one.
+    container.querySelectorAll("a").forEach((el) => {
+        const href = (el.getAttribute("href") || "").toLowerCase();
+        if (
+            href.includes("/web#") ||
+            (href.includes("id=") && href.includes("model="))
+        ) {
+            el.remove();
+        }
+    });
     return container.innerHTML;
+}
+
+function buildMessage({role, text, isHtml = false}) {
+    const safeText = isHtml && role === "assistant" ? sanitizeStoredHtml(text) : text;
+    return {
+        id: nextAssistantMessageId(),
+        role,
+        text: safeText,
+        html: isHtml ? markup(safeText) : markup(""),
+        isHtml: Boolean(isHtml),
+    };
+}
+
+function restoreStoredMessage(entry) {
+    if (!entry || typeof entry !== "object") {
+        return null;
+    }
+    const role = entry.role;
+    const text = typeof entry.text === "string" ? entry.text.trim() : "";
+    if ((role !== "user" && role !== "assistant") || !text) {
+        return null;
+    }
+    const message = buildMessage({
+        role,
+        text,
+        isHtml: Boolean(entry.isHtml) && role === "assistant",
+    });
+    return message.text ? message : null;
 }
 
 function loadStoredMessages() {
     try {
         const raw = browser.localStorage.getItem(storageKey());
-        if (!raw) {
-            return [];
-        }
-        const parsed = JSON.parse(raw);
+        const parsed = raw ? JSON.parse(raw) : null;
         if (!Array.isArray(parsed)) {
             return [];
         }
-        const messages = [];
-        for (const entry of parsed.slice(-HISTORY_LIMIT)) {
-            if (!entry || typeof entry !== "object") {
-                continue;
-            }
-            const role = entry.role;
-            const text = typeof entry.text === "string" ? entry.text.trim() : "";
-            if ((role !== "user" && role !== "assistant") || !text) {
-                continue;
-            }
-            const isHtml = Boolean(entry.isHtml) && role === "assistant";
-            const safeText = isHtml ? sanitizeStoredHtml(text) : text;
-            if (!safeText) {
-                continue;
-            }
-            messages.push({
-                id: nextAssistantMessageId(),
-                role,
-                text: safeText,
-                html: isHtml ? markup(safeText) : markup(""),
-                isHtml,
-            });
-        }
-        return messages;
+        return parsed.slice(-HISTORY_LIMIT).map(restoreStoredMessage).filter(Boolean);
     } catch {
         return [];
     }
@@ -163,14 +176,11 @@ export class AiAssistantSystray extends Component {
     }
 
     _appendMessage(role, content, {html = false} = {}) {
-        const text = (content || "").trim();
-        const message = {
-            id: nextAssistantMessageId(),
+        const message = buildMessage({
             role,
-            text,
-            html: html ? markup(text) : markup(""),
-            isHtml: Boolean(html),
-        };
+            text: (content || "").trim(),
+            isHtml: html,
+        });
         this.state.messages = [...this.state.messages, message].slice(-HISTORY_LIMIT);
         persistMessages(this.state.messages);
         return message;
@@ -195,6 +205,10 @@ export class AiAssistantSystray extends Component {
             current_res_id: props.resId || false,
             company_id: user.context?.allowed_company_ids?.[0] || false,
         };
+    }
+
+    onPanelClick() {
+        // Keep clicks inside the floating panel from closing it.
     }
 
     openPanel() {
@@ -267,16 +281,18 @@ export class AiAssistantSystray extends Component {
         if (!Array.isArray(actions) || !actions.length) {
             return;
         }
-        let applied = 0;
+        let navigated = 0;
         for (const entry of actions) {
-            const action = entry?.action;
-            if (!action) {
+            if (!entry?.action) {
                 continue;
             }
-            await this.action.doAction(action);
-            applied += 1;
+            await this.action.doAction(entry.action);
+            // The action swaps the whole controller; keep the conversation
+            // visible next to the screen it just opened.
+            this.state.panelOpen = true;
+            navigated += 1;
         }
-        if (applied) {
+        if (navigated) {
             this.notification.add(_t("Opening the requested screen…"), {
                 type: "info",
             });
@@ -299,12 +315,12 @@ export class AiAssistantSystray extends Component {
                 history,
                 this._buildUiContext(),
             ]);
-            await this._applyAssistantActions(result?.actions);
             this._appendMessage(
                 "assistant",
                 result?.body || _t("No response was returned."),
                 {html: Boolean(result?.body_is_html)}
             );
+            await this._applyAssistantActions(result?.actions || []);
         } catch (error) {
             this.notification.add(
                 error.data?.message || error.message || _t("AI request failed."),

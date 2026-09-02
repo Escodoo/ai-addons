@@ -32,9 +32,11 @@ panel to:
 - open menus, window actions and records from typed client actions
 - prepare draft business records for human review when the matching apps
   are installed (purchase RFQ, CRM opportunity, helpdesk ticket, sales
-  quotation, timesheet). There is no hard dependency on those apps; each
-  helper returns a structured ``*_unavailable`` error when the model is
-  missing.
+  quotation, timesheet). The assistant summarizes the draft and asks
+  whether to open it, so creating a record never takes the user away
+  from the current screen. There is no hard dependency on those apps;
+  each helper returns a structured ``*_unavailable`` error when the
+  model is missing.
 - keep a short per-user chat history in the browser across panel
   close/reopen
 
@@ -74,9 +76,11 @@ Usage
    - "Log 1.5 hours on project Website Redesign"
 
 3. When a draft record is prepared (RFQ, opportunity, ticket, quotation
-   or timesheet), the form opens so you can review and confirm it in
-   Odoo. Draft helpers only work when the matching business app is
-   installed.
+   or timesheet), the reply summarizes it and asks whether to open it.
+   Answer "yes" and the assistant opens that record; Odoo resolves which
+   draft it was, so the form is always the one just created. The offer
+   expires after 30 minutes. Draft helpers only work when the matching
+   business app is installed.
 4. Closing the panel keeps the last messages in the browser (per user).
    Use the trash icon to clear the conversation.
 5. Optionally chat with the Discuss ERP bot for longer conversations;

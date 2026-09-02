@@ -21,6 +21,7 @@
                 class="o_ai_assistant_panel border bg-view d-flex flex-column shadow"
                 role="complementary"
                 aria-label="System assistant"
+                t-on-click.stop="onPanelClick"
             >
                 <div
                     class="o_ai_assistant_panel_header d-flex align-items-center gap-2 px-3 py-2 border-bottom"

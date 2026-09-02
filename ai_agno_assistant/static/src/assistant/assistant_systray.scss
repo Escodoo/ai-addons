@@ -4,6 +4,14 @@
 .o_ai_assistant_systray {
     position: relative;
 
+    > a.dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: inherit;
+        text-decoration: none;
+    }
+
     .o_ai_assistant_panel {
         position: fixed;
         top: 46px;
