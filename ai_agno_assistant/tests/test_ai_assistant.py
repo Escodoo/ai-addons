@@ -1,9 +1,11 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+from datetime import timedelta
 from unittest import mock
 from unittest.mock import MagicMock
 
+from odoo import fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
@@ -316,6 +318,7 @@ class TestAiAssistantSanitize(TransactionCase):
         )
         self.assertEqual(len(actions), 1)
         self.assertEqual(actions[0]["res_id"], partner.id)
+        self.assertEqual(actions[0]["name"], partner.display_name)
 
         actions = self.Assistant._sanitize_ai_chat_actions(
             [{"type": "open_record", "model": "res.partner", "res_id": 999999999}]
@@ -365,6 +368,19 @@ class TestAiAssistantSanitize(TransactionCase):
                     {"model": "res.partner", "res_id": partner.id}
                 )
             )
+
+    def test_sanitize_open_record_coerces_non_string_display_name(self):
+        partner = self.env["res.partner"].create({"name": "AI NonStr Name"})
+        with mock.patch.object(
+            type(partner),
+            "display_name",
+            new_callable=mock.PropertyMock,
+            return_value=12345,
+        ):
+            sanitized = self.Assistant._sanitize_open_record(
+                {"model": "res.partner", "res_id": partner.id}
+            )
+        self.assertEqual(sanitized["name"], "12345")
 
     def test_sanitize_open_menu(self):
         actions = self.Assistant._sanitize_ai_chat_actions(
@@ -880,6 +896,34 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertIn("ok", sanitize("<b>ok</b>", True))
         self.assertEqual(sanitize("<b>ok</b>", False), "&lt;b&gt;ok&lt;/b&gt;")
 
+    def test_is_backend_record_href_rejects_unsafe_and_plain_urls(self):
+        is_backend = ai_assistant_mod._is_backend_record_href
+        self.assertFalse(is_backend(""))
+        self.assertFalse(is_backend("javascript:alert(1)"))
+        self.assertFalse(is_backend("data:text/html,x"))
+        self.assertFalse(is_backend("vbscript:msg"))
+        self.assertFalse(is_backend("https://example.com"))
+        self.assertFalse(is_backend("/web#action=42"))
+        self.assertFalse(is_backend("#home"))
+        self.assertTrue(is_backend("/web#id=8&model=helpdesk.ticket"))
+        self.assertTrue(is_backend("#id=8"))
+        self.assertTrue(is_backend("#model=helpdesk.ticket"))
+
+    def test_strip_assistant_record_links_keeps_safe_anchors(self):
+        strip = self.Assistant._strip_assistant_record_links
+        self.assertEqual(strip(""), "")
+        self.assertEqual(strip("<p>No link</p>"), "<p>No link</p>")
+        body = (
+            '<p><a href="/web#id=8&amp;model=helpdesk.ticket">Ticket</a></p>'
+            '<p><a href="https://example.com">docs</a></p>'
+            '<p><a href="#id=9">hash</a></p>'
+        )
+        cleaned = strip(body)
+        self.assertNotIn("Ticket", cleaned)
+        self.assertNotIn("hash", cleaned)
+        self.assertIn("https://example.com", cleaned)
+        self.assertIn("docs", cleaned)
+
     def test_action_ai_chat_defaults_body_is_html(self):
         def _fake_bridge(**kwargs):
             return {"body": "<p>Hi</p>", "actions": []}
@@ -892,6 +936,196 @@ class TestAiAssistantSanitize(TransactionCase):
             result = self.Assistant.action_ai_chat(message="hi")
         self.assertFalse(result["body_is_html"])
         self.assertIn("&lt;p&gt;Hi&lt;/p&gt;", result["body"])
+
+    def test_action_ai_chat_notes_when_open_record_is_dropped(self):
+        def _fake_bridge(**kwargs):
+            return {
+                "body": "<p>Opening ticket 53</p>",
+                "body_is_html": True,
+                "actions": [
+                    {
+                        "type": "open_record",
+                        "model": "helpdesk.ticket",
+                        "res_id": 999999999,
+                    }
+                ],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="open ticket 53")
+        self.assertEqual(result["actions"], [])
+        self.assertIn("could not open that record", result["body"].lower())
+
+    def test_action_ai_chat_keeps_open_record_without_html_link(self):
+        partner = self.env["res.partner"].create({"name": "AI Button Partner"})
+
+        def _fake_bridge(**kwargs):
+            return {
+                "body": (
+                    "<p>Created</p>"
+                    f'<p><a href="/web#id={partner.id}&amp;model=res.partner">'
+                    "Open partner</a></p>"
+                ),
+                "body_is_html": True,
+                "actions": [
+                    {
+                        "type": "open_record",
+                        "model": "res.partner",
+                        "res_id": partner.id,
+                    }
+                ],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="create")
+        self.assertNotIn("<a href=", result["body"])
+        self.assertNotIn("/web#", result["body"])
+        self.assertIn("Created", result["body"])
+        self.assertEqual(result["actions"][0]["res_id"], partner.id)
+
+    def test_action_ai_chat_create_turn_leaves_actions_empty(self):
+        partner = self.env["res.partner"].create({"name": "AI Create Turn Draft"})
+
+        def _fake_bridge(**kwargs):
+            self.Assistant._remember_recent_draft("res.partner", partner)
+            return {
+                "body": "<p>The partner is ready. Should I open it?</p>",
+                "body_is_html": True,
+                "actions": [],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="create a partner")
+        self.assertEqual(result["actions"], [])
+        self.assertTrue(
+            self.env["ai.assistant.recent.draft"].search(
+                [("user_id", "=", self.env.user.id), ("res_id", "=", partner.id)]
+            )
+        )
+
+    def test_action_ai_chat_resolves_open_last_draft(self):
+        partner = self.env["res.partner"].create({"name": "AI Confirm Draft"})
+        self.Assistant._remember_recent_draft("res.partner", partner)
+
+        def _fake_bridge(**kwargs):
+            return {
+                "body": "<p>Opening the partner</p>",
+                "body_is_html": True,
+                "actions": [{"type": "open_last_draft"}],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="yes")
+        self.assertEqual(len(result["actions"]), 1)
+        self.assertEqual(result["actions"][0]["res_id"], partner.id)
+        self.assertFalse(
+            self.env["ai.assistant.recent.draft"].search(
+                [("user_id", "=", self.env.user.id)]
+            )
+        )
+
+    def _without_recent_draft_model(self):
+        original_contains = type(self.env).__contains__
+
+        def fake_contains(env, key):
+            if key == "ai.assistant.recent.draft":
+                return False
+            return original_contains(env, key)
+
+        return mock.patch.object(type(self.env), "__contains__", fake_contains)
+
+    def test_remember_recent_draft_guards_and_create_error(self):
+        partner = self.env["res.partner"].create({"name": "AI Remember Guards"})
+        self.Assistant._remember_recent_draft("", partner)
+        self.Assistant._remember_recent_draft("res.partner", self.env["res.partner"])
+        with self._without_recent_draft_model():
+            self.Assistant._remember_recent_draft("res.partner", partner)
+        Draft = self.env["ai.assistant.recent.draft"]
+        with mock.patch.object(type(Draft), "create", side_effect=Exception("fail")):
+            with mute_logger(
+                "odoo.addons.ai_agno_assistant.models.ai_assistant_drafts"
+            ):
+                self.Assistant._remember_recent_draft("res.partner", partner)
+        self.assertFalse(
+            Draft.search(
+                [("user_id", "=", self.env.user.id), ("res_id", "=", partner.id)]
+            )
+        )
+
+    def test_sanitize_open_last_draft_happy_path(self):
+        partner = self.env["res.partner"].create({"name": "AI Last Draft"})
+        self.Assistant._remember_recent_draft("res.partner", partner)
+        sanitized = self.Assistant._sanitize_open_last_draft()
+        self.assertEqual(sanitized["res_id"], partner.id)
+        self.assertEqual(sanitized["model"], "res.partner")
+        self.assertFalse(
+            self.env["ai.assistant.recent.draft"].search(
+                [("user_id", "=", self.env.user.id)]
+            )
+        )
+
+    def test_sanitize_open_last_draft_nothing_pending(self):
+        self.env["ai.assistant.recent.draft"].search(
+            [("user_id", "=", self.env.user.id)]
+        ).unlink()
+        self.assertFalse(self.Assistant._sanitize_open_last_draft())
+
+    def test_sanitize_open_last_draft_expired_ttl(self):
+        partner = self.env["res.partner"].create({"name": "AI Expired Draft"})
+        self.Assistant._remember_recent_draft("res.partner", partner)
+        Draft = self.env["ai.assistant.recent.draft"].sudo()
+        draft = Draft.search([("user_id", "=", self.env.user.id)], limit=1)
+        expired = fields.Datetime.now() - timedelta(minutes=31)
+        self.env.cr.execute(
+            "UPDATE ai_assistant_recent_draft SET create_date = %s WHERE id = %s",
+            [expired, draft.id],
+        )
+        draft.invalidate_recordset(["create_date"])
+        self.assertFalse(self.Assistant._sanitize_open_last_draft())
+        self.assertFalse(Draft.search([("user_id", "=", self.env.user.id)]))
+
+    def test_sanitize_open_last_draft_model_outside_allowlist(self):
+        param = self.env["ir.config_parameter"].search([], limit=1)
+        self.Assistant._remember_recent_draft("ir.config_parameter", param)
+        self.assertFalse(self.Assistant._sanitize_open_last_draft())
+        self.assertFalse(
+            self.env["ai.assistant.recent.draft"].search(
+                [("user_id", "=", self.env.user.id)]
+            )
+        )
+
+    def test_sanitize_open_last_draft_single_use(self):
+        partner = self.env["res.partner"].create({"name": "AI Single Use Draft"})
+        self.Assistant._remember_recent_draft("res.partner", partner)
+        first = self.Assistant._sanitize_open_last_draft()
+        self.assertEqual(first["res_id"], partner.id)
+        self.assertFalse(self.Assistant._sanitize_open_last_draft())
+
+    def test_sanitize_open_last_draft_missing_model_and_search_error(self):
+        with self._without_recent_draft_model():
+            self.assertFalse(self.Assistant._sanitize_open_last_draft())
+        Draft = self.env["ai.assistant.recent.draft"]
+        with mock.patch.object(type(Draft), "search", side_effect=Exception("missing")):
+            with mute_logger(
+                "odoo.addons.ai_agno_assistant.models.ai_assistant_drafts"
+            ):
+                self.assertFalse(self.Assistant._sanitize_open_last_draft())
 
     def test_run_assistant_bridge_not_configured(self):
         with mock.patch.object(

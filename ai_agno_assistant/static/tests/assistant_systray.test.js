@@ -178,27 +178,88 @@ test("notifies when the RPC fails", async () => {
     expect.verifySteps(["notify:Bridge down"]);
 });
 
-test("applies sanitized assistant actions", async () => {
+test("applies sanitized navigation actions", async () => {
     mockLocalStorage();
     mockAssistantServices({
         body: "Opening",
         bodyIsHtml: false,
         actions: [
             {
-                type: "open_record",
+                type: "open_action",
                 action: {
                     type: "ir.actions.act_window",
-                    res_model: "res.partner",
-                    res_id: 1,
+                    res_model: "purchase.order",
                 },
             },
         ],
     });
 
     await mountWithCleanup(AiAssistantSystray);
-    await openPanelAndAsk("Open partner");
+    await openPanelAndAsk("Open RFQs");
     expect.verifySteps([
-        "doAction:res.partner",
+        "doAction:purchase.order",
         "notify:Opening the requested screen…",
     ]);
+});
+
+test("does not navigate when a draft is only prepared", async () => {
+    mockLocalStorage();
+    mockAssistantServices({
+        body: "The ticket is ready. Should I open it?",
+        bodyIsHtml: false,
+        actions: [],
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await openPanelAndAsk("Create a ticket");
+    expect.verifySteps([]);
+    expect(".o_ai_assistant_panel").toHaveCount(1);
+    expect(".o_ai_assistant_message_action").toHaveCount(0);
+});
+
+test("opens the form when the server returns a resolved record", async () => {
+    mockLocalStorage();
+    mockAssistantServices({
+        body: "Opening the ticket",
+        bodyIsHtml: false,
+        actions: [
+            {
+                type: "open_record",
+                model: "helpdesk.ticket",
+                res_id: 11,
+                name: "Notebook problem - freezing",
+                action: {
+                    type: "ir.actions.act_window",
+                    res_model: "helpdesk.ticket",
+                    res_id: 11,
+                },
+            },
+        ],
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await openPanelAndAsk("yes");
+    expect.verifySteps([
+        "doAction:helpdesk.ticket",
+        "notify:Opening the requested screen…",
+    ]);
+    expect(".o_ai_assistant_panel").toHaveCount(1);
+    expect(".o_ai_assistant_message_action").toHaveCount(0);
+});
+
+test("strips backend record links from stored HTML", async () => {
+    mockLocalStorage();
+    mockAssistantServices({
+        body:
+            '<p>Created</p><p><a href="/web#id=8&amp;model=helpdesk.ticket">' +
+            "Open HT00008</a></p>",
+        bodyIsHtml: true,
+        actions: [],
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await openPanelAndAsk("Create a ticket");
+    expect.verifySteps([]);
+    expect(".o_ai_assistant_message_assistant a").toHaveCount(0);
+    expect(".o_ai_assistant_message_action").toHaveCount(0);
 });

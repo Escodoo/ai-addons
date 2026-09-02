@@ -3,6 +3,7 @@
 
 import html
 import logging
+from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -12,6 +13,9 @@ from odoo.tools import html_sanitize
 from odoo.addons.ai_agno_connector.tool_registry import agno_tool
 
 _logger = logging.getLogger(__name__)
+
+# How long a prepared draft stays reopenable through open_last_draft.
+_DRAFT_OPEN_TTL_MINUTES = 30
 
 
 class AiAssistantDrafts(models.AbstractModel):
@@ -31,7 +35,64 @@ class AiAssistantDrafts(models.AbstractModel):
         except Exception as exc:  # noqa: BLE001 - structured error for the agent
             _logger.warning("AI assistant %s create failed: %s", log_label, exc)
             return None, {"error": "create_failed", "detail": str(exc)}
+        self._remember_recent_draft(model_name, record)
         return record, None
+
+    @api.model
+    def _remember_recent_draft(self, model_name, record):
+        """Persist the draft so the chat can reopen it if the user accepts."""
+        if not record or not model_name or not record.id:
+            return
+        if "ai.assistant.recent.draft" not in self.env:
+            return
+        try:
+            self.env["ai.assistant.recent.draft"].sudo().create(
+                {
+                    "user_id": self.env.user.id,
+                    "model_name": model_name,
+                    "res_id": record.id,
+                }
+            )
+        except Exception:  # noqa: BLE001 - draft link must not fail the create
+            _logger.debug("Could not remember AI assistant draft", exc_info=True)
+
+    @api.model
+    def _sanitize_open_last_draft(self):
+        """Resolve open_last_draft into the draft prepared for this user.
+
+        The record id lives here and never in the assistant reply, so a
+        confirmation turn cannot reopen an older record. Rows are dropped
+        once read: a later "yes" must not reopen anything.
+        """
+        if "ai.assistant.recent.draft" not in self.env:
+            return False
+        Draft = self.env["ai.assistant.recent.draft"].sudo()
+        user_domain = [("user_id", "=", self.env.user.id)]
+        cutoff = fields.Datetime.now() - timedelta(minutes=_DRAFT_OPEN_TTL_MINUTES)
+        try:
+            latest = Draft.search(
+                user_domain + [("create_date", ">=", cutoff)],
+                order="id desc",
+                limit=1,
+            )
+            sanitized = (
+                self._sanitize_open_record(
+                    {
+                        "type": "open_record",
+                        "model": latest.model_name,
+                        "res_id": latest.res_id,
+                    }
+                )
+                if latest
+                else False
+            )
+            Draft.search(user_domain).unlink()
+        except Exception:  # noqa: BLE001 - never break the chat over navigation
+            _logger.warning(
+                "Could not resolve the last AI assistant draft", exc_info=True
+            )
+            return False
+        return sanitized
 
     @api.model
     def _sanitize_draft_html(self, value, limit, fallback=""):
@@ -550,26 +611,38 @@ class AiAssistantDrafts(models.AbstractModel):
         return qty, None
 
     @api.model
+    def _parse_line_price_unit(self, entry, product):
+        """Return (price, error) for an explicit line price.
+
+        ``(None, None)`` means the line carries no price and the caller
+        should apply its own pricing rules.
+        """
+        raw_price = entry.get("price_unit", entry.get("price"))
+        if raw_price in (None, False, ""):
+            return None, None
+        try:
+            price = float(raw_price)
+        except (TypeError, ValueError):
+            return None, {
+                "error": "invalid_price",
+                "detail": f"Unit price must be a number for {product.display_name}.",
+            }
+        if price < 0:
+            return None, {
+                "error": "invalid_price",
+                "detail": (
+                    f"Unit price cannot be negative for {product.display_name}."
+                ),
+            }
+        return price, None
+
+    @api.model
     def _resolve_line_price_unit(self, entry, product, partner, qty, uom):
         """Prefer explicit line price, then vendor pricelist, then cost."""
-        raw_price = entry.get("price_unit", entry.get("price"))
-        if raw_price not in (None, False, ""):
-            try:
-                price = float(raw_price)
-            except (TypeError, ValueError):
-                return None, {
-                    "error": "invalid_price",
-                    "detail": (
-                        f"Unit price must be a number for {product.display_name}."
-                    ),
-                }
-            if price < 0:
-                return None, {
-                    "error": "invalid_price",
-                    "detail": (
-                        f"Unit price cannot be negative for {product.display_name}."
-                    ),
-                }
+        price, price_error = self._parse_line_price_unit(entry, product)
+        if price_error:
+            return None, price_error
+        if price is not None:
             return price, None
         if partner and hasattr(product, "_select_seller"):
             seller = product._select_seller(
@@ -651,25 +724,10 @@ class AiAssistantDrafts(models.AbstractModel):
                 "product_id": product.id,
                 "product_uom_qty": qty,
             }
-            raw_price = entry.get("price_unit", entry.get("price"))
-            if raw_price not in (None, False, ""):
-                try:
-                    price = float(raw_price)
-                except (TypeError, ValueError):
-                    return None, {
-                        "error": "invalid_price",
-                        "detail": (
-                            f"Unit price must be a number for {product.display_name}."
-                        ),
-                    }
-                if price < 0:
-                    return None, {
-                        "error": "invalid_price",
-                        "detail": (
-                            "Unit price cannot be negative for "
-                            f"{product.display_name}."
-                        ),
-                    }
+            price, price_error = self._parse_line_price_unit(entry, product)
+            if price_error:
+                return None, price_error
+            if price is not None:
                 line["price_unit"] = price
             prepared.append(line)
         if not prepared:
