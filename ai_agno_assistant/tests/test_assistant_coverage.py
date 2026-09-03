@@ -377,6 +377,21 @@ class TestAiAssistantCoverage(TransactionCase):
         cancelled = self.Assistant.action_ai_execute_pending(False)
         self.assertTrue(cancelled.get("cancelled"))
 
+    def test_blocked_open_model_prefixes_and_kinds(self):
+        self.assertTrue(self.Assistant._is_blocked_open_model(""))
+        self.assertTrue(self.Assistant._is_blocked_open_model(None))
+        self.assertTrue(self.Assistant._is_blocked_open_model("ir.ui.view"))
+        self.assertTrue(self.Assistant._is_blocked_open_model("ir.attachment"))
+        self.assertTrue(self.Assistant._is_blocked_open_model("mail.alias"))
+        self.assertTrue(self.Assistant._is_blocked_open_model("ai.assistant"))
+        self.assertTrue(
+            self.Assistant._is_blocked_open_model("ai.assistant.pending.action")
+        )
+        self.assertFalse(self.Assistant._is_blocked_open_model("res.partner"))
+        self.assertFalse(
+            self.Assistant._sanitize_open_record({"model": "ir.ui.view", "res_id": 1})
+        )
+
     def test_insight_guards(self):
         self.assertEqual(self.Assistant._hydrate_record_preview("x"), "x")
         blocked = self.Assistant._hydrate_record_preview(
