@@ -564,7 +564,7 @@ class TestAiAssistantCoverage(TransactionCase):
         with mock.patch.object(
             type(self.Assistant),
             "_sanitize_confirm_pending",
-            return_value={"type": "confirm_pending"},
+            side_effect=lambda *args, **kwargs: {"type": "confirm_pending"},
         ):
             labeled = self.Assistant._sanitize_ai_chat_actions(
                 [{"type": "confirm_pending", "label": "  Confirm now  "}]
