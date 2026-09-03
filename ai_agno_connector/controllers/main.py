@@ -19,7 +19,7 @@ _logger = logging.getLogger(__name__)
 # Maximum accepted age (seconds) for a signed user identity.
 HMAC_MAX_AGE = 600
 
-ALLOWED_METHODS = {"search_read", "search_count", "fields_get"}
+ALLOWED_METHODS = {"search_read", "search_count", "fields_get", "read_group"}
 
 # High-level write helpers allowed only on dedicated assistant models.
 # Never expose generic create/write/unlink through the gateway.
@@ -34,6 +34,13 @@ ALLOWED_MODEL_METHODS = {
             "prepare_sale_order",
             "prepare_timesheet",
             "find_navigation",
+            "get_attention_digest",
+            "get_record_context",
+            "prepare_partner",
+            "prepare_activity",
+            "add_order_line",
+            "propose_confirm_sale_order",
+            "propose_confirm_purchase_order",
         }
     ),
 }
@@ -67,6 +74,9 @@ BLOCKED_FIELD_PATTERNS = ("password", "token", "secret", "api_key")
 # ``ai_agno_connector.max_records`` config parameter.
 DEFAULT_MAX_RECORDS = 80
 
+# Cap on group buckets returned by read_group.
+DEFAULT_MAX_GROUPS = 50
+
 # Caps applied when formatting values for the LLM context.
 TEXT_TRUNCATE_LIMIT = 500
 X2MANY_NAMES_LIMIT = 50
@@ -81,6 +91,21 @@ def _truncate(value, size=TEXT_TRUNCATE_LIMIT):
     if not isinstance(value, str) or len(value) <= size:
         return value
     return value[: size - 3] + "..."
+
+
+def spec_tool_kwargs(gateway_model, spec_args, params):
+    """Build typed-tool kwargs without colliding with the gateway ``model``.
+
+    ``/agno/rpc`` uses ``model`` for the allowlisted target. Helpers that
+    also take a record model must send it as ``res_model``.
+    """
+    kwargs = {}
+    for name in spec_args:
+        value = params.get(name)
+        if name == "model" and value in (None, "", False, gateway_model):
+            value = params.get("res_model")
+        kwargs[name] = value
+    return kwargs
 
 
 def _secure_compare(left, right):
@@ -113,11 +138,9 @@ class AgnoRpcController(http.Controller):
         params = request.get_json_data() or {}
         user = self._get_request_user(params)
         if user is None:
-            return request.make_json_response(
-                {
-                    "error": "invalid_user",
-                    "detail": "Unknown user_id or invalid identity signature.",
-                },
+            return self._json_error(
+                "invalid_user",
+                "Unknown user_id or invalid identity signature.",
                 status=403,
             )
 
@@ -143,7 +166,7 @@ class AgnoRpcController(http.Controller):
                 "unknown_model", f"Model {model!r} not found.", status=404
             )
 
-        if method in {"search_read", "search_count"}:
+        if method in {"search_read", "search_count", "read_group"}:
             domain_error = self._domain_error(env[model], params.get("domain") or [])
             if domain_error:
                 return domain_error
@@ -152,6 +175,8 @@ class AgnoRpcController(http.Controller):
             result = self._dispatch(env[model], method, params)
         except AccessError as exc:
             return self._json_error("access_denied", str(exc), status=403)
+        except ValueError as exc:
+            return self._json_error("invalid_params", str(exc), status=400)
         except Exception as exc:  # noqa: BLE001 - log detail, return generic message
             _logger.warning("Agno RPC error on %s.%s: %s", model, method, exc)
             return self._json_error(
@@ -251,6 +276,18 @@ class AgnoRpcController(http.Controller):
         return True
 
     def _json_error(self, error, detail, status=400):
+        try:
+            params = request.get_json_data() or {}
+        except Exception:  # noqa: BLE001 - logging must not break the response
+            params = {}
+        _logger.info(
+            "Agno RPC %s (%s) on %s.%s: %s",
+            error,
+            status,
+            params.get("model") or "?",
+            params.get("method") or "?",
+            detail,
+        )
         return request.make_json_response(
             {"error": error, "detail": detail},
             status=status,
@@ -356,7 +393,7 @@ class AgnoRpcController(http.Controller):
     def _dispatch(self, records, method, params):
         spec = AGNO_TOOLS.get(records._name, {}).get(method)
         if spec:
-            kwargs = {name: params.get(name) for name in spec["args"]}
+            kwargs = spec_tool_kwargs(records._name, spec["args"], params)
             return getattr(records, method)(**kwargs)
         domain = params.get("domain") or []
         if method == "search_count":
@@ -407,6 +444,8 @@ class AgnoRpcController(http.Controller):
                 query=params.get("query"),
                 limit=params.get("limit") or 8,
             )
+        if method == "read_group":
+            return self._dispatch_read_group(records, params)
         # search_read
         field_defs = records._fields
         field_names = [
@@ -419,6 +458,70 @@ class AgnoRpcController(http.Controller):
         limit = min(int(params.get("limit") or 10), self._get_max_records())
         rows = records.search_read(domain, field_names, limit=limit)
         return self._format_rows_for_llm(records, rows, field_names)
+
+    def _dispatch_read_group(self, records, params):
+        """Aggregate records for the LLM (group_by + measures, ACL-aware)."""
+        field_defs = records._fields
+        raw_groupby = params.get("groupby") or params.get("group_by") or []
+        if isinstance(raw_groupby, str):
+            raw_groupby = [raw_groupby]
+        if not isinstance(raw_groupby, list) or not raw_groupby:
+            raise ValueError("read_group requires a groupby list.")
+        groupby = []
+        for name in raw_groupby[:8]:
+            if not isinstance(name, str) or not name:
+                continue
+            field_name = name.split(":")[0]
+            if _is_blocked_field(field_name) or field_name not in field_defs:
+                continue
+            groupby.append(name)
+        if not groupby:
+            raise ValueError("No valid groupby fields.")
+        raw_fields = params.get("fields") or []
+        if isinstance(raw_fields, str):
+            raw_fields = [raw_fields]
+        measures = []
+        for name in raw_fields[:12]:
+            if not isinstance(name, str) or not name:
+                continue
+            field_name = name.split(":")[0]
+            if _is_blocked_field(field_name):
+                continue
+            if field_name not in field_defs and field_name != "id":
+                continue
+            measures.append(name)
+        try:
+            limit = min(int(params.get("limit") or 20), DEFAULT_MAX_GROUPS)
+        except (TypeError, ValueError):
+            limit = 20
+        rows = records.read_group(
+            params.get("domain") or [],
+            measures,
+            groupby,
+            limit=limit,
+            lazy=False,
+        )
+        return self._format_read_group_for_llm(records, rows)
+
+    def _format_read_group_for_llm(self, records, rows):
+        """Keep read_group rows JSON-safe and short for the LLM."""
+        cleaned = []
+        for row in rows[:DEFAULT_MAX_GROUPS]:
+            if not isinstance(row, dict):
+                continue
+            item = {}
+            for key, value in row.items():
+                if key.startswith("__") and key not in {"__count", "__domain"}:
+                    continue
+                if key == "__domain":
+                    continue
+                if _is_blocked_field(str(key).split(":")[0]):
+                    continue
+                if isinstance(value, bytes):
+                    continue
+                item[key] = value
+            cleaned.append(item)
+        return cleaned
 
     def _get_max_records(self):
         param = (

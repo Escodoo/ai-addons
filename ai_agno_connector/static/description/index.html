@@ -379,16 +379,13 @@ in the bridge payload. The gateway verifies that signature before
 impersonating the user, so a compromised agent (or any bridge-token
 holder) cannot forge an arbitrary <tt class="docutils literal">user_id</tt>.</p>
 <p>Only a small allowlist of read-only ORM methods is exposed
-(<tt class="docutils literal">search_read</tt>, <tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>). In addition, typed
-helpers on dedicated models may be allowlisted (for example
-<tt class="docutils literal">ai.assistant</tt> methods <tt class="docutils literal">find_navigation</tt>,
-<tt class="docutils literal">prepare_purchase_order</tt>, <tt class="docutils literal">prepare_opportunity</tt>,
-<tt class="docutils literal">prepare_helpdesk_ticket</tt>, <tt class="docutils literal">prepare_sale_order</tt>,
-<tt class="docutils literal">prepare_timesheet</tt>) — never generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> /
-<tt class="docutils literal">unlink</tt>. Sensitive models (<tt class="docutils literal">ir.*</tt> plus a credential allowlist),
-credential field names, and domain paths that traverse those models are
-blocked regardless of the caller’s own rights. Extra models can be
-blocked via ICP.</p>
+(<tt class="docutils literal">search_read</tt>, <tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>, <tt class="docutils literal">read_group</tt>). In
+addition, typed helpers on dedicated models may be allowlisted (for
+example <tt class="docutils literal">ai.assistant</tt> draft, insight and briefing methods) — never
+generic <tt class="docutils literal">create</tt> / <tt class="docutils literal">write</tt> / <tt class="docutils literal">unlink</tt>. Sensitive models (<tt class="docutils literal">ir.*</tt>
+plus a credential allowlist), credential field names, and domain paths
+that traverse those models are blocked regardless of the caller’s own
+rights. Extra models can be blocked via ICP.</p>
 <p>When adding a new assistant helper, update this allowlist together with
 the Agno <tt class="docutils literal">AssistantTools</tt> toolkit (see Usage).</p>
 <p>This bridge targets the companion <strong>Agno service</strong>
@@ -574,7 +571,7 @@ for slow LLM-backed endpoints.</li>
 </ul>
 </li>
 <li>Allowed read methods on any non-blocked model: <tt class="docutils literal">search_read</tt>,
-<tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>.</li>
+<tt class="docutils literal">search_count</tt>, <tt class="docutils literal">fields_get</tt>, <tt class="docutils literal">read_group</tt>.</li>
 </ol>
 <p>Responses are formatted for LLM context (datetimes in the user timezone,
 monetary values with currency, HTML as plain text, long strings
@@ -594,8 +591,8 @@ prompt fragments stay in sync without a matching edit in four places.</p>
 <p>Current assistant surface (<tt class="docutils literal">model=ai.assistant</tt>):</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="41%" />
-<col width="59%" />
+<col width="51%" />
+<col width="49%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head">Method</th>
@@ -604,7 +601,8 @@ prompt fragments stay in sync without a matching edit in four places.</p>
 </thead>
 <tbody valign="top">
 <tr><td><tt class="docutils literal">find_navigation</tt></td>
-<td>Resolve menus/actions the user can open</td>
+<td>Resolve menus/actions the user
+can open</td>
 </tr>
 <tr><td><tt class="docutils literal">prepare_purchase_order</tt></td>
 <td>Draft RFQ</td>
@@ -620,6 +618,28 @@ prompt fragments stay in sync without a matching edit in four places.</p>
 </tr>
 <tr><td><tt class="docutils literal">prepare_timesheet</tt></td>
 <td>Draft timesheet line</td>
+</tr>
+<tr><td><tt class="docutils literal">get_attention_digest</tt></td>
+<td>Pending-work counts across
+installed apps</td>
+</tr>
+<tr><td><tt class="docutils literal">get_record_context</tt></td>
+<td>Short ACL-aware record snapshot</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_partner</tt></td>
+<td>Draft contact</td>
+</tr>
+<tr><td><tt class="docutils literal">prepare_activity</tt></td>
+<td>Follow-up activity</td>
+</tr>
+<tr><td><tt class="docutils literal">add_order_line</tt></td>
+<td>Line on a draft SO/PO</td>
+</tr>
+<tr><td><tt class="docutils literal">propose_confirm_sale_order</tt></td>
+<td>HITL confirm for a quotation</td>
+</tr>
+<tr><td><tt class="docutils literal">propose_confirm_purchase_order</tt></td>
+<td>HITL confirm for an RFQ</td>
 </tr>
 </tbody>
 </table>

@@ -375,17 +375,19 @@ ul.auto-toc {
 panel to:</p>
 <ul class="simple">
 <li>ask questions about ERP data (read-only tools, ACL of the current
-user)</li>
-<li>open menus, window actions and records from typed client actions</li>
+user), including aggregates (<tt class="docutils literal">read_group</tt>) and a daily attention
+digest</li>
+<li>explain the record currently open in the form (hydrated UI context)</li>
+<li>open menus, window actions and records immediately (the first
+navigation action runs in the client; a chip remains to reopen).
+Confirmations stay human-in-the-loop</li>
 <li>prepare draft business records for human review when the matching apps
 are installed (purchase RFQ, CRM opportunity, helpdesk ticket, sales
-quotation, timesheet). The assistant summarizes the draft and asks
-whether to open it, so creating a record never takes the user away
-from the current screen. There is no hard dependency on those apps;
-each helper returns a structured <tt class="docutils literal">*_unavailable</tt> error when the
-model is missing.</li>
-<li>keep a short per-user chat history in the browser across panel
-close/reopen</li>
+quotation, timesheet, partner, activity, extra order line)</li>
+<li>propose irreversible confirmations (draft SO / RFQ) that the user must
+accept in the panel (human-in-the-loop)</li>
+<li>copy a briefing or export it as Markdown / PDF without storing a file</li>
+<li>keep conversations server-side (per user) with the browser as a cache</li>
 </ul>
 <p>The Discuss ERP bot shares the same write helpers and deep-link
 guidance.</p>
@@ -424,24 +426,34 @@ Agno service that exposes <tt class="docutils literal">/bridge/assistant/chat</t
 <li>Grant the group <strong>Use System AI Assistant</strong> to the relevant users.</li>
 <li>Open the comments icon in the systray and ask a question, for
 example:<ul>
+<li>“What needs my attention today?”</li>
 <li>“How many open RFQs do we have?”</li>
-<li>“Open the purchase RFQ list”</li>
+<li>“Give me an executive briefing of this week” (on screen; edit in
+later turns, then copy or export Markdown/PDF from that message)</li>
+<li>“Open the purchase RFQ list” (the screen opens at once; a chip
+remains to reopen it)</li>
 <li>“Create a purchase order for product Desk, 10 units, vendor Azure
 Interior”</li>
 <li>“Create an opportunity for Acme about renewal”</li>
 <li>“Open a helpdesk ticket: printer offline”</li>
 <li>“Prepare a quotation for customer Acme, 2 units of Desk”</li>
 <li>“Log 1.5 hours on project Website Redesign”</li>
+<li>“Confirm quotation SO001” (shows a Confirm chip; nothing posts
+until you click)</li>
 </ul>
 </li>
-<li>When a draft record is prepared (RFQ, opportunity, ticket, quotation
-or timesheet), the reply summarizes it and asks whether to open it.
-Answer “yes” and the assistant opens that record; Odoo resolves which
-draft it was, so the form is always the one just created. The offer
-expires after 30 minutes. Draft helpers only work when the matching
-business app is installed.</li>
-<li>Closing the panel keeps the last messages in the browser (per user).
-Use the trash icon to clear the conversation.</li>
+<li>When a draft record is prepared, the reply summarizes it and asks
+whether to open it. Answer “yes” (the form opens) or click the chip.
+The offer expires after 30 minutes. Draft helpers only work when the
+matching business app is installed.</li>
+<li>Analyses stay in the chat so you can request corrections. Copy the
+message, or export Markdown / PDF from the buttons on that reply.
+Those exports are generated on demand and are not stored in Odoo.</li>
+<li>Closing the panel keeps the last messages. Use <strong>New conversation</strong>
+to start a fresh draft (it is saved only after the first message), or
+pick a recent one from the list. The trash icon permanently deletes
+the current conversation after confirmation and does not create a
+replacement entry.</li>
 <li>Optionally chat with the Discuss ERP bot for longer conversations;
 answers may include <tt class="docutils literal">/web#…</tt> links to open records.</li>
 </ol>

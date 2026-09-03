@@ -115,6 +115,7 @@ class TestAiAssistantBridges(TransactionCase):
         self.assertEqual(empty["body"], "")
         self.assertFalse(empty["body_is_html"])
         self.assertEqual(empty["actions"], [])
+        self.assertEqual(empty["artifacts"], [])
 
         payload = execution._process_response_assistant(
             {
@@ -131,3 +132,7 @@ class TestAiAssistantBridges(TransactionCase):
         self.assertEqual(defaults["body"], "")
         self.assertFalse(defaults["body_is_html"])
         self.assertEqual(defaults["actions"], [])
+        dropped = execution._process_response_assistant(
+            {"body": "x", "artifacts": [{"attachment_id": 1}]}
+        )
+        self.assertEqual(dropped["artifacts"], [])

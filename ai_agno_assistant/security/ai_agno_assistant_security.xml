@@ -15,4 +15,11 @@
             (RFQ, opportunity, helpdesk ticket, quotation, timesheet).
         </field>
     </record>
+
+    <record id="rule_ai_assistant_session_user" model="ir.rule">
+        <field name="name">AI assistant session: own only</field>
+        <field name="model_id" ref="model_ai_assistant_session" />
+        <field name="domain_force">[("user_id", "=", user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_system_ai_user'))]" />
+    </record>
 </odoo>

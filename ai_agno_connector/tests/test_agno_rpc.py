@@ -233,6 +233,89 @@ class TestAgnoRpc(HttpCase):
         resp = self.opener.get(url, timeout=30)
         self.assertEqual(resp.status_code, 401)
 
+    def test_read_group_partners(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby=["is_company"],
+            fields=[],
+            limit=10,
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("result", data)
+        self.assertIsInstance(data["result"], list)
+
+    def test_read_group_requires_groupby(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby=[],
+            fields=[],
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_params")
+
+    def test_read_group_rejects_blocked_or_unknown_groupby(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            group_by=["password", "not_a_field", 12],
+            fields="id:count",
+            limit="bad",
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_params")
+
+    def test_read_group_accepts_string_groupby(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby="is_company",
+            fields=["id:count"],
+            limit=5,
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json().get("result"), list)
+
+    def test_read_group_filters_measures_and_bad_limit(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby=["is_company"],
+            fields="id:count",
+            limit="bad",
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json().get("result"), list)
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby=["is_company"],
+            fields=["id:count", "", 12, "password", "not_a_field"],
+            limit={},
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json().get("result"), list)
+
     def test_tools_catalog_ok(self):
         url = f"{self.base_url()}/agno/tools?db={self.env.cr.dbname}"
         resp = self.opener.get(url, headers=self._headers(), timeout=30)
@@ -255,3 +338,19 @@ class TestAgnoRpc(HttpCase):
             self.assertEqual(resp.json().get("error"), "invalid_user")
         finally:
             self._set_icp({"ai_agno_connector.hmac_max_age": ""})
+
+    def test_spec_tool_kwargs_uses_res_model(self):
+        from ..controllers.main import spec_tool_kwargs
+
+        kwargs = spec_tool_kwargs(
+            "ai.assistant",
+            ("model", "res_id"),
+            {
+                "model": "ai.assistant",
+                "method": "get_record_context",
+                "res_model": "res.partner",
+                "res_id": 7,
+            },
+        )
+        self.assertEqual(kwargs["model"], "res.partner")
+        self.assertEqual(kwargs["res_id"], 7)

@@ -8,7 +8,7 @@
                 class="dropdown-toggle o-no-caret o-dropdown--narrow"
                 href="#"
                 title="System AI Assistant"
-                t-on-click.prevent="openPanel"
+                t-on-click.prevent="togglePanel"
             >
                 <i
                     class="fa fa-comments-o fa-lg"
@@ -21,6 +21,7 @@
                 class="o_ai_assistant_panel border bg-view d-flex flex-column shadow"
                 role="complementary"
                 aria-label="System assistant"
+                t-ref="panel"
                 t-on-click.stop="onPanelClick"
             >
                 <div
@@ -29,11 +30,19 @@
                     <h6 class="mb-0 text-truncate flex-grow-1">System assistant</h6>
                     <button
                         class="btn btn-sm btn-light"
-                        title="Clear conversation"
-                        t-att-disabled="!canClearChat"
-                        t-on-click="clearChat"
+                        title="New conversation"
+                        t-att-disabled="state.loading"
+                        t-on-click="startNewSession"
                     >
-                        <i class="fa fa-trash-o" role="img" aria-label="Clear" />
+                        <i class="fa fa-plus" role="img" aria-label="New" />
+                    </button>
+                    <button
+                        class="btn btn-sm btn-light"
+                        title="Delete conversation"
+                        t-att-disabled="!canClearChat"
+                        t-on-click="deleteConversation"
+                    >
+                        <i class="fa fa-trash-o" role="img" aria-label="Delete" />
                     </button>
                     <button
                         class="btn btn-sm btn-light"
@@ -52,15 +61,50 @@
                     </button>
                 </div>
                 <div
+                    t-if="state.sessions.length"
+                    class="o_ai_assistant_sessions px-3 py-1 border-bottom"
+                >
+                    <select
+                        class="form-select form-select-sm"
+                        t-on-change="onSelectSession"
+                    >
+                        <option value="">Recent conversations</option>
+                        <t t-foreach="state.sessions" t-as="session" t-key="session.id">
+                            <option
+                                t-att-value="session.session_key"
+                                t-att-selected="session.session_key === state.sessionKey"
+                            >
+                                <t t-esc="session.name" />
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div
                     class="o_ai_assistant_panel_body flex-grow-1 overflow-auto p-3 d-flex flex-column gap-2"
                     t-ref="panelBody"
                 >
                     <div
                         t-if="!state.messages.length and !state.loading"
-                        class="text-muted small"
+                        class="o_ai_assistant_empty"
                     >
-                        Ask about ERP data, open screens, or prepare a draft
-                        RFQ, opportunity, ticket, quotation or timesheet.
+                        <div class="text-muted small mb-2">
+                            Ask about ERP data, open screens, prepare a draft, or
+                            export a briefing from a message.
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <t
+                                t-foreach="suggestions"
+                                t-as="suggestion"
+                                t-key="suggestion.prompt"
+                            >
+                                <button
+                                    class="btn btn-sm btn-outline-secondary o_ai_assistant_suggestion"
+                                    t-on-click="() => this.useSuggestion(suggestion.prompt)"
+                                >
+                                    <t t-esc="suggestion.label" />
+                                </button>
+                            </t>
+                        </div>
                     </div>
                     <t t-foreach="state.messages" t-as="message" t-key="message.id">
                         <div
@@ -86,6 +130,30 @@
                                         aria-label="Copy"
                                     />
                                 </button>
+                                <button
+                                    t-if="message.role === 'assistant'"
+                                    class="btn btn-sm btn-light o_ai_assistant_message_export_md"
+                                    title="Export Markdown"
+                                    t-on-click="() => this.exportMessageMarkdown(message)"
+                                >
+                                    <i
+                                        class="fa fa-file-text-o"
+                                        role="img"
+                                        aria-label="Export Markdown"
+                                    />
+                                </button>
+                                <button
+                                    t-if="message.role === 'assistant'"
+                                    class="btn btn-sm btn-light o_ai_assistant_message_export_pdf"
+                                    title="Export PDF"
+                                    t-on-click="() => this.exportMessagePdf(message)"
+                                >
+                                    <i
+                                        class="fa fa-file-pdf-o"
+                                        role="img"
+                                        aria-label="Export PDF"
+                                    />
+                                </button>
                             </div>
                             <div
                                 t-if="message.isHtml"
@@ -97,17 +165,56 @@
                                 class="o_ai_assistant_content"
                                 t-esc="message.text"
                             />
+                            <div
+                                t-if="message.actions.length"
+                                class="o_ai_assistant_chips d-flex flex-wrap gap-1 mt-2"
+                            >
+                                <t
+                                    t-foreach="message.actions"
+                                    t-as="chip"
+                                    t-key="chip_index"
+                                >
+                                    <t t-if="chip.type === 'confirm_pending'">
+                                        <button
+                                            class="btn btn-sm btn-primary o_ai_assistant_message_action"
+                                            t-att-disabled="state.loading"
+                                            t-on-click="() => this.confirmPending(true)"
+                                        >
+                                            <t t-esc="actionLabel(chip)" />
+                                        </button>
+                                        <button
+                                            class="btn btn-sm btn-light"
+                                            t-att-disabled="state.loading"
+                                            t-on-click="() => this.confirmPending(false)"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </t>
+                                    <button
+                                        t-else=""
+                                        class="btn btn-sm btn-outline-primary o_ai_assistant_message_action"
+                                        t-on-click="() => this.runChipAction(chip)"
+                                    >
+                                        <t t-esc="actionLabel(chip)" />
+                                    </button>
+                                </t>
+                            </div>
                         </div>
                     </t>
                     <div
                         t-if="state.loading"
-                        class="d-flex align-items-center justify-content-center text-muted py-3"
+                        class="d-flex align-items-center justify-content-center text-muted py-3 gap-2"
                     >
                         <i
                             class="fa fa-circle-o-notch fa-spin fa-lg"
                             role="img"
                             aria-label="Loading"
                         />
+                        <span class="small" t-esc="state.statusText" />
+                        <button
+                            class="btn btn-sm btn-link"
+                            t-on-click="cancelRequest"
+                        >Cancel</button>
                     </div>
                 </div>
                 <div class="o_ai_assistant_composer border-top p-2">

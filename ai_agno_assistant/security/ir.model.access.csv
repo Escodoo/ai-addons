@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ai_assistant_user,ai.assistant.user,model_ai_assistant,group_system_ai_user,1,0,0,0
 access_ai_assistant_recent_draft_user,ai.assistant.recent.draft.user,model_ai_assistant_recent_draft,group_system_ai_user,1,1,1,1
+access_ai_assistant_pending_user,ai.assistant.pending.action.user,model_ai_assistant_pending_action,group_system_ai_user,1,1,1,1
+access_ai_assistant_session_user,ai.assistant.session.user,model_ai_assistant_session,group_system_ai_user,1,1,1,1

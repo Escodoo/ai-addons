@@ -92,13 +92,26 @@ msgstr ""
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-msgid "Clear"
+msgid "Delete"
 msgstr ""
 
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-msgid "Clear conversation"
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Delete conversation"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "This conversation will be permanently deleted."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not delete the conversation."
 msgstr ""
 
 #. module: ai_agno_assistant

@@ -9,11 +9,10 @@ user, so a compromised agent (or any bridge-token holder) cannot forge an
 arbitrary `user_id`.
 
 Only a small allowlist of read-only ORM methods is exposed
-(`search_read`, `search_count`, `fields_get`). In addition, typed helpers on
-dedicated models may be allowlisted (for example `ai.assistant` methods
-`find_navigation`, `prepare_purchase_order`, `prepare_opportunity`,
-`prepare_helpdesk_ticket`, `prepare_sale_order`, `prepare_timesheet`) — never
-generic `create` / `write` / `unlink`. Sensitive models (`ir.*` plus a credential allowlist), credential field
+(`search_read`, `search_count`, `fields_get`, `read_group`). In addition, typed helpers on
+dedicated models may be allowlisted (for example `ai.assistant` draft,
+insight and briefing methods) — never generic `create` / `write` / `unlink`.
+Sensitive models (`ir.*` plus a credential allowlist), credential field
 names, and domain paths that traverse those models are blocked regardless
 of the caller's own rights. Extra models can be blocked via ICP.
 

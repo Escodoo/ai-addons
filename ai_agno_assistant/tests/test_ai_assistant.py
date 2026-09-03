@@ -5,7 +5,7 @@ from datetime import timedelta
 from unittest import mock
 from unittest.mock import MagicMock
 
-from odoo import fields
+from odoo import _, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
@@ -329,6 +329,14 @@ class TestAiAssistantSanitize(TransactionCase):
             [{"type": "open_record", "model": "ir.config_parameter", "res_id": 1}]
         )
         self.assertEqual(actions, [])
+
+        country = self.env.ref("base.br")
+        actions = self.Assistant._sanitize_ai_chat_actions(
+            [{"type": "open_record", "model": "res.country", "res_id": country.id}]
+        )
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(actions[0]["model"], "res.country")
+        self.assertTrue(actions[0].get("label"))
 
     def test_sanitize_open_record_invalid_inputs(self):
         self.assertFalse(
@@ -958,7 +966,10 @@ class TestAiAssistantSanitize(TransactionCase):
         ):
             result = self.Assistant.action_ai_chat(message="open ticket 53")
         self.assertEqual(result["actions"], [])
-        self.assertIn("could not open that record", result["body"].lower())
+        dropped_note = _(
+            "I could not open that record. It may not exist, or you may lack access."
+        )
+        self.assertIn(dropped_note.lower(), result["body"].lower())
         self.assertIn("<p>", result["body"])
 
     def test_action_ai_chat_notes_dropped_open_record_plain_body(self):
@@ -983,7 +994,10 @@ class TestAiAssistantSanitize(TransactionCase):
             result = self.Assistant.action_ai_chat(message="open ticket 53")
         self.assertEqual(result["actions"], [])
         self.assertIn("Opening ticket 53", result["body"])
-        self.assertIn("could not open that record", result["body"].lower())
+        dropped_note = _(
+            "I could not open that record. It may not exist, or you may lack access."
+        )
+        self.assertIn(dropped_note.lower(), result["body"].lower())
         self.assertNotIn("<p>", result["body"])
 
     def test_action_ai_chat_keeps_open_record_without_html_link(self):

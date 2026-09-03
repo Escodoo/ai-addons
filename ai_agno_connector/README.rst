@@ -33,16 +33,13 @@ impersonating the user, so a compromised agent (or any bridge-token
 holder) cannot forge an arbitrary ``user_id``.
 
 Only a small allowlist of read-only ORM methods is exposed
-(``search_read``, ``search_count``, ``fields_get``). In addition, typed
-helpers on dedicated models may be allowlisted (for example
-``ai.assistant`` methods ``find_navigation``,
-``prepare_purchase_order``, ``prepare_opportunity``,
-``prepare_helpdesk_ticket``, ``prepare_sale_order``,
-``prepare_timesheet``) — never generic ``create`` / ``write`` /
-``unlink``. Sensitive models (``ir.*`` plus a credential allowlist),
-credential field names, and domain paths that traverse those models are
-blocked regardless of the caller's own rights. Extra models can be
-blocked via ICP.
+(``search_read``, ``search_count``, ``fields_get``, ``read_group``). In
+addition, typed helpers on dedicated models may be allowlisted (for
+example ``ai.assistant`` draft, insight and briefing methods) — never
+generic ``create`` / ``write`` / ``unlink``. Sensitive models (``ir.*``
+plus a credential allowlist), credential field names, and domain paths
+that traverse those models are blocked regardless of the caller's own
+rights. Extra models can be blocked via ICP.
 
 When adding a new assistant helper, update this allowlist together with
 the Agno ``AssistantTools`` toolkit (see Usage).
@@ -197,7 +194,7 @@ Usage
      ``fields``, ``limit``, …)
 
 4. Allowed read methods on any non-blocked model: ``search_read``,
-   ``search_count``, ``fields_get``.
+   ``search_count``, ``fields_get``, ``read_group``.
 
 Responses are formatted for LLM context (datetimes in the user timezone,
 monetary values with currency, HTML as plain text, long strings
@@ -220,16 +217,37 @@ prompt fragments stay in sync without a matching edit in four places.
 
 Current assistant surface (``model=ai.assistant``):
 
-=========================== =======================================
-Method                      Role
-=========================== =======================================
-``find_navigation``         Resolve menus/actions the user can open
-``prepare_purchase_order``  Draft RFQ
-``prepare_opportunity``     Draft CRM opportunity
-``prepare_helpdesk_ticket`` Draft OCA helpdesk ticket
-``prepare_sale_order``      Draft sales quotation
-``prepare_timesheet``       Draft timesheet line
-=========================== =======================================
++------------------------------------+----------------------------------+
+| Method                             | Role                             |
++====================================+==================================+
+| ``find_navigation``                | Resolve menus/actions the user   |
+|                                    | can open                         |
++------------------------------------+----------------------------------+
+| ``prepare_purchase_order``         | Draft RFQ                        |
++------------------------------------+----------------------------------+
+| ``prepare_opportunity``            | Draft CRM opportunity            |
++------------------------------------+----------------------------------+
+| ``prepare_helpdesk_ticket``        | Draft OCA helpdesk ticket        |
++------------------------------------+----------------------------------+
+| ``prepare_sale_order``             | Draft sales quotation            |
++------------------------------------+----------------------------------+
+| ``prepare_timesheet``              | Draft timesheet line             |
++------------------------------------+----------------------------------+
+| ``get_attention_digest``           | Pending-work counts across       |
+|                                    | installed apps                   |
++------------------------------------+----------------------------------+
+| ``get_record_context``             | Short ACL-aware record snapshot  |
++------------------------------------+----------------------------------+
+| ``prepare_partner``                | Draft contact                    |
++------------------------------------+----------------------------------+
+| ``prepare_activity``               | Follow-up activity               |
++------------------------------------+----------------------------------+
+| ``add_order_line``                 | Line on a draft SO/PO            |
++------------------------------------+----------------------------------+
+| ``propose_confirm_sale_order``     | HITL confirm for a quotation     |
++------------------------------------+----------------------------------+
+| ``propose_confirm_purchase_order`` | HITL confirm for an RFQ          |
++------------------------------------+----------------------------------+
 
 These methods are implemented in ``ai_agno_assistant`` and called by the
 Agno service toolkit ``AssistantTools``
