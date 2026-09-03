@@ -29,6 +29,15 @@ class TestAiAssistantCoverage(TransactionCase):
         self.assertEqual(
             self.Assistant.prepare_partner(name="  ")["error"], "missing_name"
         )
+        created = self.Assistant.prepare_partner(
+            name="Phone Co",
+            email="  ",
+            phone=" +55119999 ",
+        )
+        self.assertFalse(created.get("error"), created)
+        partner = self.env["res.partner"].browse(created["partner_id"])
+        self.assertEqual(partner.phone, "+55119999")
+        self.assertFalse(partner.email)
         with mock.patch.object(
             type(self.Assistant),
             "_safe_create",
@@ -83,6 +92,27 @@ class TestAiAssistantCoverage(TransactionCase):
         if failed.get("error") == "activity_unavailable":
             self.skipTest("mail.activity is not available")
         self.assertEqual(failed["error"], "create_failed")
+        with mock.patch.object(
+            type(self.env["ir.model"]),
+            "_get",
+            return_value=self.env["ir.model"],
+        ):
+            unknown_ir = self.Assistant.prepare_activity(
+                model="res.partner", res_id=partner.id
+            )
+        self.assertEqual(unknown_ir["error"], "model_not_allowed")
+        original_contains = type(self.env).__contains__
+
+        def fake_contains(env, key):
+            if key == "mail.activity":
+                return False
+            return original_contains(env, key)
+
+        with mock.patch.object(type(self.env), "__contains__", fake_contains):
+            unavailable = self.Assistant.prepare_activity(
+                model="res.partner", res_id=partner.id
+            )
+        self.assertEqual(unavailable["error"], "activity_unavailable")
 
     def test_add_order_line_guards(self):
         self.assertEqual(
@@ -148,6 +178,72 @@ class TestAiAssistantCoverage(TransactionCase):
             qty=-3,
         )
         self.assertTrue(bad_qty.get("error"), bad_qty)
+        missing_product = self.Assistant.add_order_line(
+            model="sale.order",
+            res_id=order.id,
+            product_ref="NO-SUCH-PRODUCT-XYZ",
+        )
+        self.assertTrue(missing_product.get("error"), missing_product)
+        bad_price = self.Assistant.add_order_line(
+            model="sale.order",
+            res_id=order.id,
+            product_ref=product.id,
+            qty=1,
+            price_unit="free",
+        )
+        self.assertEqual(bad_price["error"], "invalid_price")
+        with mock.patch.object(
+            type(self.Assistant),
+            "_safe_create",
+            return_value=(self.env["sale.order.line"], {"error": "create_failed"}),
+        ):
+            failed = self.Assistant.add_order_line(
+                model="sale.order",
+                res_id=order.id,
+                product_ref=product.id,
+                qty=1,
+            )
+        self.assertEqual(failed["error"], "create_failed")
+        if "purchase.order" not in self.env:
+            return
+        vendor = self.env["res.partner"].create({"name": "PO Vendor"})
+        purchase = self.env["purchase.order"].create({"partner_id": vendor.id})
+        po_line = self.Assistant.add_order_line(
+            model="purchase.order",
+            res_id=purchase.id,
+            product_ref=product.id,
+            qty=3,
+            price_unit=7.5,
+        )
+        self.assertFalse(po_line.get("error"), po_line)
+        self.assertEqual(po_line["qty"], 3)
+        fields_without_po_uom = {
+            name: field
+            for name, field in product._fields.items()
+            if name != "uom_po_id"
+        }
+        with (
+            mock.patch.object(
+                type(product),
+                "_fields",
+                fields_without_po_uom,
+            ),
+            mock.patch.object(
+                type(self.Assistant),
+                "_safe_create",
+                return_value=(
+                    self.env["purchase.order.line"],
+                    {"error": "create_failed"},
+                ),
+            ),
+        ):
+            fallback = self.Assistant.add_order_line(
+                model="purchase.order",
+                res_id=purchase.id,
+                product_ref=product.id,
+                qty=1,
+            )
+        self.assertEqual(fallback["error"], "create_failed")
 
     def test_pending_error_and_confirm_paths(self):
         self.assertFalse(
