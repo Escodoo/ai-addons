@@ -555,6 +555,44 @@ class TestAiAssistantCoverage(TransactionCase):
             deleted = self.Assistant.action_ai_delete_session("validkey")
             self.assertFalse(deleted["deleted"])
 
+    def test_chat_session_key_confirm_pending_and_labels(self):
+        invalid = self.Assistant._normalize_ui_context({"session_key": "short"})
+        self.assertIs(invalid["session_key"], False)
+        key = self.Assistant._new_session_key()
+        valid = self.Assistant._normalize_ui_context({"session_key": key})
+        self.assertEqual(valid["session_key"], key)
+        with mock.patch.object(
+            type(self.Assistant),
+            "_sanitize_confirm_pending",
+            return_value={"type": "confirm_pending"},
+        ):
+            labeled = self.Assistant._sanitize_ai_chat_actions(
+                [{"type": "confirm_pending", "label": "  Confirm now  "}]
+            )
+            fallback = self.Assistant._sanitize_ai_chat_actions(
+                [{"type": "confirm_pending", "label": "   "}]
+            )
+        self.assertEqual(labeled[0]["label"], "Confirm now")
+        self.assertEqual(fallback[0]["label"], "confirm_pending")
+        with (
+            mock.patch.object(
+                type(self.Assistant),
+                "_run_assistant_bridge",
+                return_value={"body": "ok", "body_is_html": False, "actions": []},
+            ),
+            mock.patch.object(
+                type(self.Assistant),
+                "_remember_chat_turn",
+                return_value=False,
+            ),
+        ):
+            chat = self.Assistant.action_ai_chat(
+                message="hello",
+                ui_context={"session_key": key},
+            )
+        self.assertFalse(chat["session_id"])
+        self.assertFalse(chat["session_key"])
+
     def test_markdownish_headings_lists_and_filename(self):
         html = markdownish_to_html(
             "# Title\n\n- one\n- two\n\n1. first\n2. second\n\nPlain **bold**"
