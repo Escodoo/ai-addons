@@ -262,6 +262,34 @@ class TestAgnoRpc(HttpCase):
         self.assertEqual(resp.status_code, 400)
         self.assertEqual(resp.json().get("error"), "invalid_params")
 
+    def test_read_group_rejects_blocked_or_unknown_groupby(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            group_by=["password", "not_a_field", 12],
+            fields="id:count",
+            limit="bad",
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json().get("error"), "invalid_params")
+
+    def test_read_group_accepts_string_groupby(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby="is_company",
+            fields=["id:count"],
+            limit=5,
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json().get("result"), list)
+
     def test_tools_catalog_ok(self):
         url = f"{self.base_url()}/agno/tools?db={self.env.cr.dbname}"
         resp = self.opener.get(url, headers=self._headers(), timeout=30)
