@@ -23,6 +23,7 @@ _AI_CHAT_UI_CONTEXT_KEYS = (
     "current_model",
     "current_res_id",
     "company_id",
+    "session_key",
 )
 _AI_CHAT_UI_CONTEXT_INT_KEYS = frozenset({"current_res_id", "company_id"})
 
@@ -97,21 +98,31 @@ class AiAssistant(models.AbstractModel):
             raise UserError(_("Please enter a question for the assistant."))
         if len(text) > _AI_CHAT_MESSAGE_MAX_LEN:
             text = text[:_AI_CHAT_MESSAGE_MAX_LEN]
+        normalized_ui = self._normalize_ui_context(ui_context)
         result = self._run_assistant_bridge(
             message=text,
             history=self._normalize_ai_chat_history(history),
-            ui_context=self._normalize_ui_context(ui_context),
+            ui_context=normalized_ui,
+            session_id=normalized_ui.get("session_key") or False,
         )
         body_is_html = bool(result.get("body_is_html", False))
         raw_actions = result.get("actions")
         actions = self._sanitize_ai_chat_actions(raw_actions)
         body = self._sanitize_assistant_body(result.get("body") or "", body_is_html)
+        body = self._note_dropped_open_records(body, raw_actions, actions, body_is_html)
+        session = self._remember_chat_turn(
+            message=text,
+            body=body,
+            body_is_html=body_is_html,
+            session_key=normalized_ui.get("session_key") or False,
+        )
         return {
-            "body": self._note_dropped_open_records(
-                body, raw_actions, actions, body_is_html
-            ),
+            "body": body,
             "body_is_html": body_is_html,
             "actions": actions,
+            "artifacts": [],
+            "session_id": session.id if session else False,
+            "session_key": session.session_key if session else False,
         }
 
     @api.model
@@ -148,10 +159,13 @@ class AiAssistant(models.AbstractModel):
                 except (TypeError, ValueError):
                     cleaned[key] = False
             elif isinstance(value, str):
-                cleaned[key] = value[:_AI_CHAT_UI_CONTEXT_STR_MAX_LEN]
+                if key == "session_key":
+                    cleaned[key] = self._normalize_session_key(value) or False
+                else:
+                    cleaned[key] = value[:_AI_CHAT_UI_CONTEXT_STR_MAX_LEN]
             else:
                 cleaned[key] = value
-        return cleaned
+        return self._hydrate_record_preview(cleaned)
 
     @api.model
     def _sanitize_ai_chat_actions(self, actions):
@@ -173,9 +187,16 @@ class AiAssistant(models.AbstractModel):
                 sanitized = self._sanitize_open_last_draft()
             elif action_type == "open_menu":
                 sanitized = self._sanitize_open_menu(entry)
+            elif action_type == "confirm_pending":
+                sanitized = self._sanitize_confirm_pending(entry)
             else:
                 continue
             if sanitized:
+                label = entry.get("label") if isinstance(entry, dict) else None
+                if isinstance(label, str) and label.strip():
+                    sanitized["label"] = label.strip()[:80]
+                elif not sanitized.get("label"):
+                    sanitized["label"] = sanitized.get("name") or action_type
                 cleaned.append(sanitized)
         return cleaned[:_AI_CHAT_ACTIONS_LIMIT]
 

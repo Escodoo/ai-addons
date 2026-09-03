@@ -103,14 +103,27 @@ msgstr "Pergunte ao assistente do sistema…"
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-msgid "Clear"
-msgstr "Limpar"
+msgid "Delete"
+msgstr "Excluir"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-msgid "Clear conversation"
-msgstr "Limpar conversa"
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Delete conversation"
+msgstr "Excluir conversa"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "This conversation will be permanently deleted."
+msgstr "Esta conversa será excluída permanentemente."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not delete the conversation."
+msgstr "Não foi possível excluir a conversa."
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -141,6 +154,37 @@ msgstr "Copiar para a área de transferência"
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "Could not copy to the clipboard."
 msgstr "Não foi possível copiar para a área de transferência."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not export the message."
+msgstr "Não foi possível exportar a mensagem."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Export Markdown"
+msgstr "Exportar Markdown"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Export PDF"
+msgstr "Exportar PDF"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_artifacts.py:0
+msgid "Nothing to export."
+msgstr "Nada para exportar."
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant_artifacts.py:0
+msgid "Unsupported export format."
+msgstr "Formato de exportação não suportado."
 
 #. module: ai_agno_assistant
 #: model:ir.model.fields,help:ai_agno_assistant.field_ai_bridge__result_type

@@ -20,7 +20,7 @@
         <field name="result_kind">immediate</field>
         <field name="auth_type">token</field>
         <field name="provider">agno</field>
-        <field name="request_timeout" eval="120" />
+        <field name="request_timeout" eval="180" />
         <field name="url">http://agno:8000/bridge/assistant/chat</field>
         <field
             name="group_ids"

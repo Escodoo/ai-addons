@@ -24,6 +24,7 @@ class AiBridge(models.Model):
         message=None,
         history=None,
         ui_context=None,
+        session_id=None,
         res_model=False,
         res_id=False,
         model=False,
@@ -43,6 +44,7 @@ class AiBridge(models.Model):
                     "message": message or False,
                     "history": history or [],
                     "ui_context": ui_context or {},
+                    "session_id": session_id or False,
                 },
                 default=self.custom_serializer,
             )

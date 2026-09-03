@@ -8,26 +8,20 @@ from odoo import api, models
 from odoo.exceptions import AccessError
 from odoo.osv import expression
 
+from odoo.addons.ai_agno_connector.controllers.main import (
+    BLOCKED_MODEL_PREFIXES,
+    BLOCKED_MODELS,
+)
 from odoo.addons.ai_agno_connector.tool_registry import agno_tool
 
 _logger = logging.getLogger(__name__)
 
-# Models the assistant may open via open_record (navigation / draft review).
-_OPEN_RECORD_MODELS = frozenset(
+# Extra models that must never be opened even if the user can read them.
+_OPEN_RECORD_BLOCKED_EXTRA = frozenset(
     {
-        "purchase.order",
-        "purchase.order.line",
-        "res.partner",
-        "product.product",
-        "product.template",
-        "sale.order",
-        "crm.lead",
-        "account.move",
-        "account.analytic.line",
-        "stock.picking",
-        "project.project",
-        "project.task",
-        "helpdesk.ticket",
+        "mail.alias",
+        "mail.alias.domain",
+        "ir.attachment",
     }
 )
 
@@ -243,11 +237,25 @@ class AiAssistantNavigation(models.AbstractModel):
         }
 
     @api.model
+    def _is_blocked_open_model(self, model):
+        """True when the assistant must not open this model in the client."""
+        if not isinstance(model, str) or not model:
+            return True
+        if model in BLOCKED_MODELS or model in _OPEN_RECORD_BLOCKED_EXTRA:
+            return True
+        if any(model.startswith(prefix) for prefix in BLOCKED_MODEL_PREFIXES):
+            return True
+        if model not in self.env:
+            return True
+        Model = self.env[model]
+        return bool(
+            getattr(Model, "_abstract", False) or getattr(Model, "_transient", False)
+        )
+
+    @api.model
     def _sanitize_open_record(self, entry):
         model = entry.get("model")
-        if not isinstance(model, str) or model not in _OPEN_RECORD_MODELS:
-            return False
-        if model not in self.env:
+        if self._is_blocked_open_model(model):
             return False
         try:
             res_id = int(entry.get("res_id"))
