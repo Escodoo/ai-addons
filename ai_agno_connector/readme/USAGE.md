@@ -11,7 +11,7 @@
      and method-specific arguments (`domain`, `fields`, `limit`, …)
 
 4. Allowed read methods on any non-blocked model: `search_read`,
-   `search_count`, `fields_get`.
+   `search_count`, `fields_get`, `read_group`.
 
 Responses are formatted for LLM context (datetimes in the user timezone,
 monetary values with currency, HTML as plain text, long strings truncated).
@@ -41,6 +41,13 @@ Current assistant surface (`model=ai.assistant`):
 | `prepare_helpdesk_ticket` | Draft OCA helpdesk ticket |
 | `prepare_sale_order` | Draft sales quotation |
 | `prepare_timesheet` | Draft timesheet line |
+| `get_attention_digest` | Pending-work counts across installed apps |
+| `get_record_context` | Short ACL-aware record snapshot |
+| `prepare_partner` | Draft contact |
+| `prepare_activity` | Follow-up activity |
+| `add_order_line` | Line on a draft SO/PO |
+| `propose_confirm_sale_order` | HITL confirm for a quotation |
+| `propose_confirm_purchase_order` | HITL confirm for an RFQ |
 
 These methods are implemented in `ai_agno_assistant` and called by the Agno
 service toolkit `AssistantTools` (`app/tools/assistant_tools.py` in
