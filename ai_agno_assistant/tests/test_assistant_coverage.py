@@ -8,6 +8,7 @@ from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools import mute_logger
 
+from ..models import ai_assistant_insight as insight_mod
 from ..models.ai_assistant_artifacts import (
     _plain_text_to_pdf,
     _safe_filename,
@@ -397,6 +398,94 @@ class TestAiAssistantCoverage(TransactionCase):
         ):
             denied_ctx = self.Assistant.get_record_context("res.partner", partner.id)
         self.assertEqual(denied_ctx["error"], "access_denied")
+        with mock.patch.object(
+            type(self.Assistant),
+            "_preview_fields_for",
+            return_value=[],
+        ):
+            empty_preview = self.Assistant._hydrate_record_preview(
+                {"current_model": "res.partner", "current_res_id": partner.id}
+            )
+            empty_ctx = self.Assistant.get_record_context("res.partner", partner.id)
+        self.assertNotIn("record_preview", empty_preview)
+        self.assertEqual(empty_ctx["fields"], {"id": partner.id})
+        html_field = mock.Mock(type="html")
+        char_field = mock.Mock(type="char")
+        fake_record = mock.Mock()
+        fake_record._fields = {
+            "name": html_field,
+            "display_name": char_field,
+            "signup_token": char_field,
+        }
+        with mock.patch.object(
+            insight_mod,
+            "_PREVIEW_FIELD_CANDIDATES",
+            ("name", "signup_token", "display_name"),
+        ):
+            names = self.Assistant._preview_fields_for(fake_record)
+        self.assertEqual(names, ["display_name"])
+        with mock.patch.object(insight_mod, "_PREVIEW_FIELD_LIMIT", 1):
+            limited = self.Assistant._preview_fields_for(partner)
+        self.assertEqual(len(limited), 1)
+        with mock.patch.object(type(self.Assistant), "_safe_count", return_value=None):
+            digest = self.Assistant.get_attention_digest()
+        self.assertEqual(digest["items"], [])
+        original_contains = type(self.env).__contains__
+
+        def hide_models(env, key):
+            if key in {"account.move", "project.task", "helpdesk.ticket"}:
+                return False
+            return original_contains(env, key)
+
+        with mock.patch.object(type(self.env), "__contains__", hide_models):
+            hidden = self.Assistant.get_attention_digest()
+        self.assertIsInstance(hidden["items"], list)
+        if "account.move" in self.env:
+            move_fields = {
+                name: field
+                for name, field in self.env["account.move"]._fields.items()
+                if name != "payment_state"
+            }
+            with mock.patch.object(
+                type(self.env["account.move"]),
+                "_fields",
+                move_fields,
+            ):
+                posted = self.Assistant.get_attention_digest()
+            self.assertTrue(
+                any(item["key"] == "overdue_invoices" for item in posted["items"])
+            )
+        if "helpdesk.ticket" in self.env:
+            ticket_fields = dict(self.env["helpdesk.ticket"]._fields)
+            with mock.patch.object(
+                type(self.env["helpdesk.ticket"]),
+                "_fields",
+                {**ticket_fields, "closed": mock.Mock()},
+            ):
+                closed = self.Assistant.get_attention_digest()
+            self.assertIsInstance(closed["items"], list)
+            no_closed = {
+                name: field for name, field in ticket_fields.items() if name != "closed"
+            }
+            with mock.patch.object(
+                type(self.env["helpdesk.ticket"]),
+                "_fields",
+                no_closed,
+            ):
+                staged = self.Assistant.get_attention_digest()
+            self.assertIsInstance(staged["items"], list)
+            neither = {
+                name: field for name, field in no_closed.items() if name != "stage_id"
+            }
+            with mock.patch.object(
+                type(self.env["helpdesk.ticket"]),
+                "_fields",
+                neither,
+            ):
+                skipped = self.Assistant.get_attention_digest()
+            self.assertFalse(
+                any(item["key"] == "open_tickets" for item in skipped["items"])
+            )
 
     def _without_session_model(self):
         original_contains = type(self.env).__contains__
