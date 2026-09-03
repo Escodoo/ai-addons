@@ -56,7 +56,7 @@ class TestAiAssistantCoverage(TransactionCase):
         )
         self.assertEqual(
             self.Assistant.prepare_activity(model="unknown.model", res_id=1)["error"],
-            "invalid_res_id",
+            "model_not_allowed",
         )
         missing = self.Assistant.prepare_activity(model="res.partner", res_id=999999)
         self.assertEqual(missing["error"], "not_found")
@@ -191,10 +191,13 @@ class TestAiAssistantCoverage(TransactionCase):
             self.Assistant.action_ai_execute_pending(True)["error"],
             "unsupported",
         )
+        confirm_method = (
+            "action_confirm" if hasattr(order, "action_confirm") else "button_confirm"
+        )
         self.Assistant.propose_confirm_sale_order(order.id)
         with mock.patch.object(
             type(order),
-            "button_confirm",
+            confirm_method,
             side_effect=UserError("cannot confirm"),
         ):
             failed = self.Assistant.action_ai_execute_pending(True)
@@ -203,7 +206,7 @@ class TestAiAssistantCoverage(TransactionCase):
         with (
             mock.patch.object(
                 type(order),
-                "button_confirm",
+                confirm_method,
                 side_effect=RuntimeError("boom"),
             ),
             mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant_pending"),
