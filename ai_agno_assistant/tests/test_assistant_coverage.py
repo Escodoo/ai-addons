@@ -3,7 +3,7 @@
 
 from unittest import mock
 
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools import mute_logger
@@ -245,6 +245,17 @@ class TestAiAssistantCoverage(TransactionCase):
             self.Assistant._remember_pending_action("x", "sale.order", False, "", "")
         )
         self.assertFalse(self.Assistant._sanitize_confirm_pending())
+        with self._without_models("ai.assistant.pending.action"):
+            self.assertIn("res.partner", self.env)
+            self.assertFalse(self.Assistant._latest_pending_action())
+            self.assertFalse(
+                self.Assistant._remember_pending_action(
+                    "x", "res.partner", self.env.user.partner_id, "", ""
+                )
+            )
+        with self._without_models("sale.order"):
+            missing_app = self.Assistant.propose_confirm_sale_order(1)
+        self.assertEqual(missing_app["error"], "sale_unavailable")
         if "sale.order" not in self.env:  # pragma: no cover
             self.skipTest("sale is not installed")
         missing = self.Assistant.propose_confirm_sale_order("SO-MISSING")
@@ -305,6 +316,52 @@ class TestAiAssistantCoverage(TransactionCase):
         ):
             crashed = self.Assistant.action_ai_execute_pending(True)
         self.assertEqual(crashed["error"], "confirm_failed")
+        self.Assistant.propose_confirm_sale_order(order.id)
+        pending = self.Assistant._latest_pending_action()
+        pending.label = False
+        pending.summary = False
+        chip = self.Assistant._sanitize_confirm_pending({})
+        self.assertEqual(chip["type"], "confirm_pending")
+        self.assertTrue(chip["label"])
+        pending.model_name = "no.such.model"
+        self.assertEqual(
+            self.Assistant.action_ai_execute_pending(True)["error"],
+            "unavailable",
+        )
+        self.Assistant.propose_confirm_sale_order(order.id)
+        with mock.patch.object(
+            type(order),
+            "check_access",
+            side_effect=AccessError("no"),
+        ):
+            self.assertEqual(
+                self.Assistant.action_ai_execute_pending(True)["error"],
+                "access_denied",
+            )
+        self.Assistant.propose_confirm_sale_order(order.id)
+        with mock.patch.object(
+            type(order),
+            confirm_method,
+            side_effect=ValidationError("invalid"),
+        ):
+            self.assertEqual(
+                self.Assistant.action_ai_execute_pending(True)["error"],
+                "validation_error",
+            )
+        self.Assistant.propose_confirm_sale_order(order.id)
+        with mock.patch.object(
+            type(order),
+            "button_confirm",
+            create=True,
+            return_value=True,
+        ):
+            clicked = self.Assistant.action_ai_execute_pending(True)
+        self.assertTrue(clicked.get("ok"), clicked)
+        self.Assistant.propose_confirm_sale_order(order.id)
+        with mock.patch.object(type(order), confirm_method, return_value=True):
+            confirmed = self.Assistant.action_ai_execute_pending(True)
+        self.assertTrue(confirmed.get("ok"), confirmed)
+        self.assertEqual(confirmed["res_id"], order.id)
 
     def test_propose_confirm_purchase_when_available(self):
         with self._without_models("purchase.order"):
