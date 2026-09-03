@@ -290,6 +290,32 @@ class TestAgnoRpc(HttpCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIsInstance(resp.json().get("result"), list)
 
+    def test_read_group_filters_measures_and_bad_limit(self):
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby=["is_company"],
+            fields="id:count",
+            limit="bad",
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json().get("result"), list)
+        payload = self._signed_payload(
+            self.rpc_user,
+            method="read_group",
+            model="res.partner",
+            domain=[],
+            groupby=["is_company"],
+            fields=["id:count", "", 12, "password", "not_a_field"],
+            limit={},
+        )
+        resp = self._rpc(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json().get("result"), list)
+
     def test_tools_catalog_ok(self):
         url = f"{self.base_url()}/agno/tools?db={self.env.cr.dbname}"
         resp = self.opener.get(url, headers=self._headers(), timeout=30)

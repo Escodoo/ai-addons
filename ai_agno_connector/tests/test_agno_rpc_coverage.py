@@ -319,6 +319,30 @@ class TestAgnoRpcFormatters(HttpCase):
         for key, value in params.items():
             icp.set_param(key, value)
 
+    def test_format_read_group_for_llm_filters_unsafe_rows(self):
+        controller = AgnoRpcController()
+        rows = [
+            "not-a-row",
+            {
+                "__count": 3,
+                "__domain": [("is_company", "=", True)],
+                "__extra": 1,
+                "is_company": True,
+                "signup_token": "secret",
+                "blob": b"xx",
+                "name": "Acme",
+            },
+        ]
+        cleaned = controller._format_read_group_for_llm(self.env["res.partner"], rows)
+        self.assertEqual(len(cleaned), 1)
+        self.assertEqual(cleaned[0]["__count"], 3)
+        self.assertEqual(cleaned[0]["name"], "Acme")
+        self.assertTrue(cleaned[0]["is_company"])
+        self.assertNotIn("__domain", cleaned[0])
+        self.assertNotIn("__extra", cleaned[0])
+        self.assertNotIn("signup_token", cleaned[0])
+        self.assertNotIn("blob", cleaned[0])
+
     def test_truncate_helper(self):
         self.assertEqual(_truncate(123), 123)
         self.assertEqual(_truncate("short"), "short")
