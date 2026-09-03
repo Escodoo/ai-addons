@@ -12,6 +12,7 @@ from ..models import ai_assistant_insight as insight_mod
 from ..models.ai_assistant_artifacts import (
     _plain_text_to_pdf,
     _safe_filename,
+    _table_html,
     markdownish_to_html,
     wrap_report_html,
 )
@@ -662,3 +663,16 @@ class TestAiAssistantCoverage(TransactionCase):
         self.assertTrue(long_pdf.startswith(b"%PDF"))
         default = self.Assistant.action_ai_export_message(content="Hello", title="  ")
         self.assertTrue(default["filename"].lower().startswith("assistant-briefing"))
+        self.assertEqual(_safe_filename("notes.md", ".md"), "notes.md")
+        self.assertEqual(_table_html([]), "")
+        header_only = markdownish_to_html("| A | B |\n| --- | --- |")
+        self.assertIn("<thead>", header_only)
+        self.assertNotIn("<tbody>", header_only)
+        self.assertIn("<th>", _table_html([["A"], ["1", "2"]]))
+        self.assertIn("<td>", _table_html([[], ["x"]]))
+        self.assertIn("<ul>", markdownish_to_html("- only\n- items"))
+        self.assertIn("<ol>", markdownish_to_html("1. only"))
+        self.assertIn("<h3>", markdownish_to_html("### Sub"))
+        self.assertEqual(markdownish_to_html("<p>already</p>"), "<p>already</p>")
+        escaped = _plain_text_to_pdf("Title (draft)", "\\line\n" + ("x" * 100))
+        self.assertTrue(escaped.startswith(b"%PDF"))

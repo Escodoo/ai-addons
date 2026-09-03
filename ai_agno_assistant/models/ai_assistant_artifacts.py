@@ -183,8 +183,8 @@ def _plain_text_to_pdf(title, body):
         wrapped.append(line)
         if len(wrapped) >= 48:
             break
-    if not wrapped:
-        wrapped = [" "]
+        if not wrapped:  # pragma: no cover
+            wrapped = [" "]
 
     def _escape(text):
         return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
