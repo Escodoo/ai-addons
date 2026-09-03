@@ -44,6 +44,7 @@ class TestAiAssistantController(HttpCase):
     def _chat(self, **params):
         return self.make_jsonrpc_request("/ai_agno_assistant/chat", params)
 
+    @mute_logger("odoo.http")
     def test_chat_requires_assistant_group(self):
         self.authenticate("ai_http_blocked", "ai_http_blocked")
         with self.assertRaises(JsonRpcException) as err:
@@ -82,6 +83,7 @@ class TestAiAssistantController(HttpCase):
         self.assertEqual(captured["ui_context"]["session_key"], "conv-http-1")
         self.assertEqual(captured["ui_context"]["action"], "purchase.purchase_rfq")
 
+    @mute_logger("odoo.http")
     def test_chat_reraises_user_error(self):
         self.authenticate("ai_http_user", "ai_http_user")
         with (
@@ -95,16 +97,15 @@ class TestAiAssistantController(HttpCase):
             self._chat(message="   ")
         self.assertIn("UserError", str(err.exception))
 
+    @mute_logger("odoo.http", "odoo.addons.ai_agno_assistant.controllers.main")
     def test_chat_wraps_unexpected_errors(self):
         self.authenticate("ai_http_user", "ai_http_user")
-        logger = "odoo.addons.ai_agno_assistant.controllers.main"
         with (
             mock.patch.object(
                 type(self.env["ai.assistant"]),
                 "action_ai_chat",
                 side_effect=RuntimeError("bridge down"),
             ),
-            mute_logger(logger),
             self.assertRaises(JsonRpcException) as err,
         ):
             self._chat(message="hello")

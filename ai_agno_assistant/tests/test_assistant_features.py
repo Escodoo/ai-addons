@@ -7,6 +7,7 @@ from unittest import mock
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -291,10 +292,13 @@ class TestAiAssistantFeatures(TransactionCase):
         )
         self.assertTrue(raw.startswith(b"%PDF"))
 
-        with mock.patch.object(
-            type(self.env["ir.actions.report"]),
-            "_run_wkhtmltopdf",
-            side_effect=RuntimeError("wkhtmltopdf missing"),
+        with (
+            mute_logger("odoo.addons.ai_agno_assistant.models.ai_assistant_artifacts"),
+            mock.patch.object(
+                type(self.env["ir.actions.report"]),
+                "_run_wkhtmltopdf",
+                side_effect=RuntimeError("wkhtmltopdf missing"),
+            ),
         ):
             pdf = self.Assistant.action_ai_export_message(
                 content="Fallback briefing",
