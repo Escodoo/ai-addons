@@ -90,8 +90,6 @@ class TestAiAssistantCoverage(TransactionCase):
                 res_id=partner.id,
                 note="<b>Hi</b>",
             )
-        if failed.get("error") == "activity_unavailable":
-            self.skipTest("mail.activity is not available")
         self.assertEqual(failed["error"], "create_failed")
         with mock.patch.object(
             type(self.env["ir.model"]),
@@ -102,14 +100,8 @@ class TestAiAssistantCoverage(TransactionCase):
                 model="res.partner", res_id=partner.id
             )
         self.assertEqual(unknown_ir["error"], "model_not_allowed")
-        original_contains = type(self.env).__contains__
-
-        def fake_contains(env, key):
-            if key == "mail.activity":
-                return False
-            return original_contains(env, key)
-
-        with mock.patch.object(type(self.env), "__contains__", fake_contains):
+        with self._without_models("mail.activity"):
+            self.assertIn("res.partner", self.env)
             unavailable = self.Assistant.prepare_activity(
                 model="res.partner", res_id=partner.id
             )
@@ -120,7 +112,7 @@ class TestAiAssistantCoverage(TransactionCase):
             self.Assistant.add_order_line(model="res.partner", res_id=1)["error"],
             "order_unavailable",
         )
-        if "sale.order" not in self.env:
+        if "sale.order" not in self.env:  # pragma: no cover
             self.skipTest("sale is not installed")
         self.assertEqual(
             self.Assistant.add_order_line(model="sale.order", res_id="x")["error"],
@@ -155,7 +147,9 @@ class TestAiAssistantCoverage(TransactionCase):
             )
 
     def test_add_order_line_on_draft_sale(self):
-        if "sale.order" not in self.env or "product.product" not in self.env:
+        if (
+            "sale.order" not in self.env or "product.product" not in self.env
+        ):  # pragma: no cover
             self.skipTest("sale/product is not installed")
         partner = self.env["res.partner"].create({"name": "Line Customer"})
         product = self.env["product.product"].create(
@@ -205,7 +199,7 @@ class TestAiAssistantCoverage(TransactionCase):
                 qty=1,
             )
         self.assertEqual(failed["error"], "create_failed")
-        if "purchase.order" not in self.env:
+        if "purchase.order" not in self.env:  # pragma: no cover
             return
         vendor = self.env["res.partner"].create({"name": "PO Vendor"})
         purchase = self.env["purchase.order"].create({"partner_id": vendor.id})
@@ -251,7 +245,7 @@ class TestAiAssistantCoverage(TransactionCase):
             self.Assistant._remember_pending_action("x", "sale.order", False, "", "")
         )
         self.assertFalse(self.Assistant._sanitize_confirm_pending())
-        if "sale.order" not in self.env:
+        if "sale.order" not in self.env:  # pragma: no cover
             self.skipTest("sale is not installed")
         missing = self.Assistant.propose_confirm_sale_order("SO-MISSING")
         self.assertTrue(missing.get("error"), missing)
@@ -288,9 +282,10 @@ class TestAiAssistantCoverage(TransactionCase):
             self.Assistant.action_ai_execute_pending(True)["error"],
             "unsupported",
         )
-        confirm_method = (
-            "action_confirm" if hasattr(order, "action_confirm") else "button_confirm"
-        )
+        if hasattr(order, "action_confirm"):
+            confirm_method = "action_confirm"
+        else:  # pragma: no cover
+            confirm_method = "button_confirm"
         self.Assistant.propose_confirm_sale_order(order.id)
         with mock.patch.object(
             type(order),
@@ -312,9 +307,10 @@ class TestAiAssistantCoverage(TransactionCase):
         self.assertEqual(crashed["error"], "confirm_failed")
 
     def test_propose_confirm_purchase_when_available(self):
-        if "purchase.order" not in self.env:
+        with self._without_models("purchase.order"):
             result = self.Assistant.propose_confirm_purchase_order(1)
-            self.assertEqual(result["error"], "purchase_unavailable")
+        self.assertEqual(result["error"], "purchase_unavailable")
+        if "purchase.order" not in self.env:  # pragma: no cover
             return
         vendor = self.env["res.partner"].create({"name": "RFQ Vendor"})
         order = self.env["purchase.order"].create({"partner_id": vendor.id})
@@ -430,14 +426,7 @@ class TestAiAssistantCoverage(TransactionCase):
         with mock.patch.object(type(self.Assistant), "_safe_count", return_value=None):
             digest = self.Assistant.get_attention_digest()
         self.assertEqual(digest["items"], [])
-        original_contains = type(self.env).__contains__
-
-        def hide_models(env, key):
-            if key in {"account.move", "project.task", "helpdesk.ticket"}:
-                return False
-            return original_contains(env, key)
-
-        with mock.patch.object(type(self.env), "__contains__", hide_models):
+        with self._without_models("account.move", "project.task", "helpdesk.ticket"):
             hidden = self.Assistant.get_attention_digest()
         self.assertIsInstance(hidden["items"], list)
         if "account.move" in self.env:
@@ -455,7 +444,7 @@ class TestAiAssistantCoverage(TransactionCase):
             self.assertTrue(
                 any(item["key"] == "overdue_invoices" for item in posted["items"])
             )
-        if "helpdesk.ticket" in self.env:
+        if "helpdesk.ticket" in self.env:  # pragma: no cover
             ticket_fields = dict(self.env["helpdesk.ticket"]._fields)
             with mock.patch.object(
                 type(self.env["helpdesk.ticket"]),
@@ -487,15 +476,19 @@ class TestAiAssistantCoverage(TransactionCase):
                 any(item["key"] == "open_tickets" for item in skipped["items"])
             )
 
-    def _without_session_model(self):
+    def _without_models(self, *missing):
         original_contains = type(self.env).__contains__
+        hidden = set(missing)
 
         def fake_contains(env, key):
-            if key == "ai.assistant.session":
+            if key in hidden:
                 return False
             return original_contains(env, key)
 
         return mock.patch.object(type(self.env), "__contains__", fake_contains)
+
+    def _without_session_model(self):
+        return self._without_models("ai.assistant.session")
 
     def test_session_error_and_invalid_payloads(self):
         self.assertFalse(self.Assistant._normalize_session_key("short"))
@@ -544,6 +537,7 @@ class TestAiAssistantCoverage(TransactionCase):
                 )
             )
         with self._without_session_model():
+            self.assertIn("res.partner", self.env)
             self.assertFalse(self.Assistant._get_or_create_session())
             self.assertFalse(self.Assistant._remember_chat_turn("Hi", "x", False))
             self.Assistant._prune_empty_sessions()
