@@ -227,7 +227,7 @@ class TestAiAssistantFeatures(TransactionCase):
         self.assertEqual(missing.get("error"), "expired")
 
     def test_propose_and_cancel_pending_sale_order(self):
-        if "sale.order" not in self.env:
+        if "sale.order" not in self.env:  # pragma: no cover
             self.skipTest("sale is not installed")
         partner = self.env["res.partner"].create({"name": "HITL Customer"})
         order = self.env["sale.order"].create({"partner_id": partner.id})
@@ -246,8 +246,6 @@ class TestAiAssistantFeatures(TransactionCase):
             res_id=partner.id,
             summary="Call back",
         )
-        if result.get("error") == "activity_unavailable":
-            self.skipTest("mail.activity is not available")
         self.assertFalse(result.get("error"), result)
         self.assertEqual(result["res_id"], partner.id)
 
