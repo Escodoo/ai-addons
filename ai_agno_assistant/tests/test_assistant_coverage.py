@@ -302,6 +302,16 @@ class TestAiAssistantCoverage(TransactionCase):
             denied_ctx = self.Assistant.get_record_context("res.partner", partner.id)
         self.assertEqual(denied_ctx["error"], "access_denied")
 
+    def _without_session_model(self):
+        original_contains = type(self.env).__contains__
+
+        def fake_contains(env, key):
+            if key == "ai.assistant.session":
+                return False
+            return original_contains(env, key)
+
+        return mock.patch.object(type(self.env), "__contains__", fake_contains)
+
     def test_session_error_and_invalid_payloads(self):
         self.assertFalse(self.Assistant._normalize_session_key("short"))
         self.assertFalse(
@@ -312,8 +322,26 @@ class TestAiAssistantCoverage(TransactionCase):
         session.messages_json = "{"
         loaded = self.Assistant.action_ai_load_session(created["session_key"])
         self.assertEqual(loaded["messages"], [])
+        self.assertFalse(self.Assistant._session_has_messages(session))
+        recovered = self.Assistant._remember_chat_turn(
+            "Recover",
+            "ok",
+            False,
+            session_key=created["session_key"],
+        )
+        self.assertTrue(recovered)
         session.messages_json = "{}"
         self.assertFalse(self.Assistant._session_has_messages(session))
+        loaded_obj = self.Assistant.action_ai_load_session(created["session_key"])
+        self.assertEqual(loaded_obj["messages"], [])
+        rewritten = self.Assistant._remember_chat_turn(
+            "Rewrite",
+            "again",
+            False,
+            session_key=created["session_key"],
+        )
+        self.assertTrue(rewritten)
+        self.assertIsInstance(self.Assistant.action_ai_list_sessions(limit="bad"), list)
         with (
             mock.patch.object(
                 type(session),
@@ -330,6 +358,17 @@ class TestAiAssistantCoverage(TransactionCase):
                     session_key=created["session_key"],
                 )
             )
+        with self._without_session_model():
+            self.assertFalse(self.Assistant._get_or_create_session())
+            self.assertFalse(self.Assistant._remember_chat_turn("Hi", "x", False))
+            self.Assistant._prune_empty_sessions()
+            self.assertEqual(self.Assistant.action_ai_list_sessions(), [])
+            self.assertEqual(
+                self.Assistant.action_ai_load_session()["messages"],
+                [],
+            )
+            deleted = self.Assistant.action_ai_delete_session("validkey")
+            self.assertFalse(deleted["deleted"])
 
     def test_markdownish_headings_lists_and_filename(self):
         html = markdownish_to_html(
