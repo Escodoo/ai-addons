@@ -43,7 +43,9 @@ After changing embedder model, provider, or dimensions, use
 - If `ai_agno_document_page_kb` is installed, re-sends tagged `document.page`
   records via `sync_kb_pages`.
 - Does **not** wipe or rebuild the `architect` KB (use
-  `python -m app.ingest_odoo_kb` offline).
+  `python -m app.ingest_odoo_kb` offline, or promote a bundle with
+  `python -m app.architect_kb export|import` — never dump the whole `agno`
+  database).
 
 Requires a resolvable embedder (BYOK here or `EMBEDDER_*` on Agno) and a
 configured bridge auth token (`agno_bridge_auth_token` / ICP).
