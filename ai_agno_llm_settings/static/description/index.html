@@ -506,7 +506,9 @@ payload.</li>
 <li>If <tt class="docutils literal">ai_agno_document_page_kb</tt> is installed, re-sends tagged
 <tt class="docutils literal">document.page</tt> records via <tt class="docutils literal">sync_kb_pages</tt>.</li>
 <li>Does <strong>not</strong> wipe or rebuild the <tt class="docutils literal">architect</tt> KB (use
-<tt class="docutils literal">python <span class="pre">-m</span> app.ingest_odoo_kb</tt> offline).</li>
+<tt class="docutils literal">python <span class="pre">-m</span> app.ingest_odoo_kb</tt> offline, or promote a bundle with
+<tt class="docutils literal">python <span class="pre">-m</span> app.architect_kb export|import</tt> — never dump the whole
+<tt class="docutils literal">agno</tt> database).</li>
 </ul>
 <p>Requires a resolvable embedder (BYOK here or <tt class="docutils literal">EMBEDDER_*</tt> on Agno) and
 a configured bridge auth token (<tt class="docutils literal">agno_bridge_auth_token</tt> / ICP).</p>
