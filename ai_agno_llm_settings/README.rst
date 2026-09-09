@@ -33,6 +33,12 @@ Gemini), Odoo sends ``_odoo.llm`` on each bridge request. Agno uses
 those settings only and never mixes them with the service ``.env`` token
 (Ollama API key is optional for local instances).
 
+Optional **task profiles** (fast, reasoning, extract) are stored as
+``agno.llm.profile`` and sent as ``_odoo.llm_profiles``. A bridge may
+override ``_odoo.llm`` with **Agno LLM Profile** (for example Fast on
+the public web channel). Profiles never change which knowledge base a
+persona can search.
+
 When an embedder provider is selected (Ollama or OpenAI), Odoo sends
 ``_odoo.embedder`` the same way. After changing embedder model,
 provider, or dimensions, use **Reindex knowledge bases** to rebuild the
@@ -88,6 +94,23 @@ Chat LLM (BYOK)
 +---------------------+------------------------------------------------+
 
 ICP keys: ``ai_agno_llm_settings.provider|host|model|api_key``.
+
+Task profiles (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+========= ==============================================
+Profile   Typical use
+========= ==============================================
+Fast      Website / livechat, assistant router
+Reasoning Architect, blueprint, Boardkit generate retry
+Extract   Structured JSON (Boardkit generate first pass)
+========= ==============================================
+
+Leave a profile provider empty to reuse the Chat LLM or Agno
+``LLM_FAST_*`` / ``LLM_REASONING_*`` / ``LLM_EXTRACT_*``. On each Agno
+bridge, **Agno LLM Profile** can force ``_odoo.llm`` to one of these
+rows (the public ``web`` bot should use Fast when you want a cheaper
+model — it still only searches the public KB).
 
 Embeddings (BYOK)
 ~~~~~~~~~~~~~~~~~
@@ -185,6 +208,9 @@ Usage
    match the model (e.g. ``1024`` for ``qwen3-embedding:0.6b``).
 5. The next Agno bridge / KB call includes ``_odoo.llm`` and/or
    ``_odoo.embedder`` only when the corresponding provider is set.
+   Configured task profiles are sent as ``_odoo.llm_profiles``. Set
+   **Agno LLM Profile** on a bridge to force that execution's
+   ``_odoo.llm``.
 6. Stored ``ai.bridge.execution`` payloads mask API keys as ``***``.
 7. After changing embedder model, provider, or dimensions, click
    **Reindex knowledge bases** (confirm the dialog). That calls Agno to

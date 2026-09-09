@@ -76,6 +76,172 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Task LLM profiles (BYOK)" name="ai_agno_llm_profiles">
+                        <setting
+                            id="agno_llm_profiles_setting"
+                            string="Fast / Reasoning / Extract"
+                            help="Optional. Leave empty to reuse the Chat LLM (standard) or Agno env LLM_FAST_* / LLM_REASONING_* / LLM_EXTRACT_*. Fast is for web/livechat and routers; reasoning for architect and retries; extract for structured JSON."
+                        >
+                            <div class="content-group">
+                                <field
+                                    name="agno_llm_fast_last_provider"
+                                    invisible="1"
+                                />
+                                <div class="row mt16">
+                                    <label
+                                        for="agno_llm_fast_provider"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_fast_provider"
+                                        class="col-lg-6"
+                                        placeholder="Use standard / env"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_fast_provider or agno_llm_fast_provider == 'gemini'"
+                                >
+                                    <label
+                                        for="agno_llm_fast_host"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field name="agno_llm_fast_host" class="col-lg-6" />
+                                </div>
+                                <div class="row" invisible="not agno_llm_fast_provider">
+                                    <label
+                                        for="agno_llm_fast_model"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_fast_model"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <div class="row" invisible="not agno_llm_fast_provider">
+                                    <label
+                                        for="agno_llm_fast_api_key"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_fast_api_key"
+                                        password="True"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <field
+                                    name="agno_llm_reasoning_last_provider"
+                                    invisible="1"
+                                />
+                                <div class="row mt16">
+                                    <label
+                                        for="agno_llm_reasoning_provider"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_reasoning_provider"
+                                        class="col-lg-6"
+                                        placeholder="Use standard / env"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_reasoning_provider or agno_llm_reasoning_provider == 'gemini'"
+                                >
+                                    <label
+                                        for="agno_llm_reasoning_host"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_reasoning_host"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_reasoning_provider"
+                                >
+                                    <label
+                                        for="agno_llm_reasoning_model"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_reasoning_model"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_reasoning_provider"
+                                >
+                                    <label
+                                        for="agno_llm_reasoning_api_key"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_reasoning_api_key"
+                                        password="True"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <field
+                                    name="agno_llm_extract_last_provider"
+                                    invisible="1"
+                                />
+                                <div class="row mt16">
+                                    <label
+                                        for="agno_llm_extract_provider"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_extract_provider"
+                                        class="col-lg-6"
+                                        placeholder="Use standard / env"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_extract_provider or agno_llm_extract_provider == 'gemini'"
+                                >
+                                    <label
+                                        for="agno_llm_extract_host"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_extract_host"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_extract_provider"
+                                >
+                                    <label
+                                        for="agno_llm_extract_model"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_extract_model"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                                <div
+                                    class="row"
+                                    invisible="not agno_llm_extract_provider"
+                                >
+                                    <label
+                                        for="agno_llm_extract_api_key"
+                                        class="col-lg-3 o_light_label"
+                                    />
+                                    <field
+                                        name="agno_llm_extract_api_key"
+                                        password="True"
+                                        class="col-lg-6"
+                                    />
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="Embeddings (BYOK)" name="ai_agno_embedder_provider">
                         <setting
                             id="agno_embedder_provider_setting"

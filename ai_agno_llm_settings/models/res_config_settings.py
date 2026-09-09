@@ -148,6 +148,62 @@ class ResConfigSettings(models.TransientModel):
     )
     agno_embedder_last_provider = fields.Char(store=False)
 
+    # Optional task profiles (fast / reasoning / extract). Standard remains
+    # the Chat LLM block above.
+    agno_llm_fast_provider = fields.Selection(
+        [
+            ("ollama", "Ollama"),
+            ("openai", "OpenAI"),
+            ("gemini", "Google Gemini"),
+        ],
+        string="Fast LLM Provider",
+    )
+    agno_llm_fast_host = fields.Char(string="Fast LLM Host / Base URL")
+    agno_llm_fast_model = fields.Char(string="Fast LLM Model")
+    agno_llm_fast_api_key = fields.Char(
+        string="Fast LLM API Key",
+        groups="base.group_system",
+    )
+    agno_llm_fast_last_provider = fields.Char(store=False)
+
+    agno_llm_reasoning_provider = fields.Selection(
+        [
+            ("ollama", "Ollama"),
+            ("openai", "OpenAI"),
+            ("gemini", "Google Gemini"),
+        ],
+        string="Reasoning LLM Provider",
+    )
+    agno_llm_reasoning_host = fields.Char(string="Reasoning LLM Host / Base URL")
+    agno_llm_reasoning_model = fields.Char(string="Reasoning LLM Model")
+    agno_llm_reasoning_api_key = fields.Char(
+        string="Reasoning LLM API Key",
+        groups="base.group_system",
+    )
+    agno_llm_reasoning_last_provider = fields.Char(store=False)
+
+    agno_llm_extract_provider = fields.Selection(
+        [
+            ("ollama", "Ollama"),
+            ("openai", "OpenAI"),
+            ("gemini", "Google Gemini"),
+        ],
+        string="Extract LLM Provider",
+    )
+    agno_llm_extract_host = fields.Char(string="Extract LLM Host / Base URL")
+    agno_llm_extract_model = fields.Char(string="Extract LLM Model")
+    agno_llm_extract_api_key = fields.Char(
+        string="Extract LLM API Key",
+        groups="base.group_system",
+    )
+    agno_llm_extract_last_provider = fields.Char(store=False)
+
+    _AGNO_PROFILE_FIELD_PREFIX = {
+        "fast": "agno_llm_fast",
+        "reasoning": "agno_llm_reasoning",
+        "extract": "agno_llm_extract",
+    }
+
     @api.onchange("agno_llm_provider")
     def _onchange_agno_llm_provider(self):
         """Suggest host/model only when the provider actually changes.
@@ -207,6 +263,106 @@ class ResConfigSettings(models.TransientModel):
             )
 
         self.agno_embedder_last_provider = provider
+
+    def _onchange_agno_profile_provider(self, prefix):
+        """Seed host/model when a task-profile provider actually changes."""
+        provider_field = f"{prefix}_provider"
+        last_field = f"{prefix}_last_provider"
+        host_field = f"{prefix}_host"
+        model_field = f"{prefix}_model"
+        provider = getattr(self, provider_field) or False
+        last = getattr(self, last_field) or False
+        if not provider:
+            setattr(self, host_field, False)
+            setattr(self, model_field, False)
+            setattr(self, last_field, False)
+            return
+        host_set = bool((getattr(self, host_field) or "").strip())
+        model_set = bool((getattr(self, model_field) or "").strip())
+        if not last and (host_set or model_set):
+            setattr(self, last_field, provider)
+            return
+        if last != provider:
+            setattr(self, host_field, HOST_BY_PROVIDER.get(provider) or False)
+            setattr(self, model_field, MODEL_BY_PROVIDER.get(provider) or False)
+        setattr(self, last_field, provider)
+
+    @api.onchange("agno_llm_fast_provider")
+    def _onchange_agno_llm_fast_provider(self):
+        self._onchange_agno_profile_provider("agno_llm_fast")
+
+    @api.onchange("agno_llm_reasoning_provider")
+    def _onchange_agno_llm_reasoning_provider(self):
+        self._onchange_agno_profile_provider("agno_llm_reasoning")
+
+    @api.onchange("agno_llm_extract_provider")
+    def _onchange_agno_llm_extract_provider(self):
+        self._onchange_agno_profile_provider("agno_llm_extract")
+
+    def _validate_agno_profile_fields(self, key, prefix):
+        provider = (getattr(self, f"{prefix}_provider") or "").strip()
+        if not provider:
+            return
+        model = (getattr(self, f"{prefix}_model") or "").strip()
+        api_key = (getattr(self, f"{prefix}_api_key") or "").strip()
+        host = (getattr(self, f"{prefix}_host") or "").strip()
+        if not model:
+            raise UserError(
+                _("When a %(key)s LLM provider is selected, Model is required.")
+                % {"key": key}
+            )
+        if provider == "ollama" and not host:
+            raise UserError(
+                _(
+                    "Ollama requires a Host / Base URL for the %(key)s "
+                    "profile (reachable from the Agno service)."
+                )
+                % {"key": key}
+            )
+        if provider in PROVIDERS_REQUIRING_API_KEY and not api_key:
+            raise UserError(
+                _(
+                    "OpenAI and Google Gemini require an API Key for the "
+                    "%(key)s LLM profile."
+                )
+                % {"key": key}
+            )
+
+    def _sync_agno_llm_profiles(self):
+        """Create/update/archive agno.llm.profile rows from Settings fields."""
+        Profile = self.env["agno.llm.profile"].sudo()
+        for key, prefix in self._AGNO_PROFILE_FIELD_PREFIX.items():
+            provider = (getattr(self, f"{prefix}_provider") or "").strip()
+            rec = Profile.search([("key", "=", key)], limit=1)
+            if not provider:
+                if rec:
+                    rec.active = False
+                continue
+            vals = {
+                "key": key,
+                "provider": provider,
+                "host": (getattr(self, f"{prefix}_host") or "").strip() or False,
+                "model": (getattr(self, f"{prefix}_model") or "").strip(),
+                "api_key": (getattr(self, f"{prefix}_api_key") or "").strip() or False,
+                "active": True,
+            }
+            if rec:
+                rec.write(vals)
+            else:
+                Profile.create(vals)
+
+    def get_values(self):
+        res = super().get_values()
+        Profile = self.env["agno.llm.profile"].sudo()
+        for key, prefix in self._AGNO_PROFILE_FIELD_PREFIX.items():
+            rec = Profile.search([("key", "=", key), ("active", "=", True)], limit=1)
+            if not rec:
+                continue
+            res[f"{prefix}_provider"] = rec.provider
+            res[f"{prefix}_host"] = rec.host
+            res[f"{prefix}_model"] = rec.model
+            res[f"{prefix}_api_key"] = rec.api_key
+        return res
 
     def set_values(self):
         provider = (self.agno_llm_provider or "").strip()
@@ -279,7 +435,11 @@ class ResConfigSettings(models.TransientModel):
                         "as embedder provider."
                     )
                 )
-        return super().set_values()
+        for key, prefix in self._AGNO_PROFILE_FIELD_PREFIX.items():
+            self._validate_agno_profile_fields(key, prefix)
+        result = super().set_values()
+        self._sync_agno_llm_profiles()
+        return result
 
     def _get_agno_base_url(self):
         """Return Agno base URL from module ICP, shared ICP, or Docker default."""

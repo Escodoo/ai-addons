@@ -624,3 +624,73 @@ class TestAgnoLlmSettings(TransactionCase):
             result = settings.action_reindex_agno_knowledge()
         self.assertEqual(result["tag"], "display_notification")
         self.assertNotIn("document.page", result["params"]["message"])
+
+    def test_task_profiles_persist_and_enter_payload(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_provider": "ollama",
+                "agno_llm_host": "http://ollama:11434",
+                "agno_llm_model": "standard-model",
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "tiny",
+                "agno_llm_reasoning_provider": "openai",
+                "agno_llm_reasoning_host": "https://api.openai.com/v1",
+                "agno_llm_reasoning_model": "gpt-4o",
+                "agno_llm_reasoning_api_key": "sk-reason",
+            }
+        )
+        settings.execute()
+        fast = self.env["agno.llm.profile"].search([("key", "=", "fast")], limit=1)
+        self.assertTrue(fast.active)
+        self.assertEqual(fast.model, "tiny")
+        execution = self._create_execution()
+        payload = execution._add_extra_payload_fields({})
+        self.assertEqual(payload["_odoo"]["llm"]["model"], "standard-model")
+        self.assertEqual(payload["_odoo"]["llm_profiles"]["fast"]["model"], "tiny")
+        self.assertEqual(
+            payload["_odoo"]["llm_profiles"]["reasoning"]["api_key"], "sk-reason"
+        )
+
+    def test_bridge_profile_override_replaces_default_llm(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_provider": "ollama",
+                "agno_llm_host": "http://ollama:11434",
+                "agno_llm_model": "standard-model",
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "tiny",
+            }
+        )
+        settings.execute()
+        fast = self.env["agno.llm.profile"].search([("key", "=", "fast")], limit=1)
+        self.bridge.agno_llm_profile_id = fast
+        execution = self._create_execution()
+        payload = execution._add_extra_payload_fields({})
+        self.assertEqual(payload["_odoo"]["llm"]["model"], "tiny")
+        self.assertEqual(payload["_odoo"]["llm_profiles"]["fast"]["model"], "tiny")
+
+    def test_mask_llm_profiles_secrets(self):
+        execution = self._create_execution()
+        masked = execution._mask_llm_secrets(
+            {
+                "_odoo": {
+                    "llm_profiles": {"fast": {"provider": "openai", "api_key": "plain"}}
+                }
+            }
+        )
+        self.assertEqual(
+            masked["_odoo"]["llm_profiles"]["fast"]["api_key"], MASKED_API_KEY
+        )
+
+    def test_fast_profile_requires_model(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "",
+            }
+        )
+        with self.assertRaises(UserError):
+            settings.execute()

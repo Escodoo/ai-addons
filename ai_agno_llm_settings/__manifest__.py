@@ -19,6 +19,9 @@
         "base",
     ],
     "data": [
+        "security/ir.model.access.csv",
+        "views/agno_llm_profile_views.xml",
+        "views/ai_bridge_views.xml",
         "views/res_config_settings_views.xml",
     ],
     "installable": True,

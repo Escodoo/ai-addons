@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="ai_bridge_form_view_agno_llm_profile" model="ir.ui.view">
+        <field name="name">ai.bridge.form.agno.llm.profile</field>
+        <field name="model">ai.bridge</field>
+        <field name="inherit_id" ref="ai_oca_bridge.ai_bridge_form_view" />
+        <field name="arch" type="xml">
+            <field name="url" position="after">
+                <field
+                    name="agno_llm_profile_id"
+                    invisible="provider != 'agno'"
+                    options="{'no_create': True}"
+                />
+            </field>
+        </field>
+    </record>
+</odoo>

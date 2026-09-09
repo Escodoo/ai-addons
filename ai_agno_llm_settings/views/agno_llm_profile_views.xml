@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="agno_llm_profile_view_tree" model="ir.ui.view">
+        <field name="name">agno.llm.profile.tree</field>
+        <field name="model">agno.llm.profile</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="key" />
+                <field name="provider" />
+                <field name="model" />
+                <field name="host" />
+                <field name="active" />
+            </list>
+        </field>
+    </record>
+    <record id="agno_llm_profile_view_form" model="ir.ui.view">
+        <field name="name">agno.llm.profile.form</field>
+        <field name="model">agno.llm.profile</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="key" />
+                        <field name="provider" />
+                        <field name="model" />
+                        <field name="host" />
+                        <field name="api_key" password="True" />
+                        <field name="active" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

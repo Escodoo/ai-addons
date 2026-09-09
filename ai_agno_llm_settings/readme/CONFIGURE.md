@@ -20,6 +20,19 @@ customer API keys.
 
 ICP keys: `ai_agno_llm_settings.provider|host|model|api_key`.
 
+### Task profiles (optional)
+
+| Profile    | Typical use                                      |
+| ---------- | ------------------------------------------------ |
+| Fast       | Website / livechat, assistant router             |
+| Reasoning  | Architect, blueprint, Boardkit generate retry    |
+| Extract    | Structured JSON (Boardkit generate first pass)   |
+
+Leave a profile provider empty to reuse the Chat LLM or Agno `LLM_FAST_*` /
+`LLM_REASONING_*` / `LLM_EXTRACT_*`. On each Agno bridge, **Agno LLM Profile**
+can force `_odoo.llm` to one of these rows (the public `web` bot should use
+Fast when you want a cheaper model — it still only searches the public KB).
+
 ### Embeddings (BYOK)
 
 | Field                 | Purpose                                                              |
