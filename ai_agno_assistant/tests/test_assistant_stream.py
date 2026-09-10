@@ -305,3 +305,35 @@ class TestAiAssistantStream(TransactionCase):
             )
         self.assertIn(stream_mod._SSE_KEEPALIVE, events)
         self.assertEqual(outcome, [{"body": "ok"}])
+
+    def test_iter_proxied_agno_sse_maps_error_and_generator_exit(self):
+        def _error_lines(_response, wait=1.0):
+            yield 'data: {"event": "error"}'
+
+        with mock.patch.object(
+            stream_mod, "iter_agno_sse_lines", side_effect=_error_lines
+        ):
+            outcome = []
+            execution = mock.Mock()
+            events = list(
+                self.Assistant._iter_proxied_agno_sse(
+                    mock.Mock(), execution, {"message": "hi"}, outcome
+                )
+            )
+        self.assertEqual(outcome, [None])
+        self.assertTrue(events)
+        self.assertEqual(events[-1][0:5], "data:")
+        execution.write.assert_called_once()
+
+        def _raise_exit(_response, wait=1.0):
+            raise GeneratorExit()
+
+        with (
+            mock.patch.object(
+                stream_mod, "iter_agno_sse_lines", side_effect=_raise_exit
+            ),
+            self.assertRaises(GeneratorExit),
+        ):
+            list(
+                self.Assistant._iter_proxied_agno_sse(mock.Mock(), mock.Mock(), {}, [])
+            )
