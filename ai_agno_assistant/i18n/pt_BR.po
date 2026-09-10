@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"Language: pt_BR\n"
 "Language-Team: \n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -32,8 +32,15 @@ msgstr ""
 #. module: ai_agno_assistant
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "%s is not active."
 msgstr "%s não está ativo."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "%s is now %s."
+msgstr "%s agora está %s."
 
 #. module: ai_agno_assistant
 #. odoo-python
@@ -63,10 +70,20 @@ msgid "AI"
 msgstr "IA"
 
 #. module: ai_agno_assistant
+#: model:ir.model,name:ai_agno_assistant.model_ai_assistant_session
+msgid "AI assistant conversation"
+msgstr "Conversa do assistente de IA"
+
+#. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "AI request failed."
 msgstr "Falha na solicitação de IA."
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__action_key
+msgid "Action Key"
+msgstr "Chave da ação"
 
 #. module: ai_agno_assistant
 #: model:ir.model,name:ai_agno_assistant.model_ai_bridge
@@ -87,12 +104,11 @@ msgstr "Responde perguntas do assistente global via Agno"
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
 msgid ""
-"Ask about ERP data, open screens, or prepare a draft\n"
-"                        RFQ, opportunity, ticket, quotation or timesheet."
+"Ask about ERP data, open screens, prepare a draft, or\n"
+"                            export a briefing from a message."
 msgstr ""
-"Pergunte sobre dados do ERP, abra telas ou prepare um rascunho\n"
-"                        de RFQ, oportunidade, chamado, cotação ou "
-"apontamento."
+"Pergunte sobre dados do ERP, abra telas, prepare um rascunho ou\n"
+"                            exporte um briefing a partir de uma mensagem."
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -103,33 +119,38 @@ msgstr "Pergunte ao assistente do sistema…"
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-msgid "Delete"
-msgstr "Excluir"
-
-#. module: ai_agno_assistant
-#. odoo-javascript
-#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
-msgid "Delete conversation"
-msgstr "Excluir conversa"
-
-#. module: ai_agno_assistant
-#. odoo-javascript
-#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
-msgid "This conversation will be permanently deleted."
-msgstr "Esta conversa será excluída permanentemente."
-
-#. module: ai_agno_assistant
-#. odoo-javascript
-#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
-msgid "Could not delete the conversation."
-msgstr "Não foi possível excluir a conversa."
+msgid "Cancel"
+msgstr "Cancelar"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
 msgid "Close"
 msgstr "Fechar"
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant_pending.py:0
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant_pending.py:0
+msgid "Confirm %s"
+msgstr "Confirmar %s"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Consulting Odoo…"
+msgstr "Consultando o Odoo…"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Consulting Odoo… %ss"
+msgstr "Consultando o Odoo… %ss"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -152,14 +173,84 @@ msgstr "Copiar para a área de transferência"
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not confirm the action."
+msgstr "Não foi possível confirmar a ação."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "Could not copy to the clipboard."
 msgstr "Não foi possível copiar para a área de transferência."
 
 #. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not delete the conversation."
+msgstr "Não foi possível excluir a conversa."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "Could not export the message."
 msgstr "Não foi possível exportar a mensagem."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not load the conversation."
+msgstr "Não foi possível carregar a conversa."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Could not start a conversation."
+msgstr "Não foi possível iniciar uma conversa."
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__create_uid
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__create_uid
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__create_uid
+msgid "Created by"
+msgstr "Criado por"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__create_date
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__create_date
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__create_date
+msgid "Created on"
+msgstr "Criado em"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,help:ai_agno_assistant.field_ai_bridge__result_type
+msgid "Defines the type of result expected from the AI system."
+msgstr "Define o tipo de resultado esperado do sistema de IA."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Delete"
+msgstr "Excluir"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Delete conversation"
+msgstr "Excluir conversa"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__display_name
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__display_name
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__display_name
+msgid "Display Name"
+msgstr "Nome de exibição"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Explain this record"
+msgstr "Explicar este registro"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -174,22 +265,50 @@ msgid "Export PDF"
 msgstr "Exportar PDF"
 
 #. module: ai_agno_assistant
-#. odoo-javascript
-#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
-#: code:addons/ai_agno_assistant/models/ai_assistant_artifacts.py:0
-msgid "Nothing to export."
-msgstr "Nada para exportar."
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/tests/test_ai_assistant.py:0
+msgid "I could not open that record. It may not exist, or you may lack access."
+msgstr ""
+"Não foi possível abrir esse registro. Ele pode não existir, ou você pode não "
+"ter acesso."
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__id
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__id
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__id
+msgid "ID"
+msgstr "ID"
 
 #. module: ai_agno_assistant
 #. odoo-python
-#: code:addons/ai_agno_assistant/models/ai_assistant_artifacts.py:0
-msgid "Unsupported export format."
-msgstr "Formato de exportação não suportado."
+#: code:addons/ai_agno_assistant/controllers/main.py:0
+msgid "Invalid request."
+msgstr "Solicitação inválida."
 
 #. module: ai_agno_assistant
-#: model:ir.model.fields,help:ai_agno_assistant.field_ai_bridge__result_type
-msgid "Defines the type of result expected from the AI system."
-msgstr "Define o tipo de resultado esperado do sistema de IA."
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__label
+msgid "Label"
+msgstr "Rótulo"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__last_activity
+msgid "Last Activity"
+msgstr "Última atividade"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__write_uid
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__write_uid
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__write_uid
+msgid "Last Updated by"
+msgstr "Última atualização por"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__write_date
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__write_date
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__write_date
+msgid "Last Updated on"
+msgstr "Última atualização em"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -198,18 +317,52 @@ msgid "Loading"
 msgstr "Carregando"
 
 #. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__messages_json
+msgid "Messages Json"
+msgstr "JSON das mensagens"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__model_name
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__model_name
+msgid "Model Name"
+msgstr "Nome do modelo"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__name
+msgid "Name"
+msgstr "Nome"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "New"
+msgstr "Novo"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "New conversation"
+msgstr "Nova conversa"
+
+#. module: ai_agno_assistant
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "No response was returned."
 msgstr "Nenhuma resposta foi retornada."
 
 #. module: ai_agno_assistant
+#. odoo-javascript
 #. odoo-python
-#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
-msgid "I could not open that record. It may not exist, or you may lack access."
-msgstr ""
-"Não foi possível abrir esse registro. Ele pode não existir, ou você pode "
-"não ter acesso."
+#: code:addons/ai_agno_assistant/models/ai_assistant_artifacts.py:0
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Nothing to export."
+msgstr "Nada para exportar."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Open"
+msgstr "Abrir"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -223,15 +376,51 @@ msgid "Payload Type"
 msgstr "Tipo de payload"
 
 #. module: ai_agno_assistant
+#: model:ir.model,name:ai_agno_assistant.model_ai_assistant_pending_action
+msgid "Pending AI assistant confirmation"
+msgstr "Confirmação pendente do assistente de IA"
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
+msgid "Please enter a question for the assistant."
+msgstr "Informe uma pergunta para o assistente."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Prepare an RFQ"
+msgstr "Preparar um RFQ"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Preparing a draft…"
+msgstr "Preparando um rascunho…"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Reading %s…"
+msgstr "Lendo %s…"
+
+#. module: ai_agno_assistant
 #: model:ir.model,name:ai_agno_assistant.model_ai_assistant_recent_draft
 msgid "Recent AI assistant draft"
 msgstr "Rascunho recente do assistente de IA"
 
 #. module: ai_agno_assistant
-#. odoo-python
-#: code:addons/ai_agno_assistant/models/ai_assistant.py:0
-msgid "Please enter a question for the assistant."
-msgstr "Informe uma pergunta para o assistente."
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Recent conversations"
+msgstr "Conversas recentes"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__res_id
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__res_id
+msgid "Res"
+msgstr "Registro"
 
 #. module: ai_agno_assistant
 #: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_bridge__result_type
@@ -245,9 +434,36 @@ msgstr "Retornar resultado do assistente"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Routing to a specialist…"
+msgstr "Encaminhando a um especialista…"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Searching knowledge…"
+msgstr "Pesquisando na base de conhecimento…"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
 msgid "Send"
 msgstr "Enviar"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__session_key
+msgid "Session Key"
+msgstr "Chave da sessão"
+
+#. module: ai_agno_assistant
+#: model:ir.model.constraint,message:ai_agno_assistant.constraint_ai_assistant_session_user_session_key_unique
+msgid "Session key must be unique per user."
+msgstr "A chave da sessão deve ser única por usuário."
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__summary
+msgid "Summary"
+msgstr "Resumo"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -276,6 +492,7 @@ msgstr "Assistente do sistema"
 #. module: ai_agno_assistant
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "The AI request failed. Check the AI Bridge Execution log for details."
 msgstr ""
 "A solicitação de IA falhou. Verifique o log de execução da ponte de IA para "
@@ -283,14 +500,77 @@ msgstr ""
 
 #. module: ai_agno_assistant
 #. odoo-python
+#: code:addons/ai_agno_assistant/controllers/main.py:0
+msgid "The AI request failed. Check the AI Bridge Execution log."
+msgstr ""
+"A solicitação de IA falhou. Verifique o log de execução da ponte de IA."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "The action completed."
+msgstr "A ação foi concluída."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "The pending action was cancelled."
+msgstr "A ação pendente foi cancelada."
+
+#. module: ai_agno_assistant
+#. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "The system AI assistant bridge is not configured."
 msgstr "A ponte do assistente de IA do sistema não está configurada."
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Thinking…"
+msgstr "Pensando…"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "This conversation will be permanently deleted."
+msgstr "Esta conversa será excluída permanentemente."
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant_pending.py:0
+msgid "This will confirm %s. The action cannot be undone from the chat."
+msgstr "Isto confirmará %s. A ação não pode ser desfeita pelo chat."
+
+#. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/models/ai_assistant_artifacts.py:0
+msgid "Unsupported export format."
+msgstr "Formato de exportação não suportado."
 
 #. module: ai_agno_assistant
 #: model:res.groups,name:ai_agno_assistant.group_system_ai_user
 msgid "Use System AI Assistant"
 msgstr "Usar assistente de IA do sistema"
+
+#. module: ai_agno_assistant
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__user_id
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_recent_draft__user_id
+#: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_session__user_id
+msgid "User"
+msgstr "Usuário"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Weekly briefing"
+msgstr "Briefing semanal"
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "What needs attention?"
+msgstr "O que precisa de atenção?"
 
 #. module: ai_agno_assistant
 #. odoo-javascript
@@ -301,6 +581,7 @@ msgstr "Você"
 
 #. module: ai_agno_assistant
 #. odoo-python
+#: code:addons/ai_agno_assistant/controllers/main.py:0
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
 msgid "You are not allowed to use the system AI assistant."
 msgstr "Você não tem permissão para usar o assistente de IA do sistema."
