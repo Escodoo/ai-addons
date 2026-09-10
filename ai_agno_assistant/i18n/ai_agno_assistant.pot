@@ -26,6 +26,7 @@ msgstr ""
 #. module: ai_agno_assistant
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "%s is not active."
 msgstr ""
 
@@ -127,6 +128,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant_pending.py:0
 msgid "Confirm %s"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Consulting Odoo…"
 msgstr ""
 
 #. module: ai_agno_assistant
@@ -263,6 +270,12 @@ msgid "ID"
 msgstr ""
 
 #. module: ai_agno_assistant
+#. odoo-python
+#: code:addons/ai_agno_assistant/controllers/main.py:0
+msgid "Invalid request."
+msgstr ""
+
+#. module: ai_agno_assistant
 #: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_assistant_pending_action__label
 msgid "Label"
 msgstr ""
@@ -359,6 +372,7 @@ msgstr ""
 #. module: ai_agno_assistant
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "Please enter a question for the assistant."
 msgstr ""
 
@@ -366,6 +380,18 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
 msgid "Prepare an RFQ"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Preparing a draft…"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Reading %s…"
 msgstr ""
 
 #. module: ai_agno_assistant
@@ -393,6 +419,18 @@ msgstr ""
 #. module: ai_agno_assistant
 #: model:ir.model.fields.selection,name:ai_agno_assistant.selection__ai_bridge__result_type__assistant
 msgid "Return Assistant Result"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Routing to a specialist…"
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.esm.js:0
+msgid "Searching knowledge…"
 msgstr ""
 
 #. module: ai_agno_assistant
@@ -443,6 +481,7 @@ msgstr ""
 #. module: ai_agno_assistant
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "The AI request failed. Check the AI Bridge Execution log for details."
 msgstr ""
 
@@ -467,6 +506,7 @@ msgstr ""
 #. module: ai_agno_assistant
 #. odoo-python
 #: code:addons/ai_agno_assistant/models/ai_assistant.py:0
+#: code:addons/ai_agno_assistant/models/ai_assistant_stream.py:0
 msgid "The system AI assistant bridge is not configured."
 msgstr ""
 
