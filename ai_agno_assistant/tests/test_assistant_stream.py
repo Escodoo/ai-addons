@@ -237,8 +237,8 @@ class TestAiAssistantStream(TransactionCase):
         lines = []
         response = _SlowResponse()
         gen = stream_mod.iter_agno_sse_lines(response, wait=0.05)
-        self.assertTrue(started.wait(1))
         lines.append(next(gen))
+        self.assertTrue(started.is_set())
         gen.close()
         self.assertIsNone(lines[0])
         self.assertTrue(closed.is_set())
