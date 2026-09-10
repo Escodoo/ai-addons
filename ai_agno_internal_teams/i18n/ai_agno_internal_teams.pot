@@ -1,0 +1,52 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ai_agno_internal_teams
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ai_agno_internal_teams
+#: model_terms:ai.bridge,description:ai_agno_internal_teams.ai_bridge_team_commercial_review
+#: model_terms:ai.bridge,description:ai_agno_internal_teams.ai_bridge_team_finance_ops
+msgid ""
+". Employees only.\n"
+"            Not for website visitors or customer helpdesk."
+msgstr ""
+
+#. module: ai_agno_internal_teams
+#: model_terms:ai.bridge,description:ai_agno_internal_teams.ai_bridge_team_commercial_review
+msgid "/bridge/team/commercial-review"
+msgstr ""
+
+#. module: ai_agno_internal_teams
+#: model_terms:ai.bridge,description:ai_agno_internal_teams.ai_bridge_team_finance_ops
+msgid "/bridge/team/finance-ops"
+msgstr ""
+
+#. module: ai_agno_internal_teams
+#: model:ai.bridge,name:ai_agno_internal_teams.ai_bridge_team_commercial_review
+msgid "Agno Internal Commercial Review"
+msgstr ""
+
+#. module: ai_agno_internal_teams
+#: model:ai.bridge,name:ai_agno_internal_teams.ai_bridge_team_finance_ops
+msgid "Agno Internal Finance Ops"
+msgstr ""
+
+#. module: ai_agno_internal_teams
+#: model_terms:ai.bridge,description:ai_agno_internal_teams.ai_bridge_team_finance_ops
+msgid "Internal finance + ops review via Agno"
+msgstr ""
+
+#. module: ai_agno_internal_teams
+#: model_terms:ai.bridge,description:ai_agno_internal_teams.ai_bridge_team_commercial_review
+msgid "Internal sales + legal review via Agno"
+msgstr ""
