@@ -9,8 +9,6 @@ from odoo import _, api, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import html_sanitize
 
-from .ai_assistant_artifacts import markdownish_to_html
-
 _logger = logging.getLogger(__name__)
 
 AI_USER_GROUP = "ai_agno_assistant.group_system_ai_user"
@@ -67,6 +65,10 @@ class AiAssistant(models.AbstractModel):
         if not text:
             return ""
         if body_is_html:
+            # Import inside the method: ai_assistant_artifacts inherits this
+            # model, so a module-level import loads _inherit before _name.
+            from .ai_assistant_artifacts import markdownish_to_html
+
             # Models often ignore the HTML contract and emit Markdown.
             # Convert only when the body has no HTML tags (see markdownish_to_html).
             return self._strip_assistant_record_links(
