@@ -46,6 +46,12 @@ function nextAssistantMessageId() {
     return `assistant-msg-${assistantMessageSeq}`;
 }
 
+function assistantStreamError(message, {fallback = false} = {}) {
+    const error = new Error(message);
+    error.fallback = fallback;
+    return error;
+}
+
 function storageKey() {
     return `${STORAGE_KEY_PREFIX}.${user.userId || "anonymous"}`;
 }
@@ -823,6 +829,7 @@ export class AiAssistantSystray extends Component {
         const decoder = new TextDecoder();
         let buffer = "";
         let result = null;
+        let sawEvent = false;
         while (true) {
             const {value, done} = await reader.read();
             if (done) {
@@ -845,16 +852,23 @@ export class AiAssistantSystray extends Component {
                     continue;
                 }
                 if (payload?.event === "status") {
+                    sawEvent = true;
                     this._setLiveStatus(payload);
                 } else if (payload?.event === "done") {
+                    sawEvent = true;
                     result = payload.result;
                 } else if (payload?.event === "error") {
-                    throw new Error(payload.text || _t("AI request failed."));
+                    throw assistantStreamError(
+                        payload.text || _t("AI request failed."),
+                        {fallback: false}
+                    );
                 }
             }
         }
         if (!result) {
-            throw new Error(_t("No response was returned."));
+            throw assistantStreamError(_t("No response was returned."), {
+                fallback: !sawEvent,
+            });
         }
         return result;
     }
@@ -880,7 +894,9 @@ export class AiAssistantSystray extends Component {
             signal: this._abortController.signal,
         });
         if (!response.ok) {
-            throw new Error(_t("AI request failed."));
+            throw assistantStreamError(_t("AI request failed."), {
+                fallback: response.status >= 500 || response.status === 400,
+            });
         }
         return this._parseAssistantSse(response);
     }
@@ -891,7 +907,7 @@ export class AiAssistantSystray extends Component {
                 return await this._streamAssistantChat(question, history, uiContext);
             }
         } catch (error) {
-            if (error?.name === "AbortError") {
+            if (error?.name === "AbortError" || error?.fallback === false) {
                 throw error;
             }
         }
