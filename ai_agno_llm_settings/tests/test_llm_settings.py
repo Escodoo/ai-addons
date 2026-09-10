@@ -61,6 +61,7 @@ class TestAgnoLlmSettings(TransactionCase):
         cls.icp.set_param(ICP_EMBEDDER_MODEL, "")
         cls.icp.set_param(ICP_EMBEDDER_API_KEY, "")
         cls.icp.set_param(ICP_EMBEDDER_DIMENSIONS, "")
+        cls.env["agno.llm.profile"].sudo().search([]).unlink()
 
     def _create_execution(self, bridge=None):
         bridge = bridge or self.bridge
@@ -694,3 +695,235 @@ class TestAgnoLlmSettings(TransactionCase):
         )
         with self.assertRaises(UserError):
             settings.execute()
+
+    def test_profile_onchange_sets_and_clears_defaults(self):
+        settings = self.env["res.config.settings"].new({})
+        settings.agno_llm_fast_provider = "openai"
+        settings._onchange_agno_llm_fast_provider()
+        self.assertEqual(settings.agno_llm_fast_host, "https://api.openai.com/v1")
+        self.assertEqual(settings.agno_llm_fast_model, "gpt-4o")
+        settings.agno_llm_reasoning_provider = "ollama"
+        settings._onchange_agno_llm_reasoning_provider()
+        self.assertEqual(settings.agno_llm_reasoning_host, "https://ollama.com")
+        self.assertEqual(settings.agno_llm_reasoning_model, "qwen3.5:397b-cloud")
+        settings.agno_llm_extract_provider = "gemini"
+        settings._onchange_agno_llm_extract_provider()
+        self.assertFalse(settings.agno_llm_extract_host)
+        self.assertEqual(settings.agno_llm_extract_model, "gemini-2.0-flash")
+        settings.agno_llm_fast_provider = False
+        settings._onchange_agno_llm_fast_provider()
+        self.assertFalse(settings.agno_llm_fast_host)
+        self.assertFalse(settings.agno_llm_fast_model)
+        self.assertFalse(settings.agno_llm_fast_last_provider)
+
+    def test_profile_onchange_preserves_custom_values(self):
+        settings = self.env["res.config.settings"].new(
+            {
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "tiny",
+            }
+        )
+        settings._onchange_agno_llm_fast_provider()
+        self.assertEqual(settings.agno_llm_fast_host, "http://ollama:11434")
+        self.assertEqual(settings.agno_llm_fast_model, "tiny")
+        settings._onchange_agno_llm_fast_provider()
+        self.assertEqual(settings.agno_llm_fast_host, "http://ollama:11434")
+        self.assertEqual(settings.agno_llm_fast_model, "tiny")
+
+    def test_fast_profile_ollama_requires_host(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "",
+                "agno_llm_fast_model": "tiny",
+            }
+        )
+        with self.assertRaises(UserError):
+            settings.execute()
+
+    def test_reasoning_profile_openai_requires_api_key(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_reasoning_provider": "openai",
+                "agno_llm_reasoning_host": "https://api.openai.com/v1",
+                "agno_llm_reasoning_model": "gpt-4o",
+                "agno_llm_reasoning_api_key": "",
+            }
+        )
+        with self.assertRaises(UserError):
+            settings.execute()
+
+    def test_clearing_profile_provider_archives_row(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "tiny",
+            }
+        )
+        settings.execute()
+        fast = self.env["agno.llm.profile"].search([("key", "=", "fast")], limit=1)
+        self.assertTrue(fast.active)
+        cleared = self.env["res.config.settings"].create(
+            {
+                "agno_llm_fast_provider": False,
+                "agno_llm_fast_host": False,
+                "agno_llm_fast_model": False,
+            }
+        )
+        cleared.execute()
+        self.assertFalse(fast.active)
+        reloaded = self.env["res.config.settings"].create({})
+        self.assertFalse(reloaded.agno_llm_fast_provider)
+
+    def test_task_profiles_reload_from_get_values(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_extract_provider": "ollama",
+                "agno_llm_extract_host": "http://ollama:11434",
+                "agno_llm_extract_model": "extract-model",
+            }
+        )
+        settings.execute()
+        reloaded = self.env["res.config.settings"].create({})
+        self.assertEqual(reloaded.agno_llm_extract_provider, "ollama")
+        self.assertEqual(reloaded.agno_llm_extract_host, "http://ollama:11434")
+        self.assertEqual(reloaded.agno_llm_extract_model, "extract-model")
+
+    def test_sync_updates_existing_profile(self):
+        settings = self.env["res.config.settings"].create(
+            {
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "tiny",
+            }
+        )
+        settings.execute()
+        fast = self.env["agno.llm.profile"].search([("key", "=", "fast")], limit=1)
+        updated = self.env["res.config.settings"].create(
+            {
+                "agno_llm_fast_provider": "ollama",
+                "agno_llm_fast_host": "http://ollama:11434",
+                "agno_llm_fast_model": "tiny-v2",
+            }
+        )
+        updated.execute()
+        self.assertEqual(fast.model, "tiny-v2")
+        self.assertEqual(
+            self.env["agno.llm.profile"].search_count([("key", "=", "fast")]), 1
+        )
+
+    def test_profile_compute_name_from_key(self):
+        Profile = self.env["agno.llm.profile"]
+        fast = Profile.create({"key": "fast", "provider": "ollama", "model": "tiny"})
+        reasoning = Profile.create(
+            {"key": "reasoning", "provider": "ollama", "model": "big"}
+        )
+        extract = Profile.create(
+            {"key": "extract", "provider": "ollama", "model": "json"}
+        )
+        self.assertEqual(fast.name, "Fast")
+        self.assertEqual(reasoning.name, "Reasoning")
+        self.assertEqual(extract.name, "Extract")
+        untitled = Profile.new({"key": False, "provider": "ollama", "model": "x"})
+        untitled._compute_name()
+        self.assertEqual(untitled.name, "")
+
+    def test_as_llm_dict_complete_and_omits_empty(self):
+        rec = self.env["agno.llm.profile"].create(
+            {
+                "key": "fast",
+                "provider": "openai",
+                "host": "https://api.openai.com/v1",
+                "model": "gpt-4o",
+                "api_key": "sk-test",
+            }
+        )
+        self.assertEqual(
+            rec._as_llm_dict(),
+            {
+                "provider": "openai",
+                "model": "gpt-4o",
+                "host": "https://api.openai.com/v1",
+                "api_key": "sk-test",
+            },
+        )
+        gemini = self.env["agno.llm.profile"].create(
+            {
+                "key": "extract",
+                "provider": "gemini",
+                "host": "",
+                "model": "gemini-2.0-flash",
+                "api_key": "",
+            }
+        )
+        self.assertEqual(
+            gemini._as_llm_dict(),
+            {"provider": "gemini", "model": "gemini-2.0-flash"},
+        )
+
+    def test_as_llm_dict_returns_none_when_incomplete(self):
+        Profile = self.env["agno.llm.profile"]
+        missing_model = Profile.new(
+            {"key": "fast", "provider": "ollama", "model": "  "}
+        )
+        self.assertIsNone(missing_model._as_llm_dict())
+        missing_provider = Profile.new(
+            {"key": "fast", "provider": False, "model": "tiny"}
+        )
+        self.assertIsNone(missing_provider._as_llm_dict())
+
+    def test_get_agno_llm_profiles_skips_incomplete_rows(self):
+        incomplete = self.env["agno.llm.profile"].new(
+            {
+                "key": "fast",
+                "provider": "ollama",
+                "model": "",
+                "active": True,
+            }
+        )
+        execution = self._create_execution()
+        with mock.patch.object(
+            type(self.env["agno.llm.profile"]),
+            "search",
+            return_value=incomplete,
+        ):
+            self.assertIsNone(execution._get_agno_llm_profiles())
+
+    def test_mask_llm_profiles_skips_non_secret_entries(self):
+        execution = self._create_execution()
+        masked = execution._mask_llm_secrets(
+            {
+                "_odoo": {
+                    "llm_profiles": {
+                        "fast": {"provider": "ollama", "model": "tiny"},
+                        "bad": "not-a-dict",
+                    }
+                }
+            }
+        )
+        self.assertEqual(
+            masked["_odoo"]["llm_profiles"]["fast"],
+            {"provider": "ollama", "model": "tiny"},
+        )
+        self.assertEqual(masked["_odoo"]["llm_profiles"]["bad"], "not-a-dict")
+        leftover = execution._mask_llm_secrets({"_odoo": {"llm_profiles": "nope"}})
+        self.assertEqual(leftover["_odoo"]["llm_profiles"], "nope")
+
+    def test_inactive_or_incomplete_override_keeps_default_llm(self):
+        self.icp.set_param(ICP_PROVIDER, "ollama")
+        self.icp.set_param(ICP_HOST, "http://ollama:11434")
+        self.icp.set_param(ICP_MODEL, "standard-model")
+        override = self.env["agno.llm.profile"].create(
+            {"key": "fast", "provider": "ollama", "model": "tiny"}
+        )
+        override.active = False
+        self.bridge.agno_llm_profile_id = override
+        execution = self._create_execution()
+        payload = execution._add_extra_payload_fields({})
+        self.assertEqual(payload["_odoo"]["llm"]["model"], "standard-model")
+        override.active = True
+        with mock.patch.object(type(override), "_as_llm_dict", return_value=None):
+            payload = execution._add_extra_payload_fields({})
+        self.assertEqual(payload["_odoo"]["llm"]["model"], "standard-model")

@@ -1,7 +1,7 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 PROFILE_KEYS = [
     ("fast", "Fast"),
@@ -36,7 +36,7 @@ class AgnoLlmProfile(models.Model):
     name = fields.Char(compute="_compute_name", store=True)
 
     _sql_constraints = [
-        ("key_uniq", "unique(key)", "Each LLM profile key must be unique."),
+        ("key_uniq", "unique(key)", _("Each LLM profile key must be unique.")),
     ]
 
     @api.depends("key")
@@ -50,7 +50,9 @@ class AgnoLlmProfile(models.Model):
         self.ensure_one()
         provider = (self.provider or "").strip()
         model = (self.model or "").strip()
-        if not provider or not model:
+        if not provider:
+            return None
+        if not model:
             return None
         payload = {"provider": provider, "model": model}
         host = (self.host or "").strip()
