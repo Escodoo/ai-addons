@@ -1,5 +1,7 @@
 1. Install this module together with `ai_agno_connector` and a running Agno
-   service that exposes `/bridge/assistant/chat`.
+   service that exposes `/bridge/assistant/chat` and
+   `/bridge/assistant/chat/stream`. The bridge record stays pointed at
+   `/chat`; the systray stream proxy appends `/stream` itself.
 2. Set the bridge auth token via ICP `ai_agno_assistant.bridge_auth_token`
    or `odoo.conf` `agno_bridge_auth_token` (copied onto the bridge on install).
 3. Ensure `/agno/rpc` service token and Agno `AGNO_SERVICE_TOKEN` /

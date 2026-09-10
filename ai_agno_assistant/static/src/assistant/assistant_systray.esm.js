@@ -190,6 +190,8 @@ export class AiAssistantSystray extends Component {
         this.panelRef = useRef("panel");
         this._requestSeq = 0;
         this._elapsedTimer = null;
+        this._abortController = null;
+        this._liveStatus = false;
         this._onDocumentClick = this._onDocumentClick.bind(this);
         this._onDocumentKeydown = this._onDocumentKeydown.bind(this);
         useEffect(
@@ -398,16 +400,52 @@ export class AiAssistantSystray extends Component {
 
     cancelRequest() {
         this._requestSeq += 1;
+        this._abortController?.abort();
+        this._abortController = null;
         this._stopElapsed();
         this.state.loading = false;
         this.state.statusText = "";
     }
 
+    _statusLabel(payload) {
+        const code = payload?.code;
+        if (code === "thinking") {
+            return _t("Thinking…");
+        }
+        if (code === "routing") {
+            return _t("Routing to a specialist…");
+        }
+        if (code === "reading") {
+            return payload.model
+                ? _t("Reading %s…", payload.model)
+                : _t("Consulting Odoo…");
+        }
+        if (code === "drafting") {
+            return _t("Preparing a draft…");
+        }
+        if (code === "knowledge") {
+            return _t("Searching knowledge…");
+        }
+        if (code === "consulting") {
+            return _t("Consulting Odoo…");
+        }
+        return payload?.text || _t("Thinking…");
+    }
+
+    _setLiveStatus(payload) {
+        this._liveStatus = true;
+        this.state.statusText = this._statusLabel(payload);
+    }
+
     _startElapsed() {
         this._stopElapsed();
+        this._liveStatus = false;
         const started = Date.now();
         this.state.statusText = _t("Thinking…");
         this._elapsedTimer = browser.setInterval(() => {
+            if (this._liveStatus) {
+                return;
+            }
             const seconds = Math.floor((Date.now() - started) / 1000);
             this.state.statusText = _t("Consulting Odoo… %ss", seconds);
         }, 1000);
@@ -780,6 +818,90 @@ export class AiAssistantSystray extends Component {
         this.sendMessage();
     }
 
+    async _parseAssistantSse(response) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let result = null;
+        while (true) {
+            const {value, done} = await reader.read();
+            if (done) {
+                break;
+            }
+            buffer += decoder.decode(value, {stream: true});
+            const parts = buffer.split("\n\n");
+            buffer = parts.pop();
+            for (const part of parts) {
+                const dataLine = part
+                    .split("\n")
+                    .find((line) => line.startsWith("data:"));
+                if (!dataLine) {
+                    continue;
+                }
+                let payload = null;
+                try {
+                    payload = JSON.parse(dataLine.slice(5).trim());
+                } catch {
+                    continue;
+                }
+                if (payload?.event === "status") {
+                    this._setLiveStatus(payload);
+                } else if (payload?.event === "done") {
+                    result = payload.result;
+                } else if (payload?.event === "error") {
+                    throw new Error(payload.text || _t("AI request failed."));
+                }
+            }
+        }
+        if (!result) {
+            throw new Error(_t("No response was returned."));
+        }
+        return result;
+    }
+
+    async _streamAssistantChat(question, history, uiContext) {
+        this._abortController?.abort();
+        this._abortController = new AbortController();
+        const csrfToken = globalThis.odoo?.csrf_token || "";
+        const streamUrl = `/ai_agno_assistant/chat/stream?csrf_token=${encodeURIComponent(
+            csrfToken
+        )}`;
+        const response = await browser.fetch(streamUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                message: question,
+                history,
+                ui_context: uiContext,
+                session_key: this.state.sessionKey,
+            }),
+            signal: this._abortController.signal,
+        });
+        if (!response.ok) {
+            throw new Error(_t("AI request failed."));
+        }
+        return this._parseAssistantSse(response);
+    }
+
+    async _requestAssistantChat(question, history, uiContext) {
+        try {
+            if (typeof browser.fetch === "function") {
+                return await this._streamAssistantChat(question, history, uiContext);
+            }
+        } catch (error) {
+            if (error?.name === "AbortError") {
+                throw error;
+            }
+        }
+        return this.orm.call("ai.assistant", "action_ai_chat", [
+            question,
+            history,
+            uiContext,
+        ]);
+    }
+
     async sendMessage() {
         if (!this.canSend) {
             return;
@@ -793,11 +915,11 @@ export class AiAssistantSystray extends Component {
         this._startElapsed();
         try {
             const history = this._buildHistoryPayload().slice(0, -1);
-            const result = await this.orm.call("ai.assistant", "action_ai_chat", [
+            const result = await this._requestAssistantChat(
                 question,
                 history,
-                this._buildUiContext(),
-            ]);
+                this._buildUiContext()
+            );
             if (seq !== this._requestSeq) {
                 return;
             }
@@ -816,7 +938,7 @@ export class AiAssistantSystray extends Component {
             await this._autoRunNavigation(result?.actions);
             await this._refreshSessions();
         } catch (error) {
-            if (seq !== this._requestSeq) {
+            if (seq !== this._requestSeq || error?.name === "AbortError") {
                 return;
             }
             this.notification.add(
@@ -827,6 +949,7 @@ export class AiAssistantSystray extends Component {
             if (seq === this._requestSeq) {
                 this._stopElapsed();
                 this.state.loading = false;
+                this._abortController = null;
             }
         }
     }

@@ -1,8 +1,10 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+import json
 from unittest import mock
 
+from odoo import http
 from odoo.exceptions import UserError
 from odoo.tests import HttpCase, tagged
 from odoo.tests.common import JsonRpcException
@@ -43,6 +45,14 @@ class TestAiAssistantController(HttpCase):
 
     def _chat(self, **params):
         return self.make_jsonrpc_request("/ai_agno_assistant/chat", params)
+
+    def _chat_stream(self, payload):
+        token = http.Request.csrf_token(self)
+        return self.url_open(
+            f"/ai_agno_assistant/chat/stream?csrf_token={token}",
+            data=json.dumps(payload),
+            headers={"Content-Type": "application/json"},
+        )
 
     @mute_logger("odoo.http")
     def test_chat_requires_assistant_group(self):
@@ -110,3 +120,67 @@ class TestAiAssistantController(HttpCase):
         ):
             self._chat(message="hello")
         self.assertIn("UserError", str(err.exception))
+
+    def test_chat_stream_requires_assistant_group(self):
+        self.authenticate("ai_http_blocked", "ai_http_blocked")
+        response = self._chat_stream({"message": "hello"})
+        self.assertEqual(response.status_code, 403)
+
+    def test_chat_stream_proxies_status_and_done(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+
+        def _fake_stream(*_args, **_kwargs):
+            yield 'data: {"event": "status", "code": "thinking"}\n\n'
+            yield (
+                'data: {"event": "done", "result": '
+                '{"body": "<p>On screen</p>", "body_is_html": true, "actions": []}}\n\n'
+            )
+
+        with mock.patch.object(
+            type(self.env["ai.assistant"]),
+            "_iter_assistant_chat_stream",
+            side_effect=_fake_stream,
+        ):
+            response = self._chat_stream(
+                {"message": "How many RFQs?", "session_key": "conv-http-1"}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("event-stream", response.headers.get("Content-Type", ""))
+        body = response.text
+        self.assertIn("thinking", body)
+        self.assertIn("On screen", body)
+
+    def test_chat_stream_empty_message_is_error_event(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        response = self._chat_stream({"message": "   "})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('"event": "error"', response.text)
+        self.assertNotIn("Bridge Execution log", response.text)
+
+    def test_chat_stream_rejects_invalid_json(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        token = http.Request.csrf_token(self)
+        response = self.url_open(
+            f"/ai_agno_assistant/chat/stream?csrf_token={token}",
+            data="not-json",
+            headers={"Content-Type": "application/json"},
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_chat_stream_non_dict_body_is_error_event(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        response = self._chat_stream(["hello"])
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('"event": "error"', response.text)
+
+    @mute_logger("odoo.addons.ai_agno_assistant.controllers.main")
+    def test_chat_stream_wraps_unexpected_errors(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        with mock.patch.object(
+            type(self.env["ai.assistant"]),
+            "_iter_assistant_chat_stream",
+            side_effect=RuntimeError("bridge down"),
+        ):
+            response = self._chat_stream({"message": "hello"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('"event": "error"', response.text)

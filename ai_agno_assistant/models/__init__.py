@@ -1,4 +1,5 @@
 from . import ai_assistant
+from . import ai_assistant_stream
 from . import ai_assistant_navigation
 from . import ai_assistant_drafts
 from . import ai_assistant_recent_draft
