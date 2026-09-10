@@ -14,6 +14,7 @@ _logger = logging.getLogger(__name__)
 AI_USER_GROUP = "ai_agno_assistant.group_system_ai_user"
 _BRIDGE_CHAT = "ai_agno_assistant.ai_bridge_assistant_chat"
 
+# Keep in sync with the systray HISTORY_LIMIT and Agno MAX_HISTORY_ITEMS.
 _AI_CHAT_HISTORY_LIMIT = 20
 _AI_CHAT_MESSAGE_MAX_LEN = 2000
 _AI_CHAT_ACTIONS_LIMIT = 5
