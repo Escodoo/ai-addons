@@ -903,6 +903,13 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(sanitize(42, False), "42")
         self.assertIn("ok", sanitize("<b>ok</b>", True))
         self.assertEqual(sanitize("<b>ok</b>", False), "&lt;b&gt;ok&lt;/b&gt;")
+        converted = sanitize(
+            "**CRM Pipeline**\n\n| Stage | Amount |\n| --- | --- |\n| New | 1 |\n",
+            True,
+        )
+        self.assertIn("<b>CRM Pipeline</b>", converted)
+        self.assertIn("<table>", converted)
+        self.assertNotIn("**", converted)
 
     def test_is_backend_record_href_rejects_unsafe_and_plain_urls(self):
         is_backend = ai_assistant_mod._is_backend_record_href

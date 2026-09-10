@@ -65,9 +65,15 @@ class AiAssistant(models.AbstractModel):
         if not text:
             return ""
         if body_is_html:
+            # Import inside the method: ai_assistant_artifacts inherits this
+            # model, so a module-level import loads _inherit before _name.
+            from .ai_assistant_artifacts import markdownish_to_html
+
+            # Models often ignore the HTML contract and emit Markdown.
+            # Convert only when the body has no HTML tags (see markdownish_to_html).
             return self._strip_assistant_record_links(
                 html_sanitize(
-                    text,
+                    markdownish_to_html(text),
                     sanitize_attributes=True,
                     strip_style=True,
                     strip_classes=True,
