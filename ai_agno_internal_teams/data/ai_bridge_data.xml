@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        Internal crews only. Do not point website livechat or customer
+        support bots at these URLs — they would leak internal KBs.
+        auth_token is filled by post_init_hook.
+    -->
+    <record id="ai_bridge_team_commercial_review" model="ai.bridge">
+        <field name="name">Agno Internal Commercial Review</field>
+        <field name="description">
+            <![CDATA[
+            <p>Internal sales + legal review via Agno
+            <tt>/bridge/team/commercial-review</tt>. Employees only.
+            Not for website visitors or customer helpdesk.</p>
+            ]]>
+        </field>
+        <field name="usage">none</field>
+        <field name="payload_type">none</field>
+        <field name="result_type">none</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="180" />
+        <field name="url">http://agno:8000/bridge/team/commercial-review</field>
+    </record>
+    <record id="ai_bridge_team_finance_ops" model="ai.bridge">
+        <field name="name">Agno Internal Finance Ops</field>
+        <field name="description">
+            <![CDATA[
+            <p>Internal finance + ops review via Agno
+            <tt>/bridge/team/finance-ops</tt>. Employees only.
+            Not for website visitors or customer helpdesk.</p>
+            ]]>
+        </field>
+        <field name="usage">none</field>
+        <field name="payload_type">none</field>
+        <field name="result_type">none</field>
+        <field name="result_kind">immediate</field>
+        <field name="auth_type">token</field>
+        <field name="provider">agno</field>
+        <field name="request_timeout" eval="180" />
+        <field name="url">http://agno:8000/bridge/team/finance-ops</field>
+    </record>
+</odoo>

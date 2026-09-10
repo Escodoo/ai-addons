@@ -2,12 +2,12 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Agno LLM Settings",
+    "name": "Agno Internal Teams",
     "summary": (
-        "Bring-your-own-key LLM and embedder settings for Agno "
-        "(Ollama / OpenAI / Gemini)"
+        "Internal Agno crew bridges (commercial review, finance/ops). "
+        "Never used for public website or customer support channels."
     ),
-    "version": "18.0.1.7.0",
+    "version": "18.0.1.0.0",
     "development_status": "Beta",
     "category": "Technical",
     "author": "Escodoo",
@@ -16,13 +16,11 @@
     "license": "AGPL-3",
     "depends": [
         "ai_agno_connector",
-        "base",
+        "ai_agno_llm_settings",
     ],
     "data": [
-        "security/ir.model.access.csv",
-        "views/agno_llm_profile_views.xml",
-        "views/ai_bridge_views.xml",
-        "views/res_config_settings_views.xml",
+        "data/ai_bridge_data.xml",
     ],
+    "post_init_hook": "post_init_hook",
     "installable": True,
 }

@@ -76,6 +76,16 @@ class AiBridgeExecution(models.Model):
             embedder["dimensions"] = dimensions
         return embedder
 
+    def _get_agno_llm_profiles(self):
+        """Return extra BYOK profiles (fast/reasoning/extract), or None."""
+        profiles = {}
+        records = self.env["agno.llm.profile"].sudo().search([("active", "=", True)])
+        for rec in records:
+            cfg = rec._as_llm_dict()
+            if cfg:
+                profiles[rec.key] = cfg
+        return profiles or None
+
     def _mask_llm_secrets(self, payload):
         """Return a copy of payload safe to persist (API keys masked)."""
         if not payload:
@@ -88,6 +98,11 @@ class AiBridgeExecution(models.Model):
             block = odoo_meta.get(key)
             if isinstance(block, dict) and block.get("api_key"):
                 block["api_key"] = MASKED_API_KEY
+        profiles = odoo_meta.get("llm_profiles")
+        if isinstance(profiles, dict):
+            for cfg in profiles.values():
+                if isinstance(cfg, dict) and cfg.get("api_key"):
+                    cfg["api_key"] = MASKED_API_KEY
         return masked
 
     def _add_extra_payload_fields(self, payload):
@@ -97,10 +112,20 @@ class AiBridgeExecution(models.Model):
         odoo_meta = payload.get("_odoo")
         if isinstance(odoo_meta, dict):
             llm = self._get_agno_llm_settings()
+            override = self.ai_bridge_id.agno_llm_profile_id
+            if override and override.active:
+                overridden = override._as_llm_dict()
+                if overridden:
+                    llm = overridden
             if llm:
                 odoo_meta["llm"] = llm
             else:
                 odoo_meta.pop("llm", None)
+            profiles = self._get_agno_llm_profiles()
+            if profiles:
+                odoo_meta["llm_profiles"] = profiles
+            else:
+                odoo_meta.pop("llm_profiles", None)
             embedder = self._get_agno_embedder_settings()
             if embedder:
                 odoo_meta["embedder"] = embedder

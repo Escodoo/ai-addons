@@ -5,7 +5,9 @@
 4. Embedder: same pattern under **Embeddings (BYOK)**. Set dimensions to match
    the model (e.g. `1024` for `qwen3-embedding:0.6b`).
 5. The next Agno bridge / KB call includes `_odoo.llm` and/or `_odoo.embedder`
-   only when the corresponding provider is set.
+   only when the corresponding provider is set. Configured task profiles are
+   sent as `_odoo.llm_profiles`. Set **Agno LLM Profile** on a bridge to force
+   that execution's `_odoo.llm`.
 6. Stored `ai.bridge.execution` payloads mask API keys as `***`.
 7. After changing embedder model, provider, or dimensions, click
    **Reindex knowledge bases** (confirm the dialog). That calls Agno to wipe and
