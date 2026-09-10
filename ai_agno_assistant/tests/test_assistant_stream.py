@@ -2,12 +2,14 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import json
+import threading
 from unittest import mock
 
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
 from odoo.addons.ai_agno_assistant.models import ai_assistant as ai_assistant_mod
+from odoo.addons.ai_agno_assistant.models import ai_assistant_stream as stream_mod
 
 
 class _FakeStreamResponse:
@@ -188,3 +190,55 @@ class TestAiAssistantStream(TransactionCase):
         ]
         self.assertIn("consulting", [item.get("code") for item in payloads])
         self.assertEqual(payloads[-1]["event"], "error")
+
+    def test_iter_assistant_chat_stream_closes_agno_when_client_aborts(self):
+        closed = threading.Event()
+
+        class _HangingStreamResponse:
+            status_code = 200
+            content = b""
+            text = ""
+
+            def iter_lines(self, decode_unicode=True):
+                yield 'data: {"event": "status", "code": "routing"}'
+                closed.wait(5)
+
+            def close(self):
+                closed.set()
+
+        hanging = _HangingStreamResponse()
+        with mock.patch(
+            "odoo.addons.ai_agno_assistant.models.ai_assistant_stream.requests.post",
+            return_value=hanging,
+        ):
+            gen = self.Assistant._iter_assistant_chat_stream(message="hello")
+            saw_routing = False
+            for line in gen:
+                if "routing" in line:
+                    saw_routing = True
+                    gen.close()
+                    break
+        self.assertTrue(saw_routing)
+        self.assertTrue(closed.is_set())
+
+    def test_iter_agno_sse_lines_emits_wait_sentinel(self):
+        started = threading.Event()
+        closed = threading.Event()
+
+        class _SlowResponse:
+            def iter_lines(self, decode_unicode=True):
+                started.set()
+                closed.wait(5)
+                return iter(())
+
+            def close(self):
+                closed.set()
+
+        lines = []
+        response = _SlowResponse()
+        gen = stream_mod.iter_agno_sse_lines(response, wait=0.05)
+        started.wait(1)
+        lines.append(next(gen))
+        gen.close()
+        self.assertIsNone(lines[0])
+        self.assertTrue(closed.is_set())
