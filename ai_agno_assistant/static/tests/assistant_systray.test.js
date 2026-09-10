@@ -41,8 +41,40 @@ function mockAssistantServices({
     sessions = [],
     confirmDelete = true,
     exportResult = null,
+    streamEvents = null,
 } = {}) {
     let sessionList = [...sessions];
+    patchWithCleanup(browser, {
+        fetch: async () => {
+            if (!streamEvents) {
+                throw new Error("stream unavailable");
+            }
+            expect.step("stream");
+            const text = streamEvents
+                .map((event) => `data: ${JSON.stringify(event)}\n\n`)
+                .join("");
+            return {
+                ok: true,
+                body: {
+                    getReader() {
+                        let sent = false;
+                        return {
+                            async read() {
+                                if (sent) {
+                                    return {done: true, value: undefined};
+                                }
+                                sent = true;
+                                return {
+                                    done: false,
+                                    value: new TextEncoder().encode(text),
+                                };
+                            },
+                        };
+                    },
+                },
+            };
+        },
+    });
     mockService("orm", {
         call: async (model, method, args) => {
             if (method === "action_ai_list_sessions") {
@@ -447,4 +479,28 @@ test("copy keeps a blank line after a table", async () => {
             "| Assunto | Teclado #9 |\n\n" +
             "Este ticket parece ser uma solicitação de suporte."
     );
+});
+
+test("stream status updates then appends the done body", async () => {
+    mockLocalStorage();
+    mockAssistantServices({
+        streamEvents: [
+            {event: "status", code: "reading", model: "purchase.order"},
+            {
+                event: "done",
+                result: {
+                    body: "<p>Three RFQs</p>",
+                    body_is_html: true,
+                    actions: [],
+                    session_key: "session-stream-1",
+                },
+            },
+        ],
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await openPanelAndAsk("How many RFQs?");
+    expect.verifySteps(["stream"]);
+    expect(".o_ai_assistant_message").toHaveCount(2);
+    expect(".o_ai_assistant_message_assistant").toHaveText("Three RFQs");
 });

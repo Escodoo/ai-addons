@@ -391,8 +391,13 @@ accept in the panel (human-in-the-loop)</li>
 </ul>
 <p>Agno may return markdown-ish bodies (<tt class="docutils literal">**bold**</tt>, headings, lists, pipe
 tables) with <tt class="docutils literal">body_is_html=True</tt>. This module converts that text to
-HTML and sanitizes it before the systray renders. The Odoo client calls
-<tt class="docutils literal">/bridge/assistant/chat</tt> (not the unused <tt class="docutils literal">/chat/stream</tt> endpoint).</p>
+HTML and sanitizes it before the systray renders. The systray prefers
+<tt class="docutils literal">/ai_agno_assistant/chat/stream</tt>, which proxies Agno
+<tt class="docutils literal">/bridge/assistant/chat/stream</tt> so the panel can show tool progress
+(reading a model, preparing a draft) before the finished answer.
+<tt class="docutils literal">action_ai_chat</tt> / <tt class="docutils literal">/bridge/assistant/chat</tt> stay as the
+request/response fallback. The configured <tt class="docutils literal">ai.bridge</tt> URL remains
+<tt class="docutils literal">/chat</tt>, not <tt class="docutils literal">/stream</tt>.</p>
 <p>Optional <tt class="docutils literal">ai_agno_llm_settings</tt> sends BYOK chat/embedder keys and
 per-task profiles (<tt class="docutils literal">fast</tt> / <tt class="docutils literal">reasoning</tt> / <tt class="docutils literal">extract</tt>) on each
 bridge request. Without it, Agno uses container <tt class="docutils literal">LLM_*</tt> /
@@ -420,7 +425,9 @@ guidance.</p>
 <h1><a class="toc-backref" href="#toc-entry-1">Configuration</a></h1>
 <ol class="arabic simple">
 <li>Install this module together with <tt class="docutils literal">ai_agno_connector</tt> and a running
-Agno service that exposes <tt class="docutils literal">/bridge/assistant/chat</tt>.</li>
+Agno service that exposes <tt class="docutils literal">/bridge/assistant/chat</tt> and
+<tt class="docutils literal">/bridge/assistant/chat/stream</tt>. The bridge record stays pointed at
+<tt class="docutils literal">/chat</tt>; the systray stream proxy appends <tt class="docutils literal">/stream</tt> itself.</li>
 <li>Set the bridge auth token via ICP
 <tt class="docutils literal">ai_agno_assistant.bridge_auth_token</tt> or <tt class="docutils literal">odoo.conf</tt>
 <tt class="docutils literal">agno_bridge_auth_token</tt> (copied onto the bridge on install).</li>
@@ -436,8 +443,9 @@ send BYOK <tt class="docutils literal">_odoo.llm</tt> / <tt class="docutils lite
 <h1><a class="toc-backref" href="#toc-entry-2">Usage</a></h1>
 <ol class="arabic simple">
 <li>Grant the group <strong>Use System AI Assistant</strong> to the relevant users.</li>
-<li>Open the comments icon in the systray and ask a question, for
-example:<ul>
+<li>Open the comments icon in the systray and ask a question. While Agno
+works, the panel shows progress (Thinking, Routing, Reading a model,
+Preparing a draft). Examples:<ul>
 <li>“What needs my attention today?”</li>
 <li>“How many open RFQs do we have?”</li>
 <li>“Give me an executive briefing of this week” (on screen; edit in

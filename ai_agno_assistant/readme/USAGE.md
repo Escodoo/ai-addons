@@ -1,5 +1,7 @@
 1. Grant the group **Use System AI Assistant** to the relevant users.
-2. Open the comments icon in the systray and ask a question, for example:
+2. Open the comments icon in the systray and ask a question. While Agno
+   works, the panel shows progress (Thinking, Routing, Reading a model,
+   Preparing a draft). Examples:
    - "What needs my attention today?"
    - "How many open RFQs do we have?"
    - "Give me an executive briefing of this week" (on screen; edit in

@@ -44,8 +44,13 @@ panel to:
 
 Agno may return markdown-ish bodies (``**bold**``, headings, lists, pipe
 tables) with ``body_is_html=True``. This module converts that text to
-HTML and sanitizes it before the systray renders. The Odoo client calls
-``/bridge/assistant/chat`` (not the unused ``/chat/stream`` endpoint).
+HTML and sanitizes it before the systray renders. The systray prefers
+``/ai_agno_assistant/chat/stream``, which proxies Agno
+``/bridge/assistant/chat/stream`` so the panel can show tool progress
+(reading a model, preparing a draft) before the finished answer.
+``action_ai_chat`` / ``/bridge/assistant/chat`` stay as the
+request/response fallback. The configured ``ai.bridge`` URL remains
+``/chat``, not ``/stream``.
 
 Optional ``ai_agno_llm_settings`` sends BYOK chat/embedder keys and
 per-task profiles (``fast`` / ``reasoning`` / ``extract``) on each
@@ -64,7 +69,9 @@ Configuration
 =============
 
 1. Install this module together with ``ai_agno_connector`` and a running
-   Agno service that exposes ``/bridge/assistant/chat``.
+   Agno service that exposes ``/bridge/assistant/chat`` and
+   ``/bridge/assistant/chat/stream``. The bridge record stays pointed at
+   ``/chat``; the systray stream proxy appends ``/stream`` itself.
 2. Set the bridge auth token via ICP
    ``ai_agno_assistant.bridge_auth_token`` or ``odoo.conf``
    ``agno_bridge_auth_token`` (copied onto the bridge on install).
@@ -79,8 +86,9 @@ Usage
 =====
 
 1. Grant the group **Use System AI Assistant** to the relevant users.
-2. Open the comments icon in the systray and ask a question, for
-   example:
+2. Open the comments icon in the systray and ask a question. While Agno
+   works, the panel shows progress (Thinking, Routing, Reading a model,
+   Preparing a draft). Examples:
 
    - "What needs my attention today?"
    - "How many open RFQs do we have?"

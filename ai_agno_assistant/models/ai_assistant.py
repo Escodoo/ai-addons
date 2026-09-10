@@ -111,6 +111,12 @@ class AiAssistant(models.AbstractModel):
             ui_context=normalized_ui,
             session_id=normalized_ui.get("session_key") or False,
         )
+        return self._apply_assistant_chat_result(text, result, normalized_ui)
+
+    @api.model
+    def _apply_assistant_chat_result(self, text, result, normalized_ui):
+        """Sanitize a bridge result and persist the turn (chat and stream)."""
+        result = result or {}
         body_is_html = bool(result.get("body_is_html", False))
         raw_actions = result.get("actions")
         actions = self._sanitize_ai_chat_actions(raw_actions)
