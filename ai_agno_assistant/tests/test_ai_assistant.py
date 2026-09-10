@@ -531,6 +531,14 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertEqual(
             len(cleaned[1]["content"]), ai_assistant_mod._AI_CHAT_MESSAGE_MAX_LEN
         )
+        window = ai_assistant_mod._AI_CHAT_HISTORY_LIMIT
+        overflow = [
+            {"role": "user", "content": f"turn-{index}"} for index in range(window + 5)
+        ]
+        trimmed = self.Assistant._normalize_ai_chat_history(overflow)
+        self.assertEqual(len(trimmed), window)
+        self.assertEqual(trimmed[0]["content"], "turn-5")
+        self.assertEqual(trimmed[-1]["content"], f"turn-{window + 4}")
 
     def test_normalize_ui_context(self):
         self.assertEqual(self.Assistant._normalize_ui_context(None), {})

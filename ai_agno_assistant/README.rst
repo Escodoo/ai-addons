@@ -40,7 +40,8 @@ panel to:
 - propose irreversible confirmations (draft SO / RFQ) that the user must
   accept in the panel (human-in-the-loop)
 - copy a briefing or export it as Markdown / PDF without storing a file
-- keep conversations server-side (per user) with the browser as a cache
+- keep conversations server-side (per user) with the browser as a cache.
+  Each request sends the last 20 messages; Agno uses that same window.
 
 Agno may return markdown-ish bodies (``**bold**``, headings, lists, pipe
 tables) with ``body_is_html=True``. This module converts that text to

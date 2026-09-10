@@ -19,6 +19,7 @@ import {user} from "@web/core/user";
 
 let assistantMessageSeq = 0;
 
+// Keep in sync with ai.assistant _AI_CHAT_HISTORY_LIMIT and Agno MAX_HISTORY_ITEMS.
 const HISTORY_LIMIT = 20;
 const STORAGE_KEY_PREFIX = "ai_agno_assistant.chat";
 const SESSION_KEY_PREFIX = "ai_agno_assistant.session";
