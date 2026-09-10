@@ -16,4 +16,13 @@ Users with the **Use System AI Assistant** right get a systray chat panel to:
 - copy a briefing or export it as Markdown / PDF without storing a file
 - keep conversations server-side (per user) with the browser as a cache
 
+Agno may return markdown-ish bodies (`**bold**`, headings, lists, pipe
+tables) with `body_is_html=True`. This module converts that text to HTML
+and sanitizes it before the systray renders. The Odoo client calls
+`/bridge/assistant/chat` (not the unused `/chat/stream` endpoint).
+
+Optional `ai_agno_llm_settings` sends BYOK chat/embedder keys and per-task
+profiles (`fast` / `reasoning` / `extract`) on each bridge request. Without
+it, Agno uses container `LLM_*` / `EMBEDDER_*`.
+
 The Discuss ERP bot shares the same write helpers and deep-link guidance.
