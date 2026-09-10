@@ -42,6 +42,16 @@ panel to:
 - copy a briefing or export it as Markdown / PDF without storing a file
 - keep conversations server-side (per user) with the browser as a cache
 
+Agno may return markdown-ish bodies (``**bold**``, headings, lists, pipe
+tables) with ``body_is_html=True``. This module converts that text to
+HTML and sanitizes it before the systray renders. The Odoo client calls
+``/bridge/assistant/chat`` (not the unused ``/chat/stream`` endpoint).
+
+Optional ``ai_agno_llm_settings`` sends BYOK chat/embedder keys and
+per-task profiles (``fast`` / ``reasoning`` / ``extract``) on each
+bridge request. Without it, Agno uses container ``LLM_*`` /
+``EMBEDDER_*``.
+
 The Discuss ERP bot shares the same write helpers and deep-link
 guidance.
 
@@ -60,6 +70,10 @@ Configuration
    ``agno_bridge_auth_token`` (copied onto the bridge on install).
 3. Ensure ``/agno/rpc`` service token and Agno ``AGNO_SERVICE_TOKEN`` /
    ``BRIDGE_AUTH_TOKEN`` match your deployment.
+4. Optionally install ``ai_agno_llm_settings`` so Settings → Agno AI can
+   send BYOK ``_odoo.llm`` / ``_odoo.llm_profiles`` /
+   ``_odoo.embedder``. Without that module, Agno uses its container
+   ``LLM_*`` and ``EMBEDDER_*``.
 
 Usage
 =====
@@ -87,7 +101,8 @@ Usage
    whether to open it. Answer "yes" (the form opens) or click the chip.
    The offer expires after 30 minutes. Draft helpers only work when the
    matching business app is installed.
-4. Analyses stay in the chat so you can request corrections. Copy the
+4. Analyses stay in the chat so you can request corrections. Headings,
+   lists and tables from Agno render as HTML in the panel. Copy the
    message, or export Markdown / PDF from the buttons on that reply.
    Those exports are generated on demand and are not stored in Odoo.
 5. Closing the panel keeps the last messages. Use **New conversation**

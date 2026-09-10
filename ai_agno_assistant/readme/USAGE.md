@@ -17,7 +17,8 @@
    expires after
    30 minutes. Draft helpers only work when the matching business app is
    installed.
-4. Analyses stay in the chat so you can request corrections. Copy the
+4. Analyses stay in the chat so you can request corrections. Headings,
+   lists and tables from Agno render as HTML in the panel. Copy the
    message, or export Markdown / PDF from the buttons on that reply.
    Those exports are generated on demand and are not stored in Odoo.
 5. Closing the panel keeps the last messages. Use **New conversation** to

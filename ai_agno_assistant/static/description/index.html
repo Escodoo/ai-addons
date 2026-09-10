@@ -389,6 +389,14 @@ accept in the panel (human-in-the-loop)</li>
 <li>copy a briefing or export it as Markdown / PDF without storing a file</li>
 <li>keep conversations server-side (per user) with the browser as a cache</li>
 </ul>
+<p>Agno may return markdown-ish bodies (<tt class="docutils literal">**bold**</tt>, headings, lists, pipe
+tables) with <tt class="docutils literal">body_is_html=True</tt>. This module converts that text to
+HTML and sanitizes it before the systray renders. The Odoo client calls
+<tt class="docutils literal">/bridge/assistant/chat</tt> (not the unused <tt class="docutils literal">/chat/stream</tt> endpoint).</p>
+<p>Optional <tt class="docutils literal">ai_agno_llm_settings</tt> sends BYOK chat/embedder keys and
+per-task profiles (<tt class="docutils literal">fast</tt> / <tt class="docutils literal">reasoning</tt> / <tt class="docutils literal">extract</tt>) on each
+bridge request. Without it, Agno uses container <tt class="docutils literal">LLM_*</tt> /
+<tt class="docutils literal">EMBEDDER_*</tt>.</p>
 <p>The Discuss ERP bot shares the same write helpers and deep-link
 guidance.</p>
 <p><strong>Table of contents</strong></p>
@@ -418,6 +426,10 @@ Agno service that exposes <tt class="docutils literal">/bridge/assistant/chat</t
 <tt class="docutils literal">agno_bridge_auth_token</tt> (copied onto the bridge on install).</li>
 <li>Ensure <tt class="docutils literal">/agno/rpc</tt> service token and Agno <tt class="docutils literal">AGNO_SERVICE_TOKEN</tt> /
 <tt class="docutils literal">BRIDGE_AUTH_TOKEN</tt> match your deployment.</li>
+<li>Optionally install <tt class="docutils literal">ai_agno_llm_settings</tt> so Settings → Agno AI can
+send BYOK <tt class="docutils literal">_odoo.llm</tt> / <tt class="docutils literal">_odoo.llm_profiles</tt> /
+<tt class="docutils literal">_odoo.embedder</tt>. Without that module, Agno uses its container
+<tt class="docutils literal">LLM_*</tt> and <tt class="docutils literal">EMBEDDER_*</tt>.</li>
 </ol>
 </div>
 <div class="section" id="usage">
@@ -446,7 +458,8 @@ until you click)</li>
 whether to open it. Answer “yes” (the form opens) or click the chip.
 The offer expires after 30 minutes. Draft helpers only work when the
 matching business app is installed.</li>
-<li>Analyses stay in the chat so you can request corrections. Copy the
+<li>Analyses stay in the chat so you can request corrections. Headings,
+lists and tables from Agno render as HTML in the panel. Copy the
 message, or export Markdown / PDF from the buttons on that reply.
 Those exports are generated on demand and are not stored in Odoo.</li>
 <li>Closing the panel keeps the last messages. Use <strong>New conversation</strong>
