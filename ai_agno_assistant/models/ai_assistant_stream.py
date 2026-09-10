@@ -43,6 +43,7 @@ def iter_agno_sse_lines(response, wait=_AGNO_SSE_READ_WAIT):
 
     thread = Thread(target=_reader, daemon=True, name="ai-assistant-sse")
     thread.start()
+    finished = False
     try:
         while True:
             try:
@@ -51,11 +52,14 @@ def iter_agno_sse_lines(response, wait=_AGNO_SSE_READ_WAIT):
                 yield None
                 continue
             if item is done:
+                finished = True
                 return
             if isinstance(item, Exception):
                 raise item
             yield item
     finally:
+        if not finished:
+            _logger.info("Assistant stream closed by client; closing the Agno request")
         response.close()
         thread.join(timeout=2)
 
@@ -101,30 +105,26 @@ class AiAssistant(models.AbstractModel):
 
     def _iter_proxied_agno_sse(self, response, execution, payload, outcome):
         """Yield SSE chunks from Agno; store the done payload on ``outcome``."""
-        try:
-            for raw in iter_agno_sse_lines(response):
-                classified = _parse_agno_sse_line(raw)
-                if not classified:
-                    continue
-                kind, value = classified
-                if kind in ("keepalive", "status"):
-                    yield value
-                elif kind == "done":
-                    outcome.append(value)
-                elif kind == "error":
-                    execution.write(
-                        {
-                            "state": "error",
-                            "payload": payload,
-                            "error": value,
-                        }
-                    )
-                    outcome.append(None)
-                    yield self._assistant_stream_error_sse()
-                    return
-        except GeneratorExit:
-            _logger.info("Assistant stream closed by client; closing the Agno request")
-            raise
+        for raw in iter_agno_sse_lines(response):
+            classified = _parse_agno_sse_line(raw)
+            if not classified:
+                continue
+            kind, value = classified
+            if kind in ("keepalive", "status"):
+                yield value
+            elif kind == "done":
+                outcome.append(value)
+            elif kind == "error":
+                execution.write(
+                    {
+                        "state": "error",
+                        "payload": payload,
+                        "error": value,
+                    }
+                )
+                outcome.append(None)
+                yield self._assistant_stream_error_sse()
+                return
 
     def _assistant_stream_url(self, bridge):
         """Derive /chat/stream from the configured /chat bridge URL."""
