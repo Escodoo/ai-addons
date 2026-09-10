@@ -20,6 +20,11 @@ msgid "%(base)s Tagged document.page records were re-sent to Agno."
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__active
+msgid "Active"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
 msgid "Agno AI"
 msgstr ""
@@ -30,8 +35,29 @@ msgid "Agno Embedder Last Provider"
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model,name:ai_agno_llm_settings.model_agno_llm_profile
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_ai_bridge__agno_llm_profile_id
+msgid "Agno LLM Profile"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_extract_last_provider
+msgid "Agno Llm Extract Last Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_fast_last_provider
+msgid "Agno Llm Fast Last Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_last_provider
 msgid "Agno Llm Last Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_reasoning_last_provider
+msgid "Agno Llm Reasoning Last Provider"
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -41,8 +67,18 @@ msgid "Agno reindex failed (%(code)s): %(detail)s"
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model,name:ai_agno_llm_settings.model_ai_bridge
+msgid "Ai Bridge Configuration"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model:ir.model,name:ai_agno_llm_settings.model_ai_bridge_execution
 msgid "Ai Execution"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__api_key
+msgid "Api Key"
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -78,6 +114,16 @@ msgid "Could not reach Agno at %(url)s: %(error)s"
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_llm_api_key
 msgid ""
 "Customer API key sent to Agno per bridge request (BYOK). Required for OpenAI"
@@ -90,6 +136,16 @@ msgstr ""
 msgid ""
 "Customer embedder API key sent to Agno per bridge/KB request (BYOK). "
 "Required for OpenAI. Optional for Ollama."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.constraint,message:ai_agno_llm_settings.constraint_agno_llm_profile_key_uniq
+msgid "Each LLM profile key must be unique."
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -136,8 +192,82 @@ msgid "Embeddings (BYOK)"
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__agno_llm_profile__key__extract
+msgid "Extract"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_extract_api_key
+msgid "Extract LLM API Key"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_extract_host
+msgid "Extract LLM Host / Base URL"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_extract_model
+msgid "Extract LLM Model"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_extract_provider
+msgid "Extract LLM Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__agno_llm_profile__key__fast
+msgid "Fast"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Fast / Reasoning / Extract"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_fast_api_key
+msgid "Fast LLM API Key"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_fast_host
+msgid "Fast LLM Host / Base URL"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_fast_model
+msgid "Fast LLM Model"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_fast_provider
+msgid "Fast LLM Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__agno_llm_profile__provider__gemini
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_extract_provider__gemini
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_fast_provider__gemini
 #: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_provider__gemini
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_reasoning_provider__gemini
 msgid "Google Gemini"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__host
+msgid "Host / Base URL"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__id
+msgid "ID"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__key
+msgid "Key"
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -177,6 +307,16 @@ msgid "LLM Provider (BYOK)"
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
 msgid ""
 "Leave provider empty to use the Agno service environment (EMBEDDER_*). "
@@ -192,6 +332,11 @@ msgid ""
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__model
+msgid "Model"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
 msgid "Model id"
 msgstr ""
@@ -204,8 +349,17 @@ msgid ""
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__name
+msgid "Name"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__agno_llm_profile__provider__ollama
 #: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_embedder_provider__ollama
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_extract_provider__ollama
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_fast_provider__ollama
 #: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_provider__ollama
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_reasoning_provider__ollama
 msgid "Ollama"
 msgstr ""
 
@@ -221,14 +375,33 @@ msgstr ""
 #. odoo-python
 #: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
 msgid ""
+"Ollama requires a Host / Base URL for the %(key)s profile (reachable from "
+"the Agno service)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
 "Ollama requires a Host / Base URL reachable from the Agno service (e.g. "
 "http://ollama:11434 or https://ollama.com)."
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__agno_llm_profile__provider__openai
 #: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_embedder_provider__openai
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_extract_provider__openai
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_fast_provider__openai
 #: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_provider__openai
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__res_config_settings__agno_llm_reasoning_provider__openai
 msgid "OpenAI"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid ""
+"OpenAI and Google Gemini require an API Key for the %(key)s LLM profile."
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -247,7 +420,57 @@ msgstr ""
 
 #. module: ai_agno_llm_settings
 #: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid ""
+"Optional. Leave empty to reuse the Chat LLM (standard) or Agno env "
+"LLM_FAST_* / LLM_REASONING_* / LLM_EXTRACT_*. Fast is for web/livechat and "
+"routers; reasoning for architect and retries; extract for structured JSON."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_agno_llm_profile__provider
+msgid "Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields.selection,name:ai_agno_llm_settings.selection__agno_llm_profile__key__reasoning
+msgid "Reasoning"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_reasoning_api_key
+msgid "Reasoning LLM API Key"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_reasoning_host
+msgid "Reasoning LLM Host / Base URL"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_reasoning_model
+msgid "Reasoning LLM Model"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,field_description:ai_agno_llm_settings.field_res_config_settings__agno_llm_reasoning_provider
+msgid "Reasoning LLM Provider"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
 msgid "Reindex knowledge bases"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Task LLM profiles (BYOK)"
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_agno_llm_profile__key
+msgid ""
+"Task profile sent to Agno as _odoo.llm_profiles.<key>. The default Chat LLM "
+"in Settings is the standard profile."
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -287,11 +510,22 @@ msgid ""
 msgstr ""
 
 #. module: ai_agno_llm_settings
+#: model_terms:ir.ui.view,arch_db:ai_agno_llm_settings.res_config_settings_view_form
+msgid "Use standard / env"
+msgstr ""
+
+#. module: ai_agno_llm_settings
 #: model:ir.model.fields,help:ai_agno_llm_settings.field_res_config_settings__agno_embedder_dimensions
 msgid ""
 "Vector size for the chosen model (e.g. 1024 for qwen3-embedding:0.6b, 1536 "
 "for text-embedding-3-small). Must match LanceDB tables; changing it requires"
 " re-indexing."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#. odoo-python
+#: code:addons/ai_agno_llm_settings/models/res_config_settings.py:0
+msgid "When a %(key)s LLM provider is selected, Model is required."
 msgstr ""
 
 #. module: ai_agno_llm_settings
@@ -328,6 +562,14 @@ msgid ""
 "these credentials (never the service env token). For Ollama, Host must be "
 "reachable from the Agno service (e.g. http://ollama:11434 or "
 "https://ollama.com)."
+msgstr ""
+
+#. module: ai_agno_llm_settings
+#: model:ir.model.fields,help:ai_agno_llm_settings.field_ai_bridge__agno_llm_profile_id
+msgid ""
+"When set, this Agno bridge sends that profile as _odoo.llm instead of the "
+"default Chat LLM. Use Fast for the public web channel. Leave empty for the "
+"standard Settings Chat LLM."
 msgstr ""
 
 #. module: ai_agno_llm_settings
