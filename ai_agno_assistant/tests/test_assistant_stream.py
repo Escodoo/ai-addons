@@ -237,8 +237,71 @@ class TestAiAssistantStream(TransactionCase):
         lines = []
         response = _SlowResponse()
         gen = stream_mod.iter_agno_sse_lines(response, wait=0.05)
-        started.wait(1)
+        self.assertTrue(started.wait(1))
         lines.append(next(gen))
         gen.close()
         self.assertIsNone(lines[0])
         self.assertTrue(closed.is_set())
+
+    def test_iter_agno_sse_lines_reraises_reader_errors(self):
+        class _BoomResponse:
+            def iter_lines(self, decode_unicode=True):
+                raise OSError("broken pipe")
+
+            def close(self):
+                return None
+
+        gen = stream_mod.iter_agno_sse_lines(_BoomResponse(), wait=0.05)
+        with self.assertRaises(OSError):
+            next(gen)
+
+    def test_parse_agno_sse_line_covers_event_kinds(self):
+        self.assertEqual(stream_mod._parse_agno_sse_line(None)[0], "keepalive")
+        self.assertIsNone(stream_mod._parse_agno_sse_line(""))
+        self.assertIsNone(stream_mod._parse_agno_sse_line("comment: ignore"))
+        self.assertIsNone(stream_mod._parse_agno_sse_line("data: not-json"))
+        self.assertIsNone(stream_mod._parse_agno_sse_line("data: [1, 2]"))
+        self.assertIsNone(stream_mod._parse_agno_sse_line('data: {"event": "other"}'))
+        kind, result = stream_mod._parse_agno_sse_line('data: {"event": "done"}')
+        self.assertEqual(kind, "done")
+        self.assertEqual(result, {})
+        kind, text = stream_mod._parse_agno_sse_line('data: {"event": "error"}')
+        self.assertEqual(kind, "error")
+        self.assertEqual(text, "Assistant chat failed.")
+
+    def test_iter_proxied_agno_sse_keepalive_and_client_close(self):
+        execution = mock.Mock()
+        stopped = threading.Event()
+
+        class _HangAfterStatus:
+            def iter_lines(self, decode_unicode=True):
+                yield 'data: {"event": "status", "code": "routing"}'
+                stopped.wait(5)
+
+            def close(self):
+                stopped.set()
+
+        outcome = []
+        gen = self.Assistant._iter_proxied_agno_sse(
+            _HangAfterStatus(), execution, {}, outcome
+        )
+        first = next(gen)
+        self.assertIn("routing", first)
+        gen.close()
+        self.assertEqual(outcome, [])
+
+    def test_iter_proxied_agno_sse_yields_keepalive_then_done(self):
+        def _lines(_response, wait=1.0):
+            yield None
+            yield 'data: {"event": "other"}'
+            yield 'data: {"event": "done", "result": {"body": "ok"}}'
+
+        with mock.patch.object(stream_mod, "iter_agno_sse_lines", side_effect=_lines):
+            outcome = []
+            events = list(
+                self.Assistant._iter_proxied_agno_sse(
+                    mock.Mock(), mock.Mock(), {}, outcome
+                )
+            )
+        self.assertIn(stream_mod._SSE_KEEPALIVE, events)
+        self.assertEqual(outcome, [{"body": "ok"}])
