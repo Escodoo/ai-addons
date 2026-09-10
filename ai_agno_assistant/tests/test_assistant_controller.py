@@ -156,3 +156,31 @@ class TestAiAssistantController(HttpCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('"event": "error"', response.text)
         self.assertNotIn("Bridge Execution log", response.text)
+
+    def test_chat_stream_rejects_invalid_json(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        token = http.Request.csrf_token(self)
+        response = self.url_open(
+            f"/ai_agno_assistant/chat/stream?csrf_token={token}",
+            data="not-json",
+            headers={"Content-Type": "application/json"},
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_chat_stream_non_dict_body_is_error_event(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        response = self._chat_stream(["hello"])
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('"event": "error"', response.text)
+
+    @mute_logger("odoo.addons.ai_agno_assistant.controllers.main")
+    def test_chat_stream_wraps_unexpected_errors(self):
+        self.authenticate("ai_http_user", "ai_http_user")
+        with mock.patch.object(
+            type(self.env["ai.assistant"]),
+            "_iter_assistant_chat_stream",
+            side_effect=RuntimeError("bridge down"),
+        ):
+            response = self._chat_stream({"message": "hello"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('"event": "error"', response.text)
