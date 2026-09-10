@@ -64,18 +64,6 @@ def _sse(payload):
     return f"data: {json.dumps(payload, default=str)}\n\n"
 
 
-def _stream_error_sse():
-    return _sse(
-        {
-            "event": "error",
-            "text": _(
-                "The AI request failed. Check the AI Bridge Execution log "
-                "for details."
-            ),
-        }
-    )
-
-
 def _parse_agno_sse_line(raw):
     if raw is None:
         return "keepalive", _SSE_KEEPALIVE
@@ -97,36 +85,46 @@ def _parse_agno_sse_line(raw):
     return None
 
 
-def _iter_proxied_agno_sse(response, execution, payload, outcome):
-    """Yield SSE chunks from Agno; store the done payload on ``outcome``."""
-    try:
-        for raw in iter_agno_sse_lines(response):
-            classified = _parse_agno_sse_line(raw)
-            if not classified:
-                continue
-            kind, value = classified
-            if kind in ("keepalive", "status"):
-                yield value
-            elif kind == "done":
-                outcome.append(value)
-            elif kind == "error":
-                execution.write(
-                    {
-                        "state": "error",
-                        "payload": payload,
-                        "error": value,
-                    }
-                )
-                outcome.append(None)
-                yield _stream_error_sse()
-                return
-    except GeneratorExit:
-        _logger.info("Assistant stream closed by client; closing the Agno request")
-        raise
-
-
 class AiAssistant(models.AbstractModel):
     _inherit = "ai.assistant"
+
+    def _assistant_stream_error_sse(self):
+        return _sse(
+            {
+                "event": "error",
+                "text": _(
+                    "The AI request failed. Check the AI Bridge Execution log "
+                    "for details."
+                ),
+            }
+        )
+
+    def _iter_proxied_agno_sse(self, response, execution, payload, outcome):
+        """Yield SSE chunks from Agno; store the done payload on ``outcome``."""
+        try:
+            for raw in iter_agno_sse_lines(response):
+                classified = _parse_agno_sse_line(raw)
+                if not classified:
+                    continue
+                kind, value = classified
+                if kind in ("keepalive", "status"):
+                    yield value
+                elif kind == "done":
+                    outcome.append(value)
+                elif kind == "error":
+                    execution.write(
+                        {
+                            "state": "error",
+                            "payload": payload,
+                            "error": value,
+                        }
+                    )
+                    outcome.append(None)
+                    yield self._assistant_stream_error_sse()
+                    return
+        except GeneratorExit:
+            _logger.info("Assistant stream closed by client; closing the Agno request")
+            raise
 
     def _assistant_stream_url(self, bridge):
         """Derive /chat/stream from the configured /chat bridge URL."""
@@ -221,7 +219,9 @@ class AiAssistant(models.AbstractModel):
                         "for details."
                     )
                 )
-            yield from _iter_proxied_agno_sse(response, execution, payload, outcome)
+            yield from self._iter_proxied_agno_sse(
+                response, execution, payload, outcome
+            )
         finally:
             response.close()
         if outcome and outcome[-1] is None:
@@ -235,7 +235,7 @@ class AiAssistant(models.AbstractModel):
                     "error": "Assistant stream ended without a result.",
                 }
             )
-            yield _stream_error_sse()
+            yield self._assistant_stream_error_sse()
             return
         finalized = self._apply_assistant_chat_result(text, done, normalized_ui)
         execution.write(
