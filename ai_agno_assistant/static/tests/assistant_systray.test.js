@@ -504,3 +504,17 @@ test("stream status updates then appends the done body", async () => {
     expect(".o_ai_assistant_message").toHaveCount(2);
     expect(".o_ai_assistant_message_assistant").toHaveText("Three RFQs");
 });
+
+test("stream error event notifies without a second Agno run", async () => {
+    mockLocalStorage();
+    mockAssistantServices({
+        streamEvents: [{event: "error", text: "The AI request failed. Check the log."}],
+        body: "<p>Should not appear</p>",
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await openPanelAndAsk("Fail stream");
+    expect.verifySteps(["stream", "notify:The AI request failed. Check the log."]);
+    expect(".o_ai_assistant_message").toHaveCount(1);
+    expect(".o_ai_assistant_message_assistant").toHaveCount(0);
+});
