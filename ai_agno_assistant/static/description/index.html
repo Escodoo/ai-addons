@@ -394,10 +394,11 @@ tables) with <tt class="docutils literal">body_is_html=True</tt>. This module co
 HTML and sanitizes it before the systray renders. The systray prefers
 <tt class="docutils literal">/ai_agno_assistant/chat/stream</tt>, which proxies Agno
 <tt class="docutils literal">/bridge/assistant/chat/stream</tt> so the panel can show tool progress
-(reading a model, preparing a draft) before the finished answer.
-<tt class="docutils literal">action_ai_chat</tt> / <tt class="docutils literal">/bridge/assistant/chat</tt> stay as the
-request/response fallback. The configured <tt class="docutils literal">ai.bridge</tt> URL remains
-<tt class="docutils literal">/chat</tt>, not <tt class="docutils literal">/stream</tt>.</p>
+(reading a model, preparing a draft) before the finished answer. Cancel
+or Escape closes that proxy, which closes the Agno SSE socket and
+cancels the inline Team run. <tt class="docutils literal">action_ai_chat</tt> /
+<tt class="docutils literal">/bridge/assistant/chat</tt> stay as the request/response fallback. The
+configured <tt class="docutils literal">ai.bridge</tt> URL remains <tt class="docutils literal">/chat</tt>, not <tt class="docutils literal">/stream</tt>.</p>
 <p>Optional <tt class="docutils literal">ai_agno_llm_settings</tt> sends BYOK chat/embedder keys and
 per-task profiles (<tt class="docutils literal">fast</tt> / <tt class="docutils literal">reasoning</tt> / <tt class="docutils literal">extract</tt>) on each
 bridge request. Without it, Agno uses container <tt class="docutils literal">LLM_*</tt> /
@@ -445,7 +446,8 @@ send BYOK <tt class="docutils literal">_odoo.llm</tt> / <tt class="docutils lite
 <li>Grant the group <strong>Use System AI Assistant</strong> to the relevant users.</li>
 <li>Open the comments icon in the systray and ask a question. While Agno
 works, the panel shows progress (Thinking, Routing, Reading a model,
-Preparing a draft). Examples:<ul>
+Preparing a draft). <strong>Cancel</strong> or Escape stops the request and the
+Agno run, not only the panel spinner. Examples:<ul>
 <li>“What needs my attention today?”</li>
 <li>“How many open RFQs do we have?”</li>
 <li>“Give me an executive briefing of this week” (on screen; edit in

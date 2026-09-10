@@ -47,10 +47,11 @@ tables) with ``body_is_html=True``. This module converts that text to
 HTML and sanitizes it before the systray renders. The systray prefers
 ``/ai_agno_assistant/chat/stream``, which proxies Agno
 ``/bridge/assistant/chat/stream`` so the panel can show tool progress
-(reading a model, preparing a draft) before the finished answer.
-``action_ai_chat`` / ``/bridge/assistant/chat`` stay as the
-request/response fallback. The configured ``ai.bridge`` URL remains
-``/chat``, not ``/stream``.
+(reading a model, preparing a draft) before the finished answer. Cancel
+or Escape closes that proxy, which closes the Agno SSE socket and
+cancels the inline Team run. ``action_ai_chat`` /
+``/bridge/assistant/chat`` stay as the request/response fallback. The
+configured ``ai.bridge`` URL remains ``/chat``, not ``/stream``.
 
 Optional ``ai_agno_llm_settings`` sends BYOK chat/embedder keys and
 per-task profiles (``fast`` / ``reasoning`` / ``extract``) on each
@@ -88,7 +89,8 @@ Usage
 1. Grant the group **Use System AI Assistant** to the relevant users.
 2. Open the comments icon in the systray and ask a question. While Agno
    works, the panel shows progress (Thinking, Routing, Reading a model,
-   Preparing a draft). Examples:
+   Preparing a draft). **Cancel** or Escape stops the request and the
+   Agno run, not only the panel spinner. Examples:
 
    - "What needs my attention today?"
    - "How many open RFQs do we have?"
