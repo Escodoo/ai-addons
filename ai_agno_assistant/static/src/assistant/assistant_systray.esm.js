@@ -411,7 +411,11 @@ export class AiAssistantSystray extends Component {
 
     async openPanel() {
         this.state.panelOpen = true;
-        this._refreshSessions();
+        await this._refreshSessions();
+        if (this.state.loading || !this.state.sessionKey) {
+            return;
+        }
+        await this.loadSession(this.state.sessionKey);
     }
 
     closePanel() {
