@@ -10,9 +10,10 @@ import {
     useRef,
     useState,
 } from "@odoo/owl";
+import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {_t} from "@web/core/l10n/translation";
 import {browser} from "@web/core/browser/browser";
-import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
+import {htmlToMarkdown} from "@ai_agno_assistant/assistant/html_to_markdown.esm";
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
 import {user} from "@web/core/user";
@@ -263,82 +264,7 @@ export class AiAssistantSystray extends Component {
     }
 
     _htmlToPlainText(html) {
-        const container = document.createElement("div");
-        container.innerHTML = html || "";
-        return this._nodeToMarkdown(container)
-            .replace(/\n{3,}/g, "\n\n")
-            .trim();
-    }
-
-    _nodeToMarkdown(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            return (node.nodeValue || "").replace(/\s+/g, " ");
-        }
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-            return "";
-        }
-        const tag = node.tagName.toLowerCase();
-        if (tag === "br") {
-            return "\n";
-        }
-        const inner = Array.from(node.childNodes)
-            .map((child) => this._nodeToMarkdown(child))
-            .join("");
-        if (tag === "b" || tag === "strong") {
-            return inner.trim() ? `**${inner.trim()}**` : "";
-        }
-        if (tag === "i" || tag === "em") {
-            return inner.trim() ? `*${inner.trim()}*` : "";
-        }
-        if (tag === "code") {
-            return inner.trim() ? `\`${inner.trim()}\`` : "";
-        }
-        if (tag === "a") {
-            const href = (node.getAttribute("href") || "").trim();
-            const label = inner.trim() || href;
-            if (href && /^(https?:|mailto:|\/)/i.test(href)) {
-                return `[${label}](${href})`;
-            }
-            return label;
-        }
-        if (tag === "li") {
-            const bullet = node.parentElement?.tagName === "OL" ? "1. " : "- ";
-            return `${bullet}${inner.trim()}\n`;
-        }
-        if (tag === "tr") {
-            const cellEls = Array.from(node.children).filter((child) =>
-                ["TD", "TH"].includes(child.tagName)
-            );
-            const cells = cellEls.map((child) => this._nodeToMarkdown(child).trim());
-            if (!cells.some(Boolean)) {
-                return "";
-            }
-            const row = `| ${cells.join(" | ")} |`;
-            const isHeader =
-                cellEls.some((child) => child.tagName === "TH") ||
-                node.parentElement?.tagName === "THEAD";
-            if (isHeader) {
-                return `${row}\n| ${cells.map(() => "---").join(" | ")} |\n`;
-            }
-            return `${row}\n`;
-        }
-        if (tag === "h1" || tag === "h2" || tag === "h3" || tag === "h4") {
-            const level = Number(tag[1]);
-            return `${"#".repeat(level)} ${inner.trim()}\n\n`;
-        }
-        if (tag === "blockquote") {
-            return `> ${inner.trim()}\n\n`;
-        }
-        if (tag === "pre") {
-            return `\`\`\`\n${inner.trim()}\n\`\`\`\n\n`;
-        }
-        if (["p", "div"].includes(tag)) {
-            return `${inner.trim()}\n\n`;
-        }
-        if (tag === "ul" || tag === "ol" || tag === "table") {
-            return `${inner.trim()}\n\n`;
-        }
-        return inner;
+        return htmlToMarkdown(html);
     }
 
     _appendMessage(role, content, extras = {}) {
@@ -437,27 +363,19 @@ export class AiAssistantSystray extends Component {
 
     _statusLabel(payload) {
         const code = payload?.code;
-        if (code === "thinking") {
-            return _t("Thinking…");
-        }
-        if (code === "routing") {
-            return _t("Routing to a specialist…");
-        }
         if (code === "reading") {
             return payload.model
                 ? _t("Reading %s…", payload.model)
                 : _t("Consulting Odoo…");
         }
-        if (code === "drafting") {
-            return _t("Preparing a draft…");
-        }
-        if (code === "knowledge") {
-            return _t("Searching knowledge…");
-        }
-        if (code === "consulting") {
-            return _t("Consulting Odoo…");
-        }
-        return payload?.text || _t("Thinking…");
+        const labels = {
+            consulting: _t("Consulting Odoo…"),
+            drafting: _t("Preparing a draft…"),
+            knowledge: _t("Searching knowledge…"),
+            routing: _t("Routing to a specialist…"),
+            thinking: _t("Thinking…"),
+        };
+        return labels[code] || _t("Thinking…");
     }
 
     _setLiveStatus(payload) {
@@ -940,6 +858,24 @@ export class AiAssistantSystray extends Component {
         ]);
     }
 
+    async _applyAssistantResult(result) {
+        if (result?.session_key) {
+            this.state.sessionKey = result.session_key;
+            persistSessionKey(this.state.sessionKey);
+        }
+        this._appendMessage(
+            "assistant",
+            result?.body || _t("No response was returned."),
+            {
+                html: Boolean(result?.body_is_html),
+                actions: result?.actions || [],
+                citations: result?.citations || [],
+            }
+        );
+        await this._autoRunNavigation(result?.actions);
+        await this._refreshSessions();
+    }
+
     async sendMessage() {
         if (!this.canSend) {
             return;
@@ -961,21 +897,7 @@ export class AiAssistantSystray extends Component {
             if (seq !== this._requestSeq) {
                 return;
             }
-            if (result?.session_key) {
-                this.state.sessionKey = result.session_key;
-                persistSessionKey(this.state.sessionKey);
-            }
-            this._appendMessage(
-                "assistant",
-                result?.body || _t("No response was returned."),
-                {
-                    html: Boolean(result?.body_is_html),
-                    actions: result?.actions || [],
-                    citations: result?.citations || [],
-                }
-            );
-            await this._autoRunNavigation(result?.actions);
-            await this._refreshSessions();
+            await this._applyAssistantResult(result);
         } catch (error) {
             if (seq !== this._requestSeq || error?.name === "AbortError") {
                 return;

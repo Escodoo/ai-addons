@@ -616,6 +616,19 @@ test("copy keeps a blank line after a table", async () => {
     );
 });
 
+test("unknown stream status ignores English payload text", async () => {
+    mockLocalStorage();
+    mockAssistantServices();
+
+    const assistant = await mountWithCleanup(AiAssistantSystray);
+    expect(assistant._statusLabel({code: "mystery", text: "Routing to hr…"})).toBe(
+        "Thinking…"
+    );
+    expect(
+        assistant._statusLabel({code: "knowledge", text: "Searching knowledge…"})
+    ).toBe("Searching knowledge…");
+});
+
 test("stream status updates then appends the done body", async () => {
     mockLocalStorage();
     mockAssistantServices({
