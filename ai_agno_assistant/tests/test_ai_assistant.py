@@ -47,7 +47,7 @@ class TestAiAssistantSanitize(TransactionCase):
         }
 
         def _open(page_id):
-            if page_id in (18, 19, 20):
+            if page_id in (18, 19):
                 payload = dict(opened)
                 payload["res_id"] = page_id
                 payload["action"] = dict(opened["action"], res_id=page_id)
@@ -64,13 +64,12 @@ class TestAiAssistantSanitize(TransactionCase):
                     {"kb": "HR", "title": "Bad key"},
                     {"kb": "hr"},
                     "nope",
+                    {"kb": "legal", "title": "NDA", "page_id": "9999999"},
                     {"kb": "hr", "title": "placeholder", "page_id": 1},
                     {"kb": "hr", "title": "  Leave policy  ", "page_id": 18},
                     {"kb": "hr", "title": "Leave policy", "page_id": 18},
                     {"kb": "hr", "title": "Benefits", "page_id": 19},
-                    {"kb": "hr", "title": "Onboarding", "page_id": 20},
                     {"kb": "legal", "title": "A" * 200, "page_id": "0"},
-                    {"kb": "legal", "title": "NDA", "page_id": "9999999"},
                 ]
             )
         self.assertEqual(
