@@ -98,13 +98,9 @@ class AiAssistantSessionHelpers(models.AbstractModel):
             }
             stored_citations = []
             for entry in citations or []:
-                if not isinstance(entry, dict):
-                    continue
-                if not entry.get("kb"):
-                    continue
-                if not entry.get("title"):
-                    continue
-                stored_citations.append(self._citation_storage_payload(entry))
+                payload = self._citation_storage_payload(entry)
+                if payload:
+                    stored_citations.append(payload)
             if stored_citations:
                 assistant_entry["citations"] = stored_citations
             stored.append(assistant_entry)

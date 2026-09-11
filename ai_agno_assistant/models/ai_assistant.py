@@ -18,8 +18,9 @@ _BRIDGE_CHAT = "ai_agno_assistant.ai_bridge_assistant_chat"
 _AI_CHAT_HISTORY_LIMIT = 20
 _AI_CHAT_MESSAGE_MAX_LEN = 2000
 _AI_CHAT_ACTIONS_LIMIT = 5
-_AI_CHAT_CITATIONS_LIMIT = 5
+_AI_CHAT_CITATIONS_LIMIT = 2
 _AI_CHAT_CITATION_TITLE_MAX_LEN = 120
+_GENERIC_CITATION_TITLES = frozenset({"placeholder", "untitled"})
 _KB_KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
 _DOCUMENT_PAGE_MODEL = "document.page"
 _AI_CHAT_UI_CONTEXT_STR_MAX_LEN = 200
@@ -188,12 +189,25 @@ class AiAssistant(models.AbstractModel):
         return self._hydrate_record_preview(cleaned)
 
     @api.model
+    def _is_generic_citation_title(self, title):
+        normalized = " ".join((title or "").split()).lower()
+        return normalized in _GENERIC_CITATION_TITLES or normalized.endswith(
+            "(placeholder)"
+        )
+
+    @api.model
     def _citation_storage_payload(self, citation):
-        """Persist only identifiers; the form action is rebuilt on load."""
-        stored = {"kb": citation["kb"], "title": citation["title"]}
-        if citation.get("page_id"):
-            stored["page_id"] = citation["page_id"]
-        return stored
+        """Persist only openable pages; the form action is rebuilt on load."""
+        if not isinstance(citation, dict):
+            return None
+        kb = citation.get("kb")
+        title = citation.get("title")
+        page_id = self._citation_page_id(citation.get("page_id"))
+        if not kb or not title or not page_id:
+            return None
+        if self._is_generic_citation_title(title):
+            return None
+        return {"kb": kb, "title": title, "page_id": page_id}
 
     @api.model
     def _citation_open_action(self, page_id):
@@ -219,7 +233,7 @@ class AiAssistant(models.AbstractModel):
 
     @api.model
     def _sanitize_assistant_citations(self, citations):
-        """Keep harvested KB sources; attach a form action when the page is readable."""
+        """Keep openable ``document.page`` sources only (no smoke-test labels)."""
         if not isinstance(citations, list):
             return []
         cleaned = []
@@ -234,17 +248,26 @@ class AiAssistant(models.AbstractModel):
             if not isinstance(title, str) or not title.strip():
                 continue
             title = " ".join(title.split())[:_AI_CHAT_CITATION_TITLE_MAX_LEN]
+            if self._is_generic_citation_title(title):
+                continue
             page_id = self._citation_page_id(entry.get("page_id"))
-            key = (kb, page_id or 0, title.lower())
+            if not page_id:
+                continue
+            key = (kb, page_id, title.lower())
             if key in seen:
                 continue
+            opened = self._citation_open_action(page_id)
+            if not opened:
+                continue
             seen.add(key)
-            payload = {"kb": kb, "title": title}
-            opened = self._citation_open_action(page_id) if page_id else False
-            if opened:
-                payload["page_id"] = page_id
-                payload["action"] = opened.get("action")
-            cleaned.append(payload)
+            cleaned.append(
+                {
+                    "kb": kb,
+                    "title": title,
+                    "page_id": page_id,
+                    "action": opened.get("action"),
+                }
+            )
             if len(cleaned) >= _AI_CHAT_CITATIONS_LIMIT:
                 break
         return cleaned

@@ -177,20 +177,12 @@
                                         t-key="cite_index"
                                     >
                                         <button
-                                            t-if="cite.action"
                                             class="btn btn-sm btn-outline-secondary o_ai_assistant_citation"
                                             t-on-click="() => this.runChipAction(cite)"
                                         >
                                             <i class="fa fa-book" />
                                             <t t-esc="cite.title" />
                                         </button>
-                                        <span
-                                            t-else=""
-                                            class="badge rounded-pill text-bg-light o_ai_assistant_citation"
-                                        >
-                                            <i class="fa fa-book" />
-                                            <t t-esc="cite.title" />
-                                        </span>
                                     </t>
                                 </div>
                             </div>

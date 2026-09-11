@@ -96,7 +96,11 @@ function normalizeCitations(citations) {
         return [];
     }
     return citations.filter(
-        (entry) => entry && typeof entry === "object" && typeof entry.title === "string"
+        (entry) =>
+            entry &&
+            typeof entry === "object" &&
+            typeof entry.title === "string" &&
+            Boolean(entry.action)
     );
 }
 

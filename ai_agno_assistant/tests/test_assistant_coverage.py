@@ -690,13 +690,12 @@ class TestAiAssistantCoverage(TransactionCase):
                 {"kb": "hr"},
                 {"title": "Only title"},
                 {"kb": "hr", "title": "Leave policy"},
+                {"kb": "hr", "title": "placeholder", "page_id": 1},
             ],
         )
         self.assertTrue(remembered)
         stored = json.loads(remembered.messages_json)
-        self.assertEqual(
-            stored[-1]["citations"], [{"kb": "hr", "title": "Leave policy"}]
-        )
+        self.assertNotIn("citations", stored[-1])
         self.Assistant._remember_chat_turn(
             "Hi",
             "ok",

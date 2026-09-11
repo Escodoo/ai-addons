@@ -321,13 +321,14 @@ test("shows knowledge source chips without auto-navigating", async () => {
                 },
             },
             {kb: "legal", title: "NDA playbook"},
+            {kb: "hr", title: "placeholder"},
         ],
     });
 
     await mountWithCleanup(AiAssistantSystray);
     await openPanelAndAsk("What is the leave policy?");
     expect.verifySteps([]);
-    expect(".o_ai_assistant_citation").toHaveCount(2);
+    expect(".o_ai_assistant_citation").toHaveCount(1);
     await click(".o_ai_assistant_citation");
     await animationFrame();
     expect.verifySteps([
