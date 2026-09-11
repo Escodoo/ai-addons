@@ -27,7 +27,7 @@ def iter_agno_sse_lines(response, wait=_AGNO_SSE_READ_WAIT):
 
     ``None`` means "still waiting" so the HTTP proxy can send a keepalive
     and notice that the browser aborted. Closing ``response`` unblocks the
-    reader; Agno then cancels the inline Team run.
+    reader; Agno then cancels the Agent or Team run.
     """
     queue = Queue()
     done = object()
