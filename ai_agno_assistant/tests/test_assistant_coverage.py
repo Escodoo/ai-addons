@@ -668,12 +668,13 @@ class TestAiAssistantCoverage(TransactionCase):
         session = self.Assistant._get_or_create_session(created["session_key"])
         session.messages_json = json.dumps(
             [
+                "skip-me",
                 {"role": "user", "text": "Hi", "isHtml": False},
                 {
                     "role": "assistant",
                     "text": "Hey",
                     "isHtml": False,
-                    "citations": [],
+                    "citations": None,
                 },
             ]
         )
@@ -684,7 +685,12 @@ class TestAiAssistantCoverage(TransactionCase):
             "<p>Follow it.</p>",
             True,
             session_key=created["session_key"],
-            citations=["nope", {"kb": "hr"}, {"kb": "hr", "title": "Leave policy"}],
+            citations=[
+                "nope",
+                {"kb": "hr"},
+                {"title": "Only title"},
+                {"kb": "hr", "title": "Leave policy"},
+            ],
         )
         self.assertTrue(remembered)
         stored = json.loads(remembered.messages_json)
