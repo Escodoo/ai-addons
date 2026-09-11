@@ -24,7 +24,8 @@ and sanitizes it before the systray renders. The systray prefers
 `/bridge/assistant/chat/stream` so the panel can show tool progress
 (reading a model, preparing a draft) before the finished answer.
 Cancel or Escape closes that proxy, which closes the Agno SSE socket and
-cancels the inline Team run. `action_ai_chat` / `/bridge/assistant/chat`
+cancels the Agno run (the ERP Agent on the fast path, or the specialist
+Team). `action_ai_chat` / `/bridge/assistant/chat`
 stay as the request/response fallback. The configured `ai.bridge` URL
 remains `/chat`, not `/stream`.
 
