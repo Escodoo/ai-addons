@@ -1,6 +1,7 @@
 # Copyright 2026 - TODAY, Marcel Savegnago <marcel.savegnago@escodoo.com.br>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+import json
 from unittest import mock
 
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -659,6 +660,50 @@ class TestAiAssistantCoverage(TransactionCase):
             )
         self.assertFalse(chat["session_id"])
         self.assertFalse(chat["session_key"])
+
+    def test_citation_open_and_session_empty_list(self):
+        with self._without_models("document.page"):
+            self.assertFalse(self.Assistant._citation_open_action(19))
+        created = self.Assistant.action_ai_new_session()
+        session = self.Assistant._get_or_create_session(created["session_key"])
+        session.messages_json = json.dumps(
+            [
+                "skip-me",
+                {"role": "user", "text": "Hi", "isHtml": False},
+                {
+                    "role": "assistant",
+                    "text": "Hey",
+                    "isHtml": False,
+                    "citations": None,
+                },
+            ]
+        )
+        loaded = self.Assistant.action_ai_load_session(created["session_key"])
+        self.assertEqual(loaded["messages"][-1]["citations"], [])
+        remembered = self.Assistant._remember_chat_turn(
+            "Policy",
+            "<p>Follow it.</p>",
+            True,
+            session_key=created["session_key"],
+            citations=[
+                "nope",
+                {"kb": "hr"},
+                {"title": "Only title"},
+                {"kb": "hr", "title": "Leave policy"},
+                {"kb": "hr", "title": "placeholder", "page_id": 1},
+            ],
+        )
+        self.assertTrue(remembered)
+        stored = json.loads(remembered.messages_json)
+        self.assertNotIn("citations", stored[-1])
+        self.Assistant._remember_chat_turn(
+            "Hi",
+            "ok",
+            False,
+            session_key=created["session_key"],
+        )
+        loaded_bare = self.Assistant.action_ai_load_session(created["session_key"])
+        self.assertNotIn("citations", loaded_bare["messages"][-1])
 
     def test_markdownish_headings_lists_and_filename(self):
         html = markdownish_to_html(

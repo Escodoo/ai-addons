@@ -34,10 +34,12 @@ class AiBridgeExecution(models.Model):
                 "body_is_html": False,
                 "actions": [],
                 "artifacts": [],
+                "citations": [],
             }
         return {
             "body": response.get("body") or "",
             "body_is_html": bool(response.get("body_is_html", False)),
             "actions": response.get("actions") or [],
             "artifacts": [],
+            "citations": response.get("citations") or [],
         }

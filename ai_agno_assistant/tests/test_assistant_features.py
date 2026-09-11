@@ -164,12 +164,42 @@ class TestAiAssistantFeatures(TransactionCase):
             body="<p>Hi</p>",
             body_is_html=True,
             session_key=created["session_key"],
+            citations=[{"kb": "hr", "title": "Leave policy", "page_id": 9999999}],
         )
         loaded = self.Assistant.action_ai_load_session(created["session_key"])
         self.assertEqual(loaded["session_key"], created["session_key"])
         self.assertGreaterEqual(len(loaded["messages"]), 2)
         self.assertEqual(loaded["messages"][-1]["text"], "<p>Hi</p>")
         self.assertNotIn("artifacts", loaded["messages"][-1])
+        self.assertEqual(loaded["messages"][-1]["citations"], [])
+        opened = {
+            "type": "open_record",
+            "model": "document.page",
+            "res_id": 18,
+            "action": {
+                "type": "ir.actions.act_window",
+                "res_model": "document.page",
+                "res_id": 18,
+            },
+        }
+        self.Assistant._remember_chat_turn(
+            message="Policy",
+            body="<p>Rules</p>",
+            body_is_html=True,
+            session_key=created["session_key"],
+            citations=[{"kb": "hr", "title": "Leave policy", "page_id": 18}],
+        )
+        with mock.patch.object(
+            type(self.Assistant),
+            "_citation_open_action",
+            return_value=opened,
+        ):
+            reloaded = self.Assistant.action_ai_load_session(created["session_key"])
+        self.assertEqual(reloaded["messages"][-1]["citations"][0]["page_id"], 18)
+        self.assertEqual(
+            reloaded["messages"][-1]["citations"][0]["action"]["res_model"],
+            "document.page",
+        )
         listed = self.Assistant.action_ai_list_sessions()
         self.assertTrue(
             any(item["session_key"] == created["session_key"] for item in listed)

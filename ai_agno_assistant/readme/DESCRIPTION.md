@@ -14,6 +14,7 @@ Users with the **Use System AI Assistant** right get a systray chat panel to:
 - propose irreversible confirmations (draft SO / RFQ) that the user must
   accept in the panel (human-in-the-loop)
 - copy a briefing or export it as Markdown / PDF without storing a file
+- show knowledge-base sources when the answer used company documents
 - keep conversations server-side (per user) with the browser as a cache.
   Each request sends the last 20 messages; Agno uses that same window.
 

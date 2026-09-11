@@ -34,6 +34,69 @@ class TestAiAssistantSanitize(TransactionCase):
         if not self.has_purchase:  # pragma: no cover
             self.skipTest("Purchase app is not installed")
 
+    def test_sanitize_citations_keeps_readable_pages_only(self):
+        opened = {
+            "type": "open_record",
+            "model": "document.page",
+            "res_id": 19,
+            "action": {
+                "type": "ir.actions.act_window",
+                "res_model": "document.page",
+                "res_id": 19,
+            },
+        }
+
+        def _open(page_id):
+            if page_id in (18, 19):
+                payload = dict(opened)
+                payload["res_id"] = page_id
+                payload["action"] = dict(opened["action"], res_id=page_id)
+                return payload
+            return False
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_citation_open_action",
+            side_effect=_open,
+        ):
+            cleaned = self.Assistant._sanitize_assistant_citations(
+                [
+                    {"kb": "HR", "title": "Bad key"},
+                    {"kb": "hr"},
+                    "nope",
+                    {"kb": "legal", "title": "NDA", "page_id": "9999999"},
+                    {"kb": "hr", "title": "placeholder", "page_id": 1},
+                    {"kb": "hr", "title": "  Leave policy  ", "page_id": 18},
+                    {"kb": "hr", "title": "Leave policy", "page_id": 18},
+                    {"kb": "hr", "title": "Benefits", "page_id": 19},
+                    {"kb": "legal", "title": "A" * 200, "page_id": "0"},
+                ]
+            )
+        self.assertEqual(
+            [(item["title"], item["page_id"]) for item in cleaned],
+            [("Leave policy", 18), ("Benefits", 19)],
+        )
+        self.assertEqual(cleaned[0]["action"]["res_model"], "document.page")
+        self.assertEqual(self.Assistant._sanitize_assistant_citations(None), [])
+        self.assertIsNone(self.Assistant._citation_page_id(None))
+        self.assertIsNone(self.Assistant._citation_page_id("nope"))
+        self.assertIsNone(self.Assistant._citation_page_id(-4))
+        self.assertEqual(self.Assistant._citation_page_id("8"), 8)
+        self.assertFalse(
+            self.Assistant._citation_storage_payload({"kb": "hr", "title": "Leave"})
+        )
+        self.assertFalse(
+            self.Assistant._citation_storage_payload(
+                {"kb": "hr", "title": "placeholder", "page_id": 3}
+            )
+        )
+        self.assertEqual(
+            self.Assistant._citation_storage_payload(
+                {"kb": "hr", "title": "Leave", "page_id": 3}
+            )["page_id"],
+            3,
+        )
+
     def test_sanitize_rejects_unknown_action_type(self):
         actions = self.Assistant._sanitize_ai_chat_actions(
             [{"type": "delete_everything"}]
@@ -863,6 +926,56 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertTrue(result["body_is_html"])
         self.assertEqual(len(result["actions"]), 1)
         self.assertEqual(result["actions"][0]["type"], "open_action")
+        self.assertEqual(result["citations"], [])
+
+    def test_action_ai_chat_sanitizes_citations(self):
+        def _fake_bridge(**kwargs):
+            return {
+                "body": "<p>Follow the policy.</p>",
+                "body_is_html": True,
+                "actions": [],
+                "citations": [
+                    {"kb": "hr", "title": "placeholder", "page_id": 1},
+                    {"kb": "hr", "title": "Leave policy", "page_id": 19},
+                    {"kb": "hr", "title": "Leave policy"},
+                    {"kb": "NOPE", "title": "Invented"},
+                ],
+            }
+
+        opened = {
+            "type": "open_record",
+            "model": "document.page",
+            "res_id": 19,
+            "action": {
+                "type": "ir.actions.act_window",
+                "res_model": "document.page",
+                "res_id": 19,
+            },
+        }
+        with (
+            mock.patch.object(
+                type(self.Assistant),
+                "_run_assistant_bridge",
+                side_effect=_fake_bridge,
+            ),
+            mock.patch.object(
+                type(self.Assistant),
+                "_citation_open_action",
+                return_value=opened,
+            ),
+        ):
+            result = self.Assistant.action_ai_chat(message="leave policy")
+        self.assertEqual(
+            result["citations"],
+            [
+                {
+                    "kb": "hr",
+                    "title": "Leave policy",
+                    "page_id": 19,
+                    "action": opened["action"],
+                }
+            ],
+        )
 
     def test_action_ai_chat_sanitizes_html_body(self):
         def _fake_bridge(**kwargs):

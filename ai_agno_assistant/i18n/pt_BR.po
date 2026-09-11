@@ -371,6 +371,12 @@ msgid "Opening the requested screen…"
 msgstr "Abrindo a tela solicitada…"
 
 #. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Sources"
+msgstr "Fontes"
+
+#. module: ai_agno_assistant
 #: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_bridge__payload_type
 msgid "Payload Type"
 msgstr "Tipo de payload"

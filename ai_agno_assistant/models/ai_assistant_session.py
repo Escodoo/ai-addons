@@ -75,7 +75,9 @@ class AiAssistantSessionHelpers(models.AbstractModel):
         )
 
     @api.model
-    def _remember_chat_turn(self, message, body, body_is_html, session_key=None):
+    def _remember_chat_turn(
+        self, message, body, body_is_html, session_key=None, citations=None
+    ):
         """Persist the latest user/assistant turn on the user's session."""
         try:
             session = self._get_or_create_session(session_key)
@@ -89,13 +91,19 @@ class AiAssistantSessionHelpers(models.AbstractModel):
             if not isinstance(stored, list):
                 stored = []
             stored.append({"role": "user", "text": message, "isHtml": False})
-            stored.append(
-                {
-                    "role": "assistant",
-                    "text": body or "",
-                    "isHtml": bool(body_is_html),
-                }
-            )
+            assistant_entry = {
+                "role": "assistant",
+                "text": body or "",
+                "isHtml": bool(body_is_html),
+            }
+            stored_citations = []
+            for entry in citations or []:
+                payload = self._citation_storage_payload(entry)
+                if payload:
+                    stored_citations.append(payload)
+            if stored_citations:
+                assistant_entry["citations"] = stored_citations
+            stored.append(assistant_entry)
             stored = stored[-_SESSION_MESSAGE_LIMIT:]
             title = (message or "").strip().replace("\n", " ")[:60] or session.name
             session.write(
@@ -172,6 +180,16 @@ class AiAssistantSessionHelpers(models.AbstractModel):
             messages = []
         if not isinstance(messages, list):
             messages = []
+        for entry in messages:
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("role") != "assistant":
+                continue
+            if "citations" not in entry:
+                continue
+            entry["citations"] = self._sanitize_assistant_citations(
+                entry.get("citations") or []
+            )
         return {
             "session_id": session.id,
             "session_key": session.session_key,

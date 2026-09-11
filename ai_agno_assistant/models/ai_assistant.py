@@ -18,6 +18,11 @@ _BRIDGE_CHAT = "ai_agno_assistant.ai_bridge_assistant_chat"
 _AI_CHAT_HISTORY_LIMIT = 20
 _AI_CHAT_MESSAGE_MAX_LEN = 2000
 _AI_CHAT_ACTIONS_LIMIT = 5
+_AI_CHAT_CITATIONS_LIMIT = 2
+_AI_CHAT_CITATION_TITLE_MAX_LEN = 120
+_GENERIC_CITATION_TITLES = frozenset({"placeholder", "untitled"})
+_KB_KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
+_DOCUMENT_PAGE_MODEL = "document.page"
 _AI_CHAT_UI_CONTEXT_STR_MAX_LEN = 200
 _AI_CHAT_UI_CONTEXT_KEYS = (
     "current_action",
@@ -121,6 +126,7 @@ class AiAssistant(models.AbstractModel):
         body_is_html = bool(result.get("body_is_html", False))
         raw_actions = result.get("actions")
         actions = self._sanitize_ai_chat_actions(raw_actions)
+        citations = self._sanitize_assistant_citations(result.get("citations"))
         body = self._sanitize_assistant_body(result.get("body") or "", body_is_html)
         body = self._note_dropped_open_records(body, raw_actions, actions, body_is_html)
         session = self._remember_chat_turn(
@@ -128,12 +134,14 @@ class AiAssistant(models.AbstractModel):
             body=body,
             body_is_html=body_is_html,
             session_key=normalized_ui.get("session_key") or False,
+            citations=citations,
         )
         return {
             "body": body,
             "body_is_html": body_is_html,
             "actions": actions,
             "artifacts": [],
+            "citations": citations,
             "session_id": session.id if session else False,
             "session_key": session.session_key if session else False,
         }
@@ -179,6 +187,90 @@ class AiAssistant(models.AbstractModel):
             else:
                 cleaned[key] = value
         return self._hydrate_record_preview(cleaned)
+
+    @api.model
+    def _is_generic_citation_title(self, title):
+        normalized = " ".join((title or "").split()).lower()
+        return normalized in _GENERIC_CITATION_TITLES or normalized.endswith(
+            "(placeholder)"
+        )
+
+    @api.model
+    def _citation_storage_payload(self, citation):
+        """Persist only openable pages; the form action is rebuilt on load."""
+        if not isinstance(citation, dict):
+            return None
+        kb = citation.get("kb")
+        title = citation.get("title")
+        page_id = self._citation_page_id(citation.get("page_id"))
+        if not kb or not title or not page_id:
+            return None
+        if self._is_generic_citation_title(title):
+            return None
+        return {"kb": kb, "title": title, "page_id": page_id}
+
+    @api.model
+    def _citation_open_action(self, page_id):
+        if _DOCUMENT_PAGE_MODEL not in self.env:
+            return False
+        return self._sanitize_open_record(
+            {
+                "type": "open_record",
+                "model": _DOCUMENT_PAGE_MODEL,
+                "res_id": page_id,
+            }
+        )
+
+    @api.model
+    def _citation_page_id(self, value):
+        if value in (None, False, ""):
+            return None
+        try:
+            page_id = int(value)
+        except (TypeError, ValueError):
+            return None
+        return page_id if page_id > 0 else None
+
+    @api.model
+    def _sanitize_assistant_citations(self, citations):
+        """Keep openable ``document.page`` sources only (no smoke-test labels)."""
+        if not isinstance(citations, list):
+            return []
+        cleaned = []
+        seen = set()
+        for entry in citations:
+            if not isinstance(entry, dict):
+                continue
+            kb = entry.get("kb")
+            title = entry.get("title")
+            if not isinstance(kb, str) or not _KB_KEY_RE.match(kb):
+                continue
+            if not isinstance(title, str) or not title.strip():
+                continue
+            title = " ".join(title.split())[:_AI_CHAT_CITATION_TITLE_MAX_LEN]
+            if self._is_generic_citation_title(title):
+                continue
+            page_id = self._citation_page_id(entry.get("page_id"))
+            if not page_id:
+                continue
+            key = (kb, page_id, title.lower())
+            if key in seen:
+                continue
+            opened = self._citation_open_action(page_id)
+            if not opened:
+                continue
+            seen.add(key)
+            cleaned.append(
+                {
+                    "kb": kb,
+                    "title": title,
+                    "page_id": page_id,
+                    "action": opened.get("action"),
+                }
+            )
+            if len(cleaned) >= _AI_CHAT_CITATIONS_LIMIT:
+                break
+        return cleaned
 
     @api.model
     def _sanitize_ai_chat_actions(self, actions):

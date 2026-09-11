@@ -82,8 +82,13 @@
         }
 
         .o_ai_assistant_suggestion,
-        .o_ai_assistant_message_action {
+        .o_ai_assistant_message_action,
+        .o_ai_assistant_citation {
             font-size: 0.75rem;
+        }
+
+        .o_ai_assistant_citation .fa {
+            margin-right: 0.25rem;
         }
 
         .o_ai_assistant_composer {
