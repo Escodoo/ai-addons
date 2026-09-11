@@ -9,6 +9,7 @@ import {
 import {AiAssistantSystray} from "@ai_agno_assistant/assistant/assistant_systray.esm";
 import {browser} from "@web/core/browser/browser";
 import {defineMailModels} from "@mail/../tests/mail_test_helpers";
+import {user} from "@web/core/user";
 
 defineMailModels();
 describe.current.tags("desktop");
@@ -33,6 +34,21 @@ function mockLocalStorage() {
     return store;
 }
 
+function chatFromStore(store) {
+    const key = Object.keys(store).find((name) =>
+        name.startsWith("ai_agno_assistant.chat")
+    );
+    if (!key) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(store[key]);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
 function mockAssistantServices({
     body = "<p>Hello</p>",
     bodyIsHtml = true,
@@ -43,6 +59,8 @@ function mockAssistantServices({
     confirmDelete = true,
     exportResult = null,
     streamEvents = null,
+    loadMessages = [],
+    getLoadMessages = null,
 } = {}) {
     let sessionList = [...sessions];
     patchWithCleanup(browser, {
@@ -85,7 +103,13 @@ function mockAssistantServices({
                 return {session_key: "session-new", messages: []};
             }
             if (method === "action_ai_load_session") {
-                return {session_key: "session-test-key", messages: []};
+                const key = args?.[0] || "";
+                expect.step(`load:${key}`);
+                const messages = getLoadMessages ? getLoadMessages(key) : loadMessages;
+                return {
+                    session_key: key || "session-test-key",
+                    messages: messages || [],
+                };
             }
             if (method === "action_ai_delete_session") {
                 const key = args?.[0];
@@ -159,6 +183,7 @@ test("persists messages across remount and deletes the conversation", async () =
             {id: 1, session_key: "session-test-key", name: "Hi there"},
             {id: 2, session_key: "session-other", name: "Other chat"},
         ],
+        getLoadMessages: () => chatFromStore(store),
     });
 
     await mountWithCleanup(AiAssistantSystray);
@@ -172,7 +197,9 @@ test("persists messages across remount and deletes the conversation", async () =
     await mountWithCleanup(AiAssistantSystray);
     await click(".o_ai_assistant_systray a");
     await animationFrame();
+    await tick();
     expect(".o_ai_assistant_message").toHaveCount(2);
+    expect.verifySteps(["load:session-test-key"]);
 
     await click("button[title='Delete conversation']");
     await tick();
@@ -187,8 +214,11 @@ test("persists messages across remount and deletes the conversation", async () =
 });
 
 test("closing the panel keeps the conversation", async () => {
-    mockLocalStorage();
-    mockAssistantServices({body: "<p>Kept</p>"});
+    const store = mockLocalStorage();
+    mockAssistantServices({
+        body: "<p>Kept</p>",
+        getLoadMessages: () => chatFromStore(store),
+    });
 
     await mountWithCleanup(AiAssistantSystray);
     await openPanelAndAsk("Keep me");
@@ -201,8 +231,78 @@ test("closing the panel keeps the conversation", async () => {
 
     await click(".o_ai_assistant_systray a");
     await animationFrame();
+    await tick();
     expect(".o_ai_assistant_panel").toHaveCount(1);
     expect(".o_ai_assistant_message").toHaveCount(2);
+});
+
+test("opening the panel does not load a draft conversation", async () => {
+    mockLocalStorage();
+    mockAssistantServices();
+
+    await mountWithCleanup(AiAssistantSystray);
+    await click(".o_ai_assistant_systray a");
+    await animationFrame();
+    await tick();
+    expect(".o_ai_assistant_panel").toHaveCount(1);
+    expect.verifySteps([]);
+});
+
+test("reloads source chips from the server when the panel opens", async () => {
+    const store = mockLocalStorage();
+    const userSuffix = user.userId || "anonymous";
+    store[`ai_agno_assistant.session.${userSuffix}`] = "session-hydrate";
+    store[`ai_agno_assistant.chat.${userSuffix}`] = JSON.stringify([
+        {
+            role: "user",
+            text: "What is the leave policy?",
+            isHtml: false,
+            actions: [],
+            citations: [],
+        },
+        {
+            role: "assistant",
+            text: "Follow the leave policy.",
+            isHtml: false,
+            actions: [],
+            citations: [],
+        },
+    ]);
+    mockAssistantServices({
+        loadMessages: [
+            {
+                role: "user",
+                text: "What is the leave policy?",
+                isHtml: false,
+            },
+            {
+                role: "assistant",
+                text: "Follow the leave policy.",
+                isHtml: false,
+                citations: [
+                    {
+                        kb: "hr",
+                        title: "Time off policy",
+                        page_id: 19,
+                        action: {
+                            type: "ir.actions.act_window",
+                            res_model: "document.page",
+                            res_id: 19,
+                        },
+                    },
+                ],
+            },
+        ],
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await click(".o_ai_assistant_systray a");
+    await animationFrame();
+    await tick();
+    await animationFrame();
+    expect.verifySteps(["load:session-hydrate"]);
+    expect(".o_ai_assistant_citation").toHaveCount(1);
+    expect.verifySteps([]);
 });
 
 test("the systray icon toggles the panel", async () => {

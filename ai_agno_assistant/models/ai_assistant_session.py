@@ -55,6 +55,18 @@ class AiAssistantSessionHelpers(models.AbstractModel):
         return uuid.uuid4().hex
 
     @api.model
+    def _get_session(self, session_key=None):
+        if "ai.assistant.session" not in self.env:
+            return False
+        key = self._normalize_session_key(session_key)
+        if not key:
+            return False
+        return self.env["ai.assistant.session"].search(
+            [("user_id", "=", self.env.user.id), ("session_key", "=", key)],
+            limit=1,
+        )
+
+    @api.model
     def _get_or_create_session(self, session_key=None):
         if "ai.assistant.session" not in self.env:
             return False
@@ -170,10 +182,12 @@ class AiAssistantSessionHelpers(models.AbstractModel):
 
     @api.model
     def action_ai_load_session(self, session_key=None):
+        """Return a stored conversation. Draft keys do not create a row."""
         self._check_ai_user()
-        session = self._get_or_create_session(session_key)
+        key = self._normalize_session_key(session_key)
+        session = self._get_session(key)
         if not session:
-            return {"session_key": False, "messages": []}
+            return {"session_key": key or False, "messages": []}
         try:
             messages = json.loads(session.messages_json or "[]")
         except (TypeError, ValueError):

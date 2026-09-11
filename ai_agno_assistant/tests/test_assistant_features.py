@@ -252,6 +252,17 @@ class TestAiAssistantFeatures(TransactionCase):
         )
         self.assertFalse(leftover.exists())
 
+    def test_load_draft_session_does_not_create_row(self):
+        created = self.Assistant.action_ai_new_session()
+        Session = self.env["ai.assistant.session"]
+        loaded = self.Assistant.action_ai_load_session(created["session_key"])
+        self.assertEqual(loaded["session_key"], created["session_key"])
+        self.assertEqual(loaded["messages"], [])
+        self.assertFalse(Session.search([("session_key", "=", created["session_key"])]))
+        missing = self.Assistant.action_ai_load_session("short")
+        self.assertFalse(missing["session_key"])
+        self.assertEqual(missing["messages"], [])
+
     def test_pending_confirm_requires_existing_order(self):
         missing = self.Assistant.action_ai_execute_pending(True)
         self.assertEqual(missing.get("error"), "expired")

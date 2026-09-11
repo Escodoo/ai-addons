@@ -613,6 +613,7 @@ class TestAiAssistantCoverage(TransactionCase):
         with self._without_session_model():
             self.assertIn("res.partner", self.env)
             self.assertFalse(self.Assistant._get_or_create_session())
+            self.assertFalse(self.Assistant._get_session("validkey12"))
             self.assertFalse(self.Assistant._remember_chat_turn("Hi", "x", False))
             self.Assistant._prune_empty_sessions()
             self.assertEqual(self.Assistant.action_ai_list_sessions(), [])
