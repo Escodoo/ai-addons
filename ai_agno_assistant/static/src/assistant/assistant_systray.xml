@@ -166,6 +166,35 @@
                                 t-esc="message.text"
                             />
                             <div
+                                t-if="message.citations.length"
+                                class="o_ai_assistant_citations mt-2"
+                            >
+                                <div class="small text-muted mb-1">Sources</div>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <t
+                                        t-foreach="message.citations"
+                                        t-as="cite"
+                                        t-key="cite_index"
+                                    >
+                                        <button
+                                            t-if="cite.action"
+                                            class="btn btn-sm btn-outline-secondary o_ai_assistant_citation"
+                                            t-on-click="() => this.runChipAction(cite)"
+                                        >
+                                            <i class="fa fa-book" />
+                                            <t t-esc="cite.title" />
+                                        </button>
+                                        <span
+                                            t-else=""
+                                            class="badge rounded-pill text-bg-light o_ai_assistant_citation"
+                                        >
+                                            <i class="fa fa-book" />
+                                            <t t-esc="cite.title" />
+                                        </span>
+                                    </t>
+                                </div>
+                            </div>
+                            <div
                                 t-if="message.actions.length"
                                 class="o_ai_assistant_chips d-flex flex-wrap gap-1 mt-2"
                             >

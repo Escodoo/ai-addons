@@ -75,6 +75,7 @@ class TestAiAssistantStream(TransactionCase):
         done = next(item for item in payloads if item.get("event") == "done")
         self.assertIn("Hi", done["result"]["body"])
         self.assertNotIn("<script", done["result"]["body"].lower())
+        self.assertEqual(done["result"]["citations"], [])
         self.assertTrue(done["result"]["session_key"])
 
     def test_iter_assistant_chat_stream_maps_agno_error(self):

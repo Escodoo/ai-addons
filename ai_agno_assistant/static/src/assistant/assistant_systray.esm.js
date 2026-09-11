@@ -91,7 +91,16 @@ function sanitizeStoredHtml(html) {
     return container.innerHTML;
 }
 
-function buildMessage({role, text, isHtml = false, actions = []}) {
+function normalizeCitations(citations) {
+    if (!Array.isArray(citations)) {
+        return [];
+    }
+    return citations.filter(
+        (entry) => entry && typeof entry === "object" && typeof entry.title === "string"
+    );
+}
+
+function buildMessage({role, text, isHtml = false, actions = [], citations = []}) {
     const safeText = isHtml && role === "assistant" ? sanitizeStoredHtml(text) : text;
     return {
         id: nextAssistantMessageId(),
@@ -100,6 +109,7 @@ function buildMessage({role, text, isHtml = false, actions = []}) {
         html: isHtml ? markup(safeText) : markup(""),
         isHtml: Boolean(isHtml),
         actions: Array.isArray(actions) ? actions : [],
+        citations: normalizeCitations(citations),
     };
 }
 
@@ -117,6 +127,7 @@ function restoreStoredMessage(entry) {
         text,
         isHtml: Boolean(entry.isHtml) && role === "assistant",
         actions: entry.actions,
+        citations: entry.citations,
     });
     return message.text ? message : null;
 }
@@ -149,6 +160,7 @@ function persistMessages(messages) {
             text: message.text,
             isHtml: Boolean(message.isHtml),
             actions: message.actions || [],
+            citations: message.citations || [],
         }));
         browser.localStorage.setItem(storageKey(), JSON.stringify(payload));
     } catch {
@@ -331,6 +343,7 @@ export class AiAssistantSystray extends Component {
             text: (content || "").trim(),
             isHtml: extras.html,
             actions: extras.actions,
+            citations: extras.citations,
         });
         this.state.messages = [...this.state.messages, message].slice(-HISTORY_LIMIT);
         persistMessages(this.state.messages);
@@ -950,6 +963,7 @@ export class AiAssistantSystray extends Component {
                 {
                     html: Boolean(result?.body_is_html),
                     actions: result?.actions || [],
+                    citations: result?.citations || [],
                 }
             );
             await this._autoRunNavigation(result?.actions);

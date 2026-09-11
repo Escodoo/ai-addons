@@ -40,6 +40,7 @@ panel to:
 - propose irreversible confirmations (draft SO / RFQ) that the user must
   accept in the panel (human-in-the-loop)
 - copy a briefing or export it as Markdown / PDF without storing a file
+- show knowledge-base sources when the answer used company documents
 - keep conversations server-side (per user) with the browser as a cache.
   Each request sends the last 20 messages; Agno uses that same window.
 
@@ -117,6 +118,8 @@ Usage
    lists and tables from Agno render as HTML in the panel. Copy the
    message, or export Markdown / PDF from the buttons on that reply.
    Those exports are generated on demand and are not stored in Odoo.
+   Answers that used the company knowledge base show a **Sources** row;
+   a chip opens the ``document.page`` when you can read it.
 5. Closing the panel keeps the last messages. Use **New conversation**
    to start a fresh draft (it is saved only after the first message), or
    pick a recent one from the list. The trash icon permanently deletes

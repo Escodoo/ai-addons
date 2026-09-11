@@ -34,6 +34,47 @@ class TestAiAssistantSanitize(TransactionCase):
         if not self.has_purchase:  # pragma: no cover
             self.skipTest("Purchase app is not installed")
 
+    def test_sanitize_citations_keeps_title_and_optional_page(self):
+        cleaned = self.Assistant._sanitize_assistant_citations(
+            [
+                {"kb": "HR", "title": "Bad key"},
+                {"kb": "hr"},
+                "nope",
+                {"kb": "hr", "title": "  Leave policy  "},
+                {"kb": "hr", "title": "Leave policy"},
+                {"kb": "legal", "title": "A" * 200, "page_id": "0"},
+                {"kb": "legal", "title": "NDA", "page_id": "9999999"},
+            ]
+        )
+        self.assertEqual(cleaned[0]["kb"], "hr")
+        self.assertEqual(cleaned[0]["title"], "Leave policy")
+        self.assertNotIn("action", cleaned[0])
+        self.assertEqual(cleaned[1]["title"], "A" * 120)
+        self.assertNotIn("page_id", cleaned[1])
+        self.assertEqual(cleaned[2]["title"], "NDA")
+        self.assertNotIn("page_id", cleaned[2])
+        self.assertEqual(self.Assistant._sanitize_assistant_citations(None), [])
+        opened = {
+            "type": "open_record",
+            "model": "document.page",
+            "res_id": 19,
+            "action": {
+                "type": "ir.actions.act_window",
+                "res_model": "document.page",
+                "res_id": 19,
+            },
+        }
+        with mock.patch.object(
+            type(self.Assistant),
+            "_citation_open_action",
+            return_value=opened,
+        ):
+            with_action = self.Assistant._sanitize_assistant_citations(
+                [{"kb": "hr", "title": "Leave policy", "page_id": 19}]
+            )
+        self.assertEqual(with_action[0]["page_id"], 19)
+        self.assertEqual(with_action[0]["action"]["res_model"], "document.page")
+
     def test_sanitize_rejects_unknown_action_type(self):
         actions = self.Assistant._sanitize_ai_chat_actions(
             [{"type": "delete_everything"}]
@@ -863,6 +904,27 @@ class TestAiAssistantSanitize(TransactionCase):
         self.assertTrue(result["body_is_html"])
         self.assertEqual(len(result["actions"]), 1)
         self.assertEqual(result["actions"][0]["type"], "open_action")
+        self.assertEqual(result["citations"], [])
+
+    def test_action_ai_chat_sanitizes_citations(self):
+        def _fake_bridge(**kwargs):
+            return {
+                "body": "<p>Follow the policy.</p>",
+                "body_is_html": True,
+                "actions": [],
+                "citations": [
+                    {"kb": "hr", "title": "Leave policy"},
+                    {"kb": "NOPE", "title": "Invented"},
+                ],
+            }
+
+        with mock.patch.object(
+            type(self.Assistant),
+            "_run_assistant_bridge",
+            side_effect=_fake_bridge,
+        ):
+            result = self.Assistant.action_ai_chat(message="leave policy")
+        self.assertEqual(result["citations"], [{"kb": "hr", "title": "Leave policy"}])
 
     def test_action_ai_chat_sanitizes_html_body(self):
         def _fake_bridge(**kwargs):

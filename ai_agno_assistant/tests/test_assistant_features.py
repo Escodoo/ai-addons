@@ -164,12 +164,18 @@ class TestAiAssistantFeatures(TransactionCase):
             body="<p>Hi</p>",
             body_is_html=True,
             session_key=created["session_key"],
+            citations=[{"kb": "hr", "title": "Leave policy", "page_id": 9999999}],
         )
         loaded = self.Assistant.action_ai_load_session(created["session_key"])
         self.assertEqual(loaded["session_key"], created["session_key"])
         self.assertGreaterEqual(len(loaded["messages"]), 2)
         self.assertEqual(loaded["messages"][-1]["text"], "<p>Hi</p>")
         self.assertNotIn("artifacts", loaded["messages"][-1])
+        self.assertEqual(
+            loaded["messages"][-1]["citations"][0]["title"], "Leave policy"
+        )
+        self.assertNotIn("page_id", loaded["messages"][-1]["citations"][0])
+        self.assertNotIn("action", loaded["messages"][-1]["citations"][0])
         listed = self.Assistant.action_ai_list_sessions()
         self.assertTrue(
             any(item["session_key"] == created["session_key"] for item in listed)

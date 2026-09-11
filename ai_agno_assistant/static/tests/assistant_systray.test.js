@@ -37,6 +37,7 @@ function mockAssistantServices({
     body = "<p>Hello</p>",
     bodyIsHtml = true,
     actions = [],
+    citations = [],
     error = null,
     sessions = [],
     confirmDelete = true,
@@ -113,6 +114,7 @@ function mockAssistantServices({
                 body_is_html: bodyIsHtml,
                 actions,
                 artifacts: [],
+                citations,
                 session_key: "session-test-key",
             };
         },
@@ -300,6 +302,38 @@ test("auto-opens the first navigation action and keeps the chip", async () => {
     ]);
     expect(".o_ai_assistant_message_action").toHaveCount(1);
     expect(".o_ai_assistant_panel").toHaveCount(1);
+});
+
+test("shows knowledge source chips without auto-navigating", async () => {
+    mockLocalStorage();
+    mockAssistantServices({
+        body: "Follow the leave policy.",
+        bodyIsHtml: false,
+        citations: [
+            {
+                kb: "hr",
+                title: "Time off policy",
+                page_id: 19,
+                action: {
+                    type: "ir.actions.act_window",
+                    res_model: "document.page",
+                    res_id: 19,
+                },
+            },
+            {kb: "legal", title: "NDA playbook"},
+        ],
+    });
+
+    await mountWithCleanup(AiAssistantSystray);
+    await openPanelAndAsk("What is the leave policy?");
+    expect.verifySteps([]);
+    expect(".o_ai_assistant_citation").toHaveCount(2);
+    await click(".o_ai_assistant_citation");
+    await animationFrame();
+    expect.verifySteps([
+        "doAction:document.page",
+        "notify:Opening the requested screen…",
+    ]);
 });
 
 test("does not navigate when a draft is only prepared", async () => {
