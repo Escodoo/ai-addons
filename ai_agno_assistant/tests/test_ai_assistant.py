@@ -74,6 +74,24 @@ class TestAiAssistantSanitize(TransactionCase):
             )
         self.assertEqual(with_action[0]["page_id"], 19)
         self.assertEqual(with_action[0]["action"]["res_model"], "document.page")
+        self.assertIsNone(self.Assistant._citation_page_id(None))
+        self.assertIsNone(self.Assistant._citation_page_id("nope"))
+        self.assertIsNone(self.Assistant._citation_page_id(-4))
+        self.assertEqual(self.Assistant._citation_page_id("8"), 8)
+        self.assertNotIn(
+            "page_id",
+            self.Assistant._citation_storage_payload({"kb": "hr", "title": "Leave"}),
+        )
+        self.assertEqual(
+            self.Assistant._citation_storage_payload(
+                {"kb": "hr", "title": "Leave", "page_id": 3}
+            )["page_id"],
+            3,
+        )
+        capped = self.Assistant._sanitize_assistant_citations(
+            [{"kb": "hr", "title": f"Doc {index}"} for index in range(8)]
+        )
+        self.assertEqual(len(capped), 5)
 
     def test_sanitize_rejects_unknown_action_type(self):
         actions = self.Assistant._sanitize_ai_chat_actions(
