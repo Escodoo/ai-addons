@@ -360,12 +360,6 @@ msgid "Opening the requested screen…"
 msgstr ""
 
 #. module: ai_agno_assistant
-#. odoo-javascript
-#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
-msgid "Sources"
-msgstr ""
-
-#. module: ai_agno_assistant
 #: model:ir.model.fields,field_description:ai_agno_assistant.field_ai_bridge__payload_type
 msgid "Payload Type"
 msgstr ""
@@ -453,6 +447,12 @@ msgstr ""
 #. module: ai_agno_assistant
 #: model:ir.model.constraint,message:ai_agno_assistant.constraint_ai_assistant_session_user_session_key_unique
 msgid "Session key must be unique per user."
+msgstr ""
+
+#. module: ai_agno_assistant
+#. odoo-javascript
+#: code:addons/ai_agno_assistant/static/src/assistant/assistant_systray.xml:0
+msgid "Sources"
 msgstr ""
 
 #. module: ai_agno_assistant
