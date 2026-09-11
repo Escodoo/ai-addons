@@ -1,6 +1,6 @@
 import {animationFrame, tick} from "@odoo/hoot-mock";
 import {click, edit, press} from "@odoo/hoot-dom";
-import {describe, expect, test} from "@odoo/hoot";
+import {describe, destroy, expect, test} from "@odoo/hoot";
 import {
     mockService,
     mountWithCleanup,
@@ -63,10 +63,19 @@ function mockAssistantServices({
     getLoadMessages = null,
 } = {}) {
     let sessionList = [...sessions];
+    const originalFetch = browser.fetch;
     patchWithCleanup(browser, {
-        fetch: async () => {
+        fetch: async (input, init) => {
+            const href = String(typeof input === "string" ? input : input?.url || "");
+            if (!href.includes("/ai_agno_assistant/chat/stream")) {
+                if (typeof originalFetch === "function") {
+                    return originalFetch(input, init);
+                }
+                return {ok: false, status: 404};
+            }
             if (!streamEvents) {
-                throw new Error("stream unavailable");
+                // 503 triggers the RPC fallback without a HOOT-unverified throw.
+                return {ok: false, status: 503};
             }
             expect.step("stream");
             const text = streamEvents
@@ -186,7 +195,7 @@ test("persists messages across remount and deletes the conversation", async () =
         getLoadMessages: () => chatFromStore(store),
     });
 
-    await mountWithCleanup(AiAssistantSystray);
+    const assistant = await mountWithCleanup(AiAssistantSystray);
     await openPanelAndAsk("Hi there");
     expect(".o_ai_assistant_message").toHaveCount(2);
     expect(
@@ -194,6 +203,7 @@ test("persists messages across remount and deletes the conversation", async () =
     ).toBe(true);
     expect(".o_ai_assistant_sessions option").toHaveCount(3);
 
+    destroy(assistant);
     await mountWithCleanup(AiAssistantSystray);
     await click(".o_ai_assistant_systray a");
     await animationFrame();
@@ -234,6 +244,7 @@ test("closing the panel keeps the conversation", async () => {
     await tick();
     expect(".o_ai_assistant_panel").toHaveCount(1);
     expect(".o_ai_assistant_message").toHaveCount(2);
+    expect.verifySteps(["load:session-test-key"]);
 });
 
 test("opening the panel does not load a draft conversation", async () => {
@@ -650,7 +661,9 @@ test("stream status updates then appends the done body", async () => {
     await openPanelAndAsk("How many RFQs?");
     expect.verifySteps(["stream"]);
     expect(".o_ai_assistant_message").toHaveCount(2);
-    expect(".o_ai_assistant_message_assistant").toHaveText("Three RFQs");
+    expect(".o_ai_assistant_message_assistant .o_ai_assistant_content").toHaveText(
+        "Three RFQs"
+    );
 });
 
 test("stream error event notifies without a second Agno run", async () => {
