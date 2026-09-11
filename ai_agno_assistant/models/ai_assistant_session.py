@@ -96,14 +96,17 @@ class AiAssistantSessionHelpers(models.AbstractModel):
                 "text": body or "",
                 "isHtml": bool(body_is_html),
             }
-            if citations:
-                assistant_entry["citations"] = [
-                    self._citation_storage_payload(entry)
-                    for entry in citations
-                    if isinstance(entry, dict)
-                    and entry.get("kb")
-                    and entry.get("title")
-                ]
+            stored_citations = []
+            for entry in citations or []:
+                if not isinstance(entry, dict):
+                    continue
+                if not entry.get("kb"):
+                    continue
+                if not entry.get("title"):
+                    continue
+                stored_citations.append(self._citation_storage_payload(entry))
+            if stored_citations:
+                assistant_entry["citations"] = stored_citations
             stored.append(assistant_entry)
             stored = stored[-_SESSION_MESSAGE_LIMIT:]
             title = (message or "").strip().replace("\n", " ")[:60] or session.name
@@ -182,13 +185,15 @@ class AiAssistantSessionHelpers(models.AbstractModel):
         if not isinstance(messages, list):
             messages = []
         for entry in messages:
-            if not isinstance(entry, dict) or entry.get("role") != "assistant":
+            if not isinstance(entry, dict):
                 continue
-            raw_citations = entry.get("citations")
-            if raw_citations:
-                entry["citations"] = self._sanitize_assistant_citations(raw_citations)
-            elif "citations" in entry:
-                entry["citations"] = []
+            if entry.get("role") != "assistant":
+                continue
+            if "citations" not in entry:
+                continue
+            entry["citations"] = self._sanitize_assistant_citations(
+                entry.get("citations") or []
+            )
         return {
             "session_id": session.id,
             "session_key": session.session_key,

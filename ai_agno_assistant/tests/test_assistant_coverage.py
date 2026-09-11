@@ -697,6 +697,14 @@ class TestAiAssistantCoverage(TransactionCase):
         self.assertEqual(
             stored[-1]["citations"], [{"kb": "hr", "title": "Leave policy"}]
         )
+        self.Assistant._remember_chat_turn(
+            "Hi",
+            "ok",
+            False,
+            session_key=created["session_key"],
+        )
+        loaded_bare = self.Assistant.action_ai_load_session(created["session_key"])
+        self.assertNotIn("citations", loaded_bare["messages"][-1])
 
     def test_markdownish_headings_lists_and_filename(self):
         html = markdownish_to_html(
